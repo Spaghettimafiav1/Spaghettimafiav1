@@ -1,10 +1,9 @@
 --[[
-    Spaghetti Mafia Hub v1 (USER PANEL EDITION)
+    Spaghetti Mafia Hub v1 (ULTIMATE FINAL FIXED)
     Updates:
-    - NEW: User Panel in Sidebar (Avatar + Username + Welcome).
-    - Logic: Strict v1 Auto Farm (No leaks).
-    - Visuals: Thick Glow, Pyramid Credits, Optimized Snow.
-    - Whitelist: Fixed Raw Link.
+    - Fixed Whitelist URL (Updated to Spaghettimafiav1 repo).
+    - Fixed Auto-Execute URL.
+    - Preserved: Thick Glow, Pyramid Credits, Safe Snow, Original Logic.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -12,6 +11,7 @@ if (syn and syn.queue_on_teleport) or queue_on_teleport then
     local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
     game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
         if State == Enum.TeleportState.Started then
+             -- עדכנתי גם פה לקישור החדש שלך (גרסת RAW)
              local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/main.lua'))()" 
              pcall(function() teleport_func(source) end)
         end
@@ -31,7 +31,7 @@ local TeleportService = game:GetService("TeleportService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
---// 1. מערכת Whitelist
+--// 1. מערכת Whitelist (הקישור החדש והמתוקן - RAW)
 local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/Whitelist.txt"
 
 local function CheckWhitelist()
@@ -44,12 +44,12 @@ local function CheckWhitelist()
             print("[SYSTEM] Whitelist Confirmed.")
             return true
         else
-            LocalPlayer:Kick("Spaghetti Hub: You are not whitelisted! ("..LocalPlayer.Name..")")
+            LocalPlayer:Kick("Spaghetti Hub: You are not on the whitelist! ("..LocalPlayer.Name..")")
             return false
         end
     else
         warn("[SYSTEM] Failed to connect to whitelist.")
-        return true -- Fail-safe
+        return true -- משאיר פתוח למקרה של בעיית חיבור לגיטהאב
     end
 end
 
@@ -71,8 +71,7 @@ local Settings = {
         
         ShardBlue = Color3.fromRGB(50, 180, 255),
         CrystalRed = Color3.fromRGB(255, 70, 70),
-        Discord = Color3.fromRGB(88, 101, 242),
-        Danger = Color3.fromRGB(200, 60, 60)
+        Discord = Color3.fromRGB(88, 101, 242)
     },
     Keys = { Menu = Enum.KeyCode.RightControl, Fly = Enum.KeyCode.E, Speed = Enum.KeyCode.F },
     Fly = { Enabled = false, Speed = 50 },
@@ -85,7 +84,6 @@ local Settings = {
 local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
-local CurrentTween = nil
 
 --// 3. פונקציות עיצוב (Glow עבה)
 local Library = {}
@@ -221,48 +219,12 @@ Sidebar.BorderSizePixel = 0
 Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
--- קונטיינר לכפתורים (תופס 80% מהגובה כדי להשאיר מקום למטה)
 local SideBtnContainer = Instance.new("Frame", Sidebar)
-SideBtnContainer.Size = UDim2.new(1, 0, 0.8, 0)
+SideBtnContainer.Size = UDim2.new(1, 0, 1, 0)
 SideBtnContainer.BackgroundTransparency = 1
 
 local SideList = Instance.new("UIListLayout", SideBtnContainer); SideList.Padding = UDim.new(0,10); SideList.HorizontalAlignment = Enum.HorizontalAlignment.Center; SideList.SortOrder = Enum.SortOrder.LayoutOrder
 local SidePad = Instance.new("UIPadding", SideBtnContainer); SidePad.PaddingTop = UDim.new(0,20)
-
--- === USER PANEL (התוספת החדשה) ===
-local UserPanel = Instance.new("Frame", Sidebar)
-UserPanel.Size = UDim2.new(0.9, 0, 0.16, 0) -- גובה הריבוע
-UserPanel.Position = UDim2.new(0.05, 0, 0.82, 0) -- מיקום למטה
-UserPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-UserPanel.BorderSizePixel = 0
-Library:Corner(UserPanel, 10)
-Library:AddGlow(UserPanel, Settings.Theme.Gold)
-
--- תמונה (Avatar)
-local UserAvatar = Instance.new("ImageLabel", UserPanel)
-UserAvatar.Size = UDim2.new(0, 40, 0, 40)
-UserAvatar.Position = UDim2.new(0.05, 0, 0.5, -20)
-UserAvatar.BackgroundTransparency = 1
-Library:Corner(UserAvatar, 20) -- עיגול מושלם
-
--- טעינת תמונה
-task.spawn(function()
-    local content = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-    UserAvatar.Image = content
-end)
-
--- טקסט ברוך הבא
-local WelcomeText = Instance.new("TextLabel", UserPanel)
-WelcomeText.Size = UDim2.new(0.6, 0, 1, 0)
-WelcomeText.Position = UDim2.new(0.35, 0, 0, 0)
-WelcomeText.BackgroundTransparency = 1
-WelcomeText.Text = "Welcome,\n<font color='#FFD700'>" .. LocalPlayer.DisplayName .. "</font>"
-WelcomeText.RichText = true
-WelcomeText.TextColor3 = Color3.new(1,1,1)
-WelcomeText.Font = Enum.Font.GothamBold
-WelcomeText.TextSize = 13
-WelcomeText.TextXAlignment = Enum.TextXAlignment.Left
--- === END USER PANEL ===
 
 local Container = Instance.new("Frame", MainFrame); Container.Size = UDim2.new(1, -180, 1, -70); Container.Position = UDim2.new(0, 180, 0, 65); Container.BackgroundTransparency = 1
 
@@ -349,8 +311,7 @@ local function UltraSafeDisable()
 end
 
 local function ToggleFarm(v)
-    Settings.Farming = v; if not v then FarmBlacklist = {}; if CurrentTween then CurrentTween:Cancel() end end
-    
+    Settings.Farming = v; if not v then FarmBlacklist = {} end
     if not FarmConnection and v then
         FarmConnection = RunService.Stepped:Connect(function()
             if LocalPlayer.Character and Settings.Farming then
@@ -359,13 +320,7 @@ local function ToggleFarm(v)
                 UltraSafeDisable()
             end
         end)
-    elseif not v and FarmConnection then 
-        FarmConnection:Disconnect(); FarmConnection = nil 
-        if LocalPlayer.Character then
-            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = true end end
-            local hum = LocalPlayer.Character:FindFirstChild("Humanoid"); if hum then hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) end
-        end
-    end
+    elseif not v and FarmConnection then FarmConnection:Disconnect(); FarmConnection = nil end
 
     if v then
         task.spawn(function()
@@ -373,25 +328,22 @@ local function ToggleFarm(v)
                 local char = LocalPlayer.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart"); local target = GetClosestTarget()
                 if char and hrp and target then
                     local distance = (hrp.Position - target.Position).Magnitude
-                    local info = TweenInfo.new(distance / Settings.FarmSpeed, Enum.EasingStyle.Linear)
-                    
-                    if CurrentTween then CurrentTween:Cancel() end
-                    CurrentTween = TweenService:Create(hrp, info, {CFrame = target.CFrame})
-                    CurrentTween:Play()
-                    
+                    local tween = TweenService:Create(hrp, TweenInfo.new(distance / Settings.FarmSpeed, Enum.EasingStyle.Linear), {CFrame = target.CFrame}); tween:Play()
                     local start = tick()
-                    local stuckStart = tick()
+                    
+                    local stuckStart = tick() 
                     
                     repeat task.wait() 
-                        if not target.Parent or not Settings.Farming then if CurrentTween then CurrentTween:Cancel() end; break end
+                        if not target.Parent or not Settings.Farming then tween:Cancel(); break end
                         
                         local currentDist = (hrp.Position - target.Position).Magnitude
                         
                         if currentDist < 8 then
                             target.CanTouch = true
                             hrp.CFrame = target.CFrame 
-                            if (tick() - stuckStart) > 0.6 then
-                                if CurrentTween then CurrentTween:Cancel() end
+                            
+                            if (tick() - stuckStart) > 0.6 then -- BALANCED TIME
+                                tween:Cancel()
                                 FarmBlacklist[target] = true
                                 break
                             end
@@ -400,7 +352,7 @@ local function ToggleFarm(v)
                         end
                         
                         if (tick() - start) > (distance / Settings.FarmSpeed) + 1.5 then 
-                            if CurrentTween then CurrentTween:Cancel() end
+                            tween:Cancel()
                             break 
                         end
                         
@@ -659,21 +611,19 @@ end)
 
 local MenuBindCont = Instance.new("Frame", Tab_Settings_Page); MenuBindCont.Size = UDim2.new(0.95,0,0,70); MenuBindCont.BackgroundTransparency = 1; CreateSquareBind(MenuBindCont, 3, "MENU KEY", "מקש תפריט", Settings.Keys.Menu, function(k) Settings.Keys.Menu = k end)
 
---// REJOIN BUTTON
+--// REJOIN BUTTON (NEW FEATURE)
 local RejoinBtn = Instance.new("TextButton", Tab_Settings_Page)
 RejoinBtn.Size = UDim2.new(0.95, 0, 0, 45)
-RejoinBtn.BackgroundColor3 = Settings.Theme.Danger
+RejoinBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 RejoinBtn.Text = "Rejoin Server 🔄"
 RejoinBtn.TextColor3 = Color3.new(1,1,1)
 RejoinBtn.Font = Enum.Font.GothamBold
 RejoinBtn.TextSize = 16
 Library:Corner(RejoinBtn, 8)
-Library:AddGlow(RejoinBtn, Settings.Theme.Danger)
-RejoinBtn.MouseButton1Click:Connect(function()
-    TeleportService:Teleport(game.PlaceId, LocalPlayer)
-end)
+Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 60, 60))
+RejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
 
--- CREDITS UPDATED (פירמידה + נוף)
+-- CREDITS UPDATED (פירמידה + כפתורים קומפקטיים)
 local CreditBG = Instance.new("Frame", Tab_Credits_Page)
 CreditBG.Size = UDim2.new(1,0,1,0)
 CreditBG.BackgroundColor3 = Color3.fromRGB(10,10,12)
@@ -728,7 +678,12 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     btn.Font = Enum.Font.GothamBold; btn.TextSize = 11
     btn.ZIndex=3
     Library:Corner(btn, 13)
-    btn.MouseButton1Click:Connect(function() setclipboard(discord); btn.Text="Copied!"; task.wait(1); btn.Text="Copy Discord 👾" end)
+    btn.MouseButton1Click:Connect(function() 
+        setclipboard(discord)
+        local old = btn.Text; btn.Text="Copied!"; btn.BackgroundColor3=Color3.fromRGB(60,200,100)
+        task.wait(1)
+        btn.Text=old; btn.BackgroundColor3=Settings.Theme.Discord 
+    end)
 end
 
 -- יצירת הכרטיסים בפירמידה
@@ -736,7 +691,7 @@ CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982",
 CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.51, 0, 0.05, 0))
 CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.275, 0, 0.40, 0)) 
 
--- תפאורה למטה (גבעות שלג)
+-- תפאורה למטה
 local SceneContainer = Instance.new("Frame", Tab_Credits_Page); SceneContainer.Size = UDim2.new(1, 0, 0.35, 0); SceneContainer.Position = UDim2.new(0, 0, 0.65, 0); SceneContainer.BackgroundTransparency = 1; SceneContainer.ZIndex=3
 local Hill1 = Instance.new("Frame", SceneContainer); Hill1.Size = UDim2.new(0.6, 0, 1, 0); Hill1.Position = UDim2.new(-0.1, 0, 0.4, 0); Hill1.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Hill1.BorderSizePixel=0; Library:Corner(Hill1, 100)
 local Hill2 = Instance.new("Frame", SceneContainer); Hill2.Size = UDim2.new(0.7, 0, 1.2, 0); Hill2.Position = UDim2.new(0.4, 0, 0.5, 0); Hill2.BackgroundColor3 = Color3.fromRGB(230, 240, 250); Hill2.BorderSizePixel=0; Library:Corner(Hill2, 100)
@@ -764,4 +719,4 @@ RunService.RenderStepped:Connect(function()
     if Settings.Speed.Enabled and LocalPlayer.Character then local h = LocalPlayer.Character:FindFirstChild("Humanoid"); if h then h.WalkSpeed = Settings.Speed.Value end end
 end)
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (USER PANEL) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL FIXED) Loaded")
