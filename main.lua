@@ -1,11 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v2 (DESIGN OVERHAUL)
+    Spaghetti Mafia Hub v2.1 (FIXED WHITELIST & ULTIMATE DESIGN)
     Updates:
-    - New "Pyramid" Credits Layout.
+    - Fixed Whitelist URL (Now uses Raw link).
+    - "Pyramid" Credits Layout.
     - Sinking Snowman & Trees Scenery.
     - Enhanced Golden Glow & Dark Theme.
     - Smooth Snow Animation.
-    - Preserved all original Auto Farm logic.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -13,7 +13,7 @@ if (syn and syn.queue_on_teleport) or queue_on_teleport then
     local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
     game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
         if State == Enum.TeleportState.Started then
-             local source = "loadstring(game:HttpGet("https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/refs/heads/main/main.lua"))()" 
+             local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/neho431/SpaghettiKeys/main/loader.lua'))()" 
              pcall(function() teleport_func(source) end)
         end
     end)
@@ -31,24 +31,29 @@ local Debris = game:GetService("Debris")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
---// 1. מערכת Whitelist (ללא שינוי)
-local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/refs/heads/main/Whitelist.txt"
+--// 1. מערכת Whitelist (מתוקן)
+-- הקישור הוחלף ל-RAW כדי שהסקריפט יוכל לקרוא את הטקסט
+local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/Whitelist.txt"
 
 local function CheckWhitelist()
     local success, content = pcall(function()
+        -- הוספנו tick() כדי למנוע Cache (שהסקריפט יזכור רשימה ישנה)
         return game:HttpGet(WHITELIST_URL .. "?t=" .. tick())
     end)
     
     if success and content then
+        -- בדיקה אם השם נמצא בתוכן
         if string.find(content, LocalPlayer.Name) then
-            print("[SYSTEM] Whitelist Confirmed.")
+            print("[SYSTEM] Whitelist Confirmed for: " .. LocalPlayer.Name)
             return true
         else
-            LocalPlayer:Kick("אין לך גישה לסקריפט!")
+            -- הודעת שגיאה ברורה יותר
+            LocalPlayer:Kick("Spaghetti Hub: You are not whitelisted!\nContact support.")
             return false
         end
     else
-        LocalPlayer:Kick("שגיאת חיבור לשרת האימות")
+        warn("[SYSTEM] Failed to fetch whitelist.")
+        LocalPlayer:Kick("שגיאת חיבור לשרת האימות (GitHub Raw Error)")
         return false
     end
 end
@@ -778,4 +783,4 @@ RunService.RenderStepped:Connect(function()
     if Settings.Speed.Enabled and LocalPlayer.Character then local h = LocalPlayer.Character:FindFirstChild("Humanoid"); if h then h.WalkSpeed = Settings.Speed.Value end end
 end)
 
-print("[SYSTEM] Spaghetti Mafia Hub v2 (Ultimate Design) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v2.1 (Whitelist Fixed) Loaded")
