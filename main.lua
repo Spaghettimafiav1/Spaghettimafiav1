@@ -1,10 +1,10 @@
 --[[
-    Spaghetti Mafia Hub v1 (COMPACT + SMOOTH + CLEAN CREDITS)
+    Spaghetti Mafia Hub v1 (COMPACT + SMOOTH + LOADING BAR)
     Updates:
-    - Reduced GUI Size (Compact Mode).
-    - Smoother Animations (Quart/Back instead of Elastic).
-    - Removed RGB/Rainbow Borders.
-    - Fixed Credits Spacing (Less crowded).
+    - Added Loading Bar to Intro.
+    - Fixed Credits Spacing (Tightened the pyramid).
+    - Preserved Compact Size & Smooth Animations.
+    - NO RGB Borders.
     - All Original Logic Preserved.
 ]]
 
@@ -88,7 +88,6 @@ local FarmBlacklist = {}
 
 --// 3. פונקציות עיצוב (Glow עבה)
 local Library = {}
--- שיניתי את הסטייל ברירת המחדל ל-Quart (חלק יותר)
 function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play() end
 
 function Library:AddGlow(obj, color) 
@@ -142,7 +141,7 @@ end
 --// 4. מסך טעינה
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
--- הקטנתי את מסך הטעינה מעט
+-- גודל קומפקטי לטעינה
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
 LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -153,21 +152,40 @@ Library:Corner(LoadBox, 20)
 Library:AddGlow(LoadBox, Settings.Theme.Gold)
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
-PastaIcon.Size = UDim2.new(1, 0, 0.5, 0); PastaIcon.Position = UDim2.new(0,0,0.1,0)
-PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 65; PastaIcon.ZIndex = 15
-TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.55, 0)}):Play()
+PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
+PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
+TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}):Play()
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
-TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.55, 0)
+TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
 TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
-TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 20
+TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
-SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.75, 0)
+SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען..."; 
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
+
+-- [NEW] Loading Bar
+local LoadingBarBG = Instance.new("Frame", LoadBox)
+LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
+LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
+LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
+LoadingBarBG.BorderSizePixel = 0
+LoadingBarBG.ZIndex = 16
+Library:Corner(LoadingBarBG, 5)
+
+local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
+LoadingBarFill.Size = UDim2.new(0, 0, 1, 0)
+LoadingBarFill.BackgroundColor3 = Settings.Theme.Gold
+LoadingBarFill.BorderSizePixel = 0
+LoadingBarFill.ZIndex = 17
+Library:Corner(LoadingBarFill, 5)
+
+-- אנימציה לבר טעינה
+Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 2.5, Enum.EasingStyle.Quad)
 
 task.spawn(function()
     while LoadBox.Parent do
@@ -185,7 +203,7 @@ local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"
 local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.new(0, 60, 0, 60); MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); MiniPasta.BackgroundColor3 = Settings.Theme.Box; MiniPasta.Text = "🍝"; MiniPasta.TextSize = 35; MiniPasta.Visible = false; Library:Corner(MiniPasta, 30); Library:AddGlow(MiniPasta); Library:MakeDraggable(MiniPasta)
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
--- גודל חדש קומפקטי יותר (היה 650x440)
+-- גודל קומפקטי
 local NEW_WIDTH = 550
 local NEW_HEIGHT = 370
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
@@ -195,7 +213,7 @@ MainFrame.ClipsDescendants = true;
 Library:Corner(MainFrame, 16); 
 Library:AddGlow(MainFrame, Settings.Theme.Gold)
 
--- אנימציה חלקה (Back/Quart) במקום Elastic
+-- אנימציה חלקה (Back/Quart)
 MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.6, Enum.EasingStyle.Quart) 
 
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
@@ -219,7 +237,7 @@ MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFr
 
 --// Sidebar
 local Sidebar = Instance.new("Frame", MainFrame)
-Sidebar.Size = UDim2.new(0, 150, 1, -65) -- צמצמתי טיפה את רוחב התפריט
+Sidebar.Size = UDim2.new(0, 150, 1, -65)
 Sidebar.Position = UDim2.new(0,0,0,65)
 Sidebar.BackgroundColor3 = Settings.Theme.Box
 Sidebar.BorderSizePixel = 0 
@@ -630,7 +648,7 @@ Library:Corner(RejoinBtn, 8)
 Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 60, 60))
 RejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
 
--- CREDITS UPDATED (פירמידה מרווחת יותר + כרטיסים קטנים יותר)
+-- CREDITS UPDATED (פירמידה הדוקה יותר + כרטיסים קטנים יותר)
 local CreditBG = Instance.new("Frame", Tab_Credits_Page)
 CreditBG.Size = UDim2.new(1,0,1,0)
 CreditBG.BackgroundColor3 = Color3.fromRGB(10,10,12)
@@ -694,12 +712,12 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     end)
 end
 
--- יצירת הכרטיסים בפירמידה (מרווח יותר)
+-- יצירת הכרטיסים בפירמידה (תיקון רווחים - הרבה יותר קרוב)
 -- שורה עליונה
-CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.02, 0, 0.05, 0)) 
-CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.56, 0, 0.05, 0))
--- שורה תחתונה (נמוכה יותר)
-CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.29, 0, 0.55, 0)) 
+CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.04, 0, 0.05, 0)) -- קירבתי לאמצע
+CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.54, 0, 0.05, 0)) -- קירבתי לאמצע
+-- שורה תחתונה (העליתי למעלה)
+CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.29, 0, 0.42, 0)) 
 
 -- תפאורה למטה
 local SceneContainer = Instance.new("Frame", Tab_Credits_Page); SceneContainer.Size = UDim2.new(1, 0, 0.35, 0); SceneContainer.Position = UDim2.new(0, 0, 0.65, 0); SceneContainer.BackgroundTransparency = 1; SceneContainer.ZIndex=3
