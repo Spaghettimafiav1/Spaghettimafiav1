@@ -1,10 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE GLOW & CREDITS FIX)
+    Spaghetti Mafia Hub v1.5 (CLEANEST VERSION)
     Updates:
-    - Fixed Credit IDs (Neho, BadShot, Xyth).
-    - Fixed ZIndex issues (Text/Buttons now visible).
-    - ULTRA THICK GLOW (UIStroke Thickness = 3.5).
-    - Whitelist RAW link.
+    - Removed "Welcome" box.
+    - Fixed Credit Card spacing & alignment (Pyramid).
+    - Improved Snow Floor (Rounded corners, better position).
+    - Thick Glow preserved.
+    - Whitelist Raw Link fixed.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -48,7 +49,7 @@ local function CheckWhitelist()
         end
     else
         warn("[SYSTEM] Failed to connect to whitelist.")
-        return true -- משאיר פתוח לבינתיים למקרה שגיטהאב עושה בעיות
+        return true 
     end
 end
 
@@ -60,7 +61,7 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 215, 0), -- צהוב קלאסי חזק
+        Gold = Color3.fromRGB(255, 215, 0),
         Dark = Color3.fromRGB(10, 10, 12),
         Box = Color3.fromRGB(18, 18, 22),
         Text = Color3.fromRGB(255, 255, 255),
@@ -83,18 +84,17 @@ local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
 
---// 3. פונקציות עזר לעיצוב (Glow עבה)
+--// 3. פונקציות עזר (Glow עבה)
 local Library = {}
 function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out), props):Play() end
 
 function Library:AddGlow(obj, color) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 3.5 -- עבה מאוד!
-    s.Transparency = 0.3 -- שקיפות קלה כדי שזה יראה זוהר
+    s.Thickness = 3.5 
+    s.Transparency = 0.3
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
-    -- אנימציית דופק (Pulse)
     task.spawn(function()
         while obj.Parent do
             TweenService:Create(s, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.6}):Play()
@@ -103,7 +103,6 @@ function Library:AddGlow(obj, color)
             task.wait(1)
         end
     end)
-    
     return s 
 end
 
@@ -445,7 +444,7 @@ task.spawn(function() while Tab_Credits_Page.Parent do SpawnSnow(CreditSnow); ta
 local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     -- הכרטיס עצמו
     local c = Instance.new("Frame", parent)
-    c.Size = size or UDim2.new(0.48, 0, 0, 140)
+    c.Size = size or UDim2.new(0.45, 0, 0, 130) -- קצת יותר קטן למרווח
     c.Position = pos or UDim2.new(0,0,0,0)
     c.BackgroundColor3 = Settings.Theme.Box
     c.ZIndex = 2 -- רמה 2
@@ -506,18 +505,17 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     return c
 end
 
--- שימוש ישיר בטאב כדי למנוע בעיות ZIndex של Frames
-CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.02, 0, 0.05, 0))
-CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.51, 0, 0.05, 0))
-CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.26, 0, 0.42, 0))
+-- שימוש ישיר בטאב - מיקומים מדויקים יותר וקטנים יותר
+CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.04, 0, 0.08, 0))
+CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.51, 0, 0.08, 0))
+CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.275, 0, 0.45, 0))
 
--- תפאורה למטה
+-- תפאורה למטה - מעוצבת יותר נקי
 local SceneContainer = Instance.new("Frame", Tab_Credits_Page); SceneContainer.Size = UDim2.new(1, 0, 0.25, 0); SceneContainer.Position = UDim2.new(0, 0, 0.75, 0); SceneContainer.BackgroundTransparency = 1; SceneContainer.ZIndex=3
-local Ground = Instance.new("Frame", SceneContainer); Ground.Size = UDim2.new(1, 0, 0.6, 0); Ground.Position = UDim2.new(0, 0, 0.5, 0); Ground.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Ground.BorderSizePixel = 0; Library:Gradient(Ground, Color3.fromRGB(200, 220, 240), Color3.fromRGB(255, 255, 255), 90)
-local Snowman = Instance.new("TextLabel", SceneContainer); Snowman.Text = "⛄"; Snowman.Size = UDim2.new(0, 80, 0, 80); Snowman.Position = UDim2.new(0.1, 0, 0.3, 0); Snowman.BackgroundTransparency = 1; Snowman.TextSize = 70; Snowman.Rotation = -10
-local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 100, 0, 100); Tree1.Position = UDim2.new(0.8, 0, 0.2, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 90
-local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 80, 0, 80); Tree2.Position = UDim2.new(0.65, 0, 0.35, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 70
-local WelcomeMsg = Instance.new("TextLabel", SceneContainer); WelcomeMsg.Text = "!ברוך הבא"; WelcomeMsg.Size = UDim2.new(0, 200, 0, 30); WelcomeMsg.Position = UDim2.new(0.3, 0, 0.7, 0); WelcomeMsg.BackgroundTransparency = 1; WelcomeMsg.Font = Enum.Font.GothamBlack; WelcomeMsg.TextSize = 20; WelcomeMsg.TextColor3 = Settings.Theme.Gold; Library:AddGlow(WelcomeMsg, Color3.new(0,0,0))
+local Ground = Instance.new("Frame", SceneContainer); Ground.Size = UDim2.new(1, 0, 1, 0); Ground.Position = UDim2.new(0, 0, 0.3, 0); Ground.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Ground.BorderSizePixel = 0; Library:Corner(Ground, 16)
+local Snowman = Instance.new("TextLabel", SceneContainer); Snowman.Text = "⛄"; Snowman.Size = UDim2.new(0, 60, 0, 60); Snowman.Position = UDim2.new(0.05, 0, 0.1, 0); Snowman.BackgroundTransparency = 1; Snowman.TextSize = 50; Snowman.Rotation = -10; Snowman.ZIndex=4
+local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 80, 0, 80); Tree1.Position = UDim2.new(0.85, 0, 0, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 70; Tree1.ZIndex=4
+local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 60, 0, 60); Tree2.Position = UDim2.new(0.75, 0, 0.15, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 50; Tree2.ZIndex=4
 
 --// 10. ניהול מקשים
 UIS.InputBegan:Connect(function(i,g)
@@ -529,4 +527,4 @@ UIS.InputBegan:Connect(function(i,g)
 end)
 RunService.RenderStepped:Connect(function() if Settings.Speed.Enabled and LocalPlayer.Character then local h = LocalPlayer.Character:FindFirstChild("Humanoid"); if h then h.WalkSpeed = Settings.Speed.Value end end end)
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (GLOW FIX FINAL) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1.5 (FINAL CLEAN) Loaded")
