@@ -1,9 +1,10 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE FINAL FIXED)
+    Spaghetti Mafia Hub v1 (ULTIMATE FINAL FIXED + ANIMATIONS)
     Updates:
     - Fixed Whitelist URL (Updated to Spaghettimafiav1 repo).
     - Fixed Auto-Execute URL.
     - Preserved: Thick Glow, Pyramid Credits, Safe Snow, Original Logic.
+    - ADDED: RGB Rainbow Animations & Button Effects (Without deleting original code).
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -719,4 +720,71 @@ RunService.RenderStepped:Connect(function()
     if Settings.Speed.Enabled and LocalPlayer.Character then local h = LocalPlayer.Character:FindFirstChild("Humanoid"); if h then h.WalkSpeed = Settings.Speed.Value end end
 end)
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL FIXED) Loaded")
+---------------------------------------------------------------------------------------------------
+--// [ADDED SECTION] ANIMATION UPGRADES (RGB BORDERS, TEXT & HOVER EFFECTS)
+-- לא נגעתי בקוד המקורי, הוספתי את הקסם פה למטה :)
+---------------------------------------------------------------------------------------------------
+
+task.spawn(function()
+    -- 1. Rainbow Cycle Loop
+    while MainFrame.Parent do
+        local hue = tick() % 5 / 5 -- מחזור של 5 שניות לכל הקשת
+        local rainbowColor = Color3.fromHSV(hue, 1, 1) -- צבע קשת מלא
+        local pastelColor = Color3.fromHSV(hue, 0.6, 1) -- צבע עדין יותר לטקסט
+
+        -- אנימציה למסגרת הראשית (Glow)
+        local mainStroke = MainFrame:FindFirstChildOfClass("UIStroke")
+        if mainStroke then
+            TweenService:Create(mainStroke, TweenInfo.new(0.5), {Color = rainbowColor}):Play()
+        end
+
+        -- אנימציה לכפתור סגירה (Glow)
+        if CloseBtn then
+            local closeStroke = CloseBtn:FindFirstChildOfClass("UIStroke")
+            if closeStroke then
+                TweenService:Create(closeStroke, TweenInfo.new(0.5), {Color = rainbowColor}):Play()
+            end
+            CloseBtn.TextColor3 = rainbowColor
+        end
+
+        -- אנימציה לכותרת (רק לחלק של ה-"MAFIA")
+        -- בגלל שהטקסט ב-RichText, נשנה את הצבע הכללי של הטקסט שאינו מוגדר
+        if MainTitle then
+             -- שינוי עדין של צבע הטקסט הלבן
+             -- MainTitle.TextColor3 = pastelColor 
+             -- הערה: זה עלול להתנגש עם ה-RichText, אז נשאיר את זה נקי או נשנה רק את ה-Glow אם יש
+        end
+
+        -- אנימציית נשימה לכפתור המיני (פסטה)
+        if MiniPasta and MiniPasta.Visible then
+            local scale = 1 + math.sin(tick() * 3) * 0.1 -- פעימה
+            MiniPasta.Rotation = math.sin(tick() * 2) * 5 -- נידנוד
+        end
+
+        task.wait(0.1)
+    end
+end)
+
+-- 2. הוספת אפקט "גדילה" (Pop) לכל הכפתורים בתפריט הצד
+for _, btn in pairs(SideBtnContainer:GetChildren()) do
+    if btn:IsA("TextButton") then
+        btn.MouseEnter:Connect(function()
+            Library:Tween(btn, {Size = UDim2.new(0.95, 0, 0, 45)}, 0.2, Enum.EasingStyle.Back) -- גדל
+        end)
+        btn.MouseLeave:Connect(function()
+            Library:Tween(btn, {Size = UDim2.new(0.9, 0, 0, 45)}, 0.2, Enum.EasingStyle.Quad) -- חוזר
+        end)
+    end
+end
+
+-- 3. הוספת אפקט לכפתור ה-Rejoin
+if RejoinBtn then
+    RejoinBtn.MouseEnter:Connect(function()
+        Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(230, 80, 80)}, 0.2)
+    end)
+    RejoinBtn.MouseLeave:Connect(function()
+        Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2)
+    end)
+end
+
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL FIXED + ANIMATED) Loaded")
