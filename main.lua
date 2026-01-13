@@ -11,7 +11,7 @@ if (syn and syn.queue_on_teleport) or queue_on_teleport then
     local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
     game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
         if State == Enum.TeleportState.Started then
-             local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/neho431/SpaghettiKeys/main/loader.lua'))()" 
+             local source = "https://github.com/Spaghettimafiav1/Spaghettimafiav1/edit/main/main.lua" 
              pcall(function() teleport_func(source) end)
         end
     end)
@@ -31,7 +31,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 --// 1. מערכת Whitelist (המקורית שלך - תיקנתי רק ל-RAW כדי שיעבוד)
-local WHITELIST_URL = "https://raw.githubusercontent.com/neho431/SpaghettiKeys/main/whitelist.txt"
+local WHITELIST_URL = "https://github.com/Spaghettimafiav1/Spaghettimafiav1/blob/main/Whitelist.txt"
 
 local function CheckWhitelist()
     local success, content = pcall(function()
