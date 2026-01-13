@@ -1,11 +1,10 @@
 --[[
-    Spaghetti Mafia Hub v1.7 (DEFINITIVE EDITION)
+    Spaghetti Mafia Hub v2.0 (OPTIMIZED & CLEAN DESIGN)
     Updates:
-    - REWRITE: Auto Farm logic is now strictly controlled. NOTHING runs if toggled off.
-    - VISUALS: "High-End" look, darker theme, smoother gradients.
-    - CREDITS: Fixed button overlapping, increased box size, centered elements.
-    - SCENERY: Created "Snow Hills" instead of a flat block.
-    - SETTINGS: Added Rejoin button.
+    - OPTIMIZATION: Snow system rewritten to prevent memory leaks (Lag fix).
+    - DESIGN: Spaced out Credit cards, pill-shaped buttons, thick neon glow.
+    - FUNCTION: Strict Auto-Farm logic preserved.
+    - VISUALS: Lowered snow hills to reveal text.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -50,7 +49,7 @@ local function CheckWhitelist()
         end
     else
         warn("[SYSTEM] Failed to connect to whitelist.")
-        return true -- Fail-safe enabled
+        return true 
     end
 end
 
@@ -63,8 +62,8 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0),
-        Dark = Color3.fromRGB(12, 12, 14), -- כהה יותר ויוקרתי
-        Box = Color3.fromRGB(20, 20, 24),
+        Dark = Color3.fromRGB(12, 12, 14), 
+        Box = Color3.fromRGB(18, 18, 22),
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(130, 220, 255),
@@ -73,7 +72,7 @@ local Settings = {
         CrystalRed = Color3.fromRGB(255, 80, 80),
         
         Discord = Color3.fromRGB(88, 101, 242),
-        Danger = Color3.fromRGB(200, 60, 60)
+        Danger = Color3.fromRGB(220, 50, 50)
     },
     Keys = { Menu = Enum.KeyCode.RightControl, Fly = Enum.KeyCode.E, Speed = Enum.KeyCode.F },
     Fly = { Enabled = false, Speed = 50 },
@@ -88,25 +87,23 @@ local FarmConnection = nil
 local CurrentTween = nil
 local FarmBlacklist = {}
 
---// 3. פונקציות עיצוב (GLOW + ROUNDING)
+--// 3. פונקציות עיצוב (GLOW THICK & OPTIMIZED)
 local Library = {}
 function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out), props):Play() end
 
 function Library:AddGlow(obj, color) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 2.5
-    s.Transparency = 0.4
+    s.Thickness = 4 -- עבה יותר ומרשים
+    s.Transparency = 0.5 -- שקיפות כדי שיראה כמו אור
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
-    -- אפקט נשימה עדין מאוד
+    -- אנימציית נשימה אופטימלית (פחות משאבים)
     task.spawn(function()
-        while obj.Parent do
-            TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.7}):Play()
-            task.wait(2)
-            TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.3}):Play()
-            task.wait(2)
-        end
+        local t1 = TweenService:Create(s, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Transparency = 0.2})
+        t1:Play()
+        -- מוחק את הטווין כשהאובייקט נמחק למניעת לאגים
+        obj.AncestryChanged:Connect(function() if not obj.Parent then t1:Cancel() end end)
     end)
     return s 
 end
@@ -121,25 +118,30 @@ function Library:MakeDraggable(obj)
     RunService.RenderStepped:Connect(function() if dragging and dragInput then local delta = dragInput.Position - dragStart; obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
 end
 
+-- אופטימיזציה לשלג: יוצר פחות אובייקטים ורץ בתדירות נמוכה יותר
 local function SpawnSnow(parent)
+    if not parent.Parent or not parent.Visible then return end -- מונע יצירה אם לא רואים
+    
     local flake = Instance.new("TextLabel", parent)
     flake.Text = "❄️"
     flake.BackgroundTransparency = 1
     flake.TextColor3 = Color3.fromRGB(255, 255, 255)
-    flake.Size = UDim2.new(0, math.random(15, 35), 0, math.random(15, 35))
+    flake.Size = UDim2.new(0, math.random(15, 30), 0, math.random(15, 30))
     flake.Position = UDim2.new(math.random(1, 100)/100, 0, -0.2, 0)
     flake.ZIndex = 1 
     flake.Name = "SnowFlake"
     flake.Rotation = math.random(0, 360)
-    flake.TextTransparency = math.random(3, 7) / 10 
-    local duration = math.random(4, 8)
+    flake.TextTransparency = math.random(4, 8) / 10 
+    
+    local duration = math.random(5, 9)
     local sway = math.random(-30, 30)
-    local targetRot = flake.Rotation + math.random(100, 300)
+    
     TweenService:Create(flake, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
         Position = UDim2.new(flake.Position.X.Scale, sway, 1.2, 0),
-        Rotation = targetRot
+        Rotation = flake.Rotation + 180
     }):Play()
-    Debris:AddItem(flake, duration + 0.5)
+    
+    Debris:AddItem(flake, duration) -- ניקוי ודאי
 end
 
 --// 4. מסך טעינה
@@ -172,9 +174,12 @@ SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.fromRGB(200,200,200
 SubLoad.ZIndex = 15
 
 task.spawn(function()
-    while LoadBox.Parent do SpawnSnow(LoadBox); task.wait(0.15) end
+    while LoadBox.Parent do 
+        SpawnSnow(LoadBox)
+        task.wait(0.3) -- הפחתת עומס בטעינה
+    end
 end)
-task.wait(2.5)
+task.wait(2)
 LoadGui:Destroy()
 
 --// 5. GUI ראשי
@@ -183,14 +188,14 @@ local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"
 local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.new(0, 60, 0, 60); MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); MiniPasta.BackgroundColor3 = Settings.Theme.Box; MiniPasta.Text = "🍝"; MiniPasta.TextSize = 35; MiniPasta.Visible = false; Library:Corner(MiniPasta, 30); Library:AddGlow(MiniPasta); Library:MakeDraggable(MiniPasta)
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
-MainFrame.Size = UDim2.new(0, 660, 0, 450) -- קצת יותר גדול כדי שהכל יכנס יפה
+MainFrame.Size = UDim2.new(0, 680, 0, 460) -- הגדלתי עוד קצת למרווח
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
 Library:Corner(MainFrame, 18); 
 Library:AddGlow(MainFrame, Settings.Theme.Gold)
 
-MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, 660, 0, 450)}, 0.6, Enum.EasingStyle.Elastic) 
+MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, 680, 0, 460)}, 0.6, Enum.EasingStyle.Elastic) 
 
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
@@ -209,7 +214,7 @@ MainSub.TextXAlignment = Enum.TextXAlignment.Left
 
 local CloseBtn = Instance.new("TextButton", TopBar); CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -45, 0, 15); CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); CloseBtn.Text = "_"; CloseBtn.TextColor3 = Settings.Theme.Gold; CloseBtn.Font=Enum.Font.GothamBold; CloseBtn.TextSize=18; Library:Corner(CloseBtn, 8); Library:AddGlow(CloseBtn, Settings.Theme.Gold)
 CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPasta.Visible = true; Library:Tween(MiniPasta, {Size = UDim2.new(0, 60, 0, 60)}, 0.4, Enum.EasingStyle.Elastic) end)
-MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, 660, 0, 450)}, 0.4, Enum.EasingStyle.Back) end)
+MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, 680, 0, 460)}, 0.4, Enum.EasingStyle.Back) end)
 
 --// Sidebar 
 local Sidebar = Instance.new("Frame", MainFrame)
@@ -289,7 +294,7 @@ local function AddLayout(p)
 end
 AddLayout(Tab_Main_Page); AddLayout(Tab_Settings_Page)
 
---// 6. מערכות לוגיקה (FARM LOGIC - STRICT & SAFE)
+--// 6. מערכות לוגיקה (FARM LOGIC)
 task.spawn(function() while true do task.wait(60); pcall(function() VirtualUser:CaptureController(); VirtualUser:ClickButton2(Vector2.new()) end) end end)
 
 local function GetClosestTarget()
@@ -299,45 +304,30 @@ local function GetClosestTarget()
     return closest
 end
 
--- פונקציה לביטול הכל (חזרה למצב רגיל)
+-- פונקציה לביטול הכל
 local function DisableAllFarmFeatures()
-    -- 1. Cancel Tween
     if CurrentTween then CurrentTween:Cancel(); CurrentTween = nil end
-    
-    -- 2. Restore Character Physics (Stop NoClip)
     if LocalPlayer.Character then
         for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then part.CanCollide = true end
         end
         local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then 
-            hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) -- Allow sitting again
-            hum.Sit = false 
-        end
+        if hum then hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true); hum.Sit = false end
         local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then hrp.Velocity = Vector3.new(0,0,0) end
     end
 end
 
--- הלולאה הראשית של החווה - רצה רק אם Toggle דלוק
+-- לולאת חווה
 local function StartFarmLoop()
     task.spawn(function()
         while Settings.Farming do
             local char = LocalPlayer.Character
             if char then
-                -- A. Strict NoClip (Only when farming)
-                for _, part in pairs(char:GetDescendants()) do 
-                    if part:IsA("BasePart") then part.CanCollide = false end 
-                end
-                
-                -- B. Anti-Sit / Anti-Stuck
+                for _, part in pairs(char:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
                 local hum = char:FindFirstChild("Humanoid")
-                if hum then 
-                    hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
-                    hum.Sit = false 
-                end
+                if hum then hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false); hum.Sit = false end
                 
-                -- C. Farm Logic
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 local target = GetClosestTarget()
                 
@@ -352,20 +342,16 @@ local function StartFarmLoop()
                     local start = tick()
                     local stuckStart = tick()
                     
-                    -- Wait until reached or canceled
                     repeat 
                         task.wait()
-                        if not Settings.Farming then break end -- Emergency Break
+                        if not Settings.Farming then break end 
                         if not target.Parent then break end
-                        
-                        -- Keep enforcing NoClip inside the loop
                         if hrp then hrp.Velocity = Vector3.zero end 
                         
                         local currentDist = (hrp.Position - target.Position).Magnitude
                         if currentDist < 8 then
-                            target.CanTouch = true
-                            hrp.CFrame = target.CFrame
-                            if (tick() - stuckStart) > 0.6 then -- Anti Stuck
+                            target.CanTouch = true; hrp.CFrame = target.CFrame
+                            if (tick() - stuckStart) > 0.6 then 
                                 if CurrentTween then CurrentTween:Cancel() end
                                 FarmBlacklist[target] = true
                                 break 
@@ -373,11 +359,7 @@ local function StartFarmLoop()
                         else
                             stuckStart = tick()
                         end
-                        
-                        if (tick() - start) > (distance / Settings.FarmSpeed) + 1.5 then -- Timeout
-                            if CurrentTween then CurrentTween:Cancel() end
-                            break 
-                        end
+                        if (tick() - start) > (distance / Settings.FarmSpeed) + 1.5 then if CurrentTween then CurrentTween:Cancel() end; break end
                     until not target.Parent or not Settings.Farming
                 else
                     task.wait(0.1)
@@ -385,20 +367,13 @@ local function StartFarmLoop()
             end
             task.wait()
         end
-        -- כשהלולאה נגמרת (Farming = false) - נקה הכל
         DisableAllFarmFeatures()
     end)
 end
 
--- פונקציית הטוגל הראשית
 local function ToggleFarm(v)
     Settings.Farming = v
-    if v then
-        FarmBlacklist = {}
-        StartFarmLoop()
-    else
-        DisableAllFarmFeatures()
-    end
+    if v then FarmBlacklist = {}; StartFarmLoop() else DisableAllFarmFeatures() end
 end
 
 local function ToggleFly(v)
@@ -420,7 +395,14 @@ end
 --// 7. Event Tab
 local EventBackground = Instance.new("Frame", Tab_Event_Page); EventBackground.Size = UDim2.new(1,0,1,0); EventBackground.ZIndex = 0; Library:Gradient(EventBackground, Color3.fromRGB(15, 30, 50), Color3.fromRGB(5, 10, 20), 45)
 local EventSnowContainer = Instance.new("Frame", Tab_Event_Page); EventSnowContainer.Size = UDim2.new(1,0,1,0); EventSnowContainer.BackgroundTransparency = 1; EventSnowContainer.ClipsDescendants = true; EventSnowContainer.ZIndex = 1
-task.spawn(function() while Tab_Event_Page.Parent do SpawnSnow(EventSnowContainer); task.wait(0.2) end end)
+
+-- שלג רק כשהטאב פעיל (תיקון לאגים)
+task.spawn(function() 
+    while Tab_Event_Page.Parent do 
+        if Tab_Event_Page.Visible then SpawnSnow(EventSnowContainer) end
+        task.wait(0.4) -- האטה כדי למנוע לאגים
+    end 
+end)
 
 local Tab_Farm_Scroll = Instance.new("ScrollingFrame", Tab_Event_Page); Tab_Farm_Scroll.Size = UDim2.new(1, 0, 1, 0); Tab_Farm_Scroll.BackgroundTransparency = 1; Tab_Farm_Scroll.ScrollBarThickness = 3; Tab_Farm_Scroll.ScrollBarImageColor3 = Settings.Theme.IceBlue; Tab_Farm_Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y; Tab_Farm_Scroll.BorderSizePixel = 0; Tab_Farm_Scroll.ZIndex = 5
 local EventLayout = Instance.new("UIListLayout", Tab_Farm_Scroll); EventLayout.Padding = UDim.new(0, 15); EventLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center; EventLayout.SortOrder = Enum.SortOrder.LayoutOrder 
@@ -437,7 +419,6 @@ FarmBtn.MouseButton1Click:Connect(function()
     isFarming = not isFarming; ToggleFarm(isFarming)
     if isFarming then Library:Tween(FarmSwitch,{BackgroundColor3=Settings.Theme.IceBlue}); Library:Tween(FarmDot,{Position=UDim2.new(1,-26,0.5,-12)}) else Library:Tween(FarmSwitch,{BackgroundColor3=Color3.fromRGB(40,40,60)}); Library:Tween(FarmDot,{Position=UDim2.new(0,2,0.5,-12)}) end 
 end)
--- Auto Start check
 task.spawn(function() task.wait(1); if not isFarming then isFarming = true; ToggleFarm(true); if FarmSwitch and FarmDot then Library:Tween(FarmSwitch,{BackgroundColor3=Settings.Theme.IceBlue}); Library:Tween(FarmDot,{Position=UDim2.new(1,-26,0.5,-12)}) end end end)
 
 local BalanceLabel = Instance.new("TextLabel", Tab_Farm_Scroll); BalanceLabel.Size = UDim2.new(0.95,0,0,25); BalanceLabel.Text = "Total Balance (סה''כ בתיק) 💰"; BalanceLabel.TextColor3 = Settings.Theme.Gold; BalanceLabel.Font=Enum.Font.GothamBlack; BalanceLabel.TextSize=14; BalanceLabel.BackgroundTransparency=1; BalanceLabel.LayoutOrder = 2; BalanceLabel.ZIndex = 6
@@ -507,15 +488,20 @@ Library:Corner(RejoinBtn, 8)
 Library:AddGlow(RejoinBtn, Settings.Theme.Danger)
 RejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
 
---// 9. CREDITS FIX (Spaced out boxes, Better Snow)
+--// 9. CREDITS FIX (Clean & Spaced Out)
 local CreditBG = Instance.new("Frame", Tab_Credits_Page)
 CreditBG.Size = UDim2.new(1,0,1,0); CreditBG.BackgroundColor3 = Color3.fromRGB(10,10,12); CreditBG.ZIndex=0; Library:Corner(CreditBG, 0)
 local CreditSnow = Instance.new("Frame", Tab_Credits_Page); CreditSnow.Size = UDim2.new(1,0,1,0); CreditSnow.BackgroundTransparency=1; CreditSnow.ClipsDescendants=true; CreditSnow.ZIndex=1
-task.spawn(function() while Tab_Credits_Page.Parent do SpawnSnow(CreditSnow); task.wait(0.3) end end)
+task.spawn(function() 
+    while Tab_Credits_Page.Parent do 
+        if Tab_Credits_Page.Visible then SpawnSnow(CreditSnow) end
+        task.wait(0.4) 
+    end 
+end)
 
 local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     local c = Instance.new("Frame", parent)
-    c.Size = size or UDim2.new(0.45, 0, 0, 140) -- מספיק גובה לכפתור
+    c.Size = size or UDim2.new(0.42, 0, 0, 130) -- קצת יותר קטן למרווח נשימה
     c.Position = pos or UDim2.new(0,0,0,0)
     c.BackgroundColor3 = Settings.Theme.Box
     c.ZIndex = 2
@@ -523,22 +509,22 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     Library:AddGlow(c, Settings.Theme.Gold)
 
     local imgCont = Instance.new("Frame", c)
-    imgCont.Size = UDim2.new(0, 75, 0, 75)
-    imgCont.Position = UDim2.new(0.5, -37, 0.1, 0)
+    imgCont.Size = UDim2.new(0, 70, 0, 70)
+    imgCont.Position = UDim2.new(0.5, -35, 0.1, 0)
     imgCont.BackgroundColor3 = Color3.fromRGB(30,30,35)
     imgCont.ZIndex = 3
-    Library:Corner(imgCont, 40)
+    Library:Corner(imgCont, 35)
     
     local img = Instance.new("ImageLabel", imgCont)
     img.Size = UDim2.new(1,0,1,0)
     img.BackgroundTransparency = 1
     img.Image = "rbxassetid://"..decal
     img.ZIndex = 4
-    Library:Corner(img, 40)
+    Library:Corner(img, 35)
     
     local tName = Instance.new("TextLabel", c)
     tName.Size = UDim2.new(1,0,0,20)
-    tName.Position = UDim2.new(0,0,0.62,0)
+    tName.Position = UDim2.new(0,0,0.6,0)
     tName.BackgroundTransparency = 1
     tName.Text = name
     tName.Font = Enum.Font.GothamBlack
@@ -548,24 +534,25 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     
     local tRole = Instance.new("TextLabel", c)
     tRole.Size = UDim2.new(1,0,0,15)
-    tRole.Position = UDim2.new(0,0,0.74,0)
+    tRole.Position = UDim2.new(0,0,0.72,0)
     tRole.BackgroundTransparency = 1
     tRole.Text = role
     tRole.Font = Enum.Font.GothamBold
-    tRole.TextSize = 12
+    tRole.TextSize = 11
     tRole.TextColor3 = Settings.Theme.IceBlue
     tRole.ZIndex = 3
     
+    -- PILL BUTTON (Compact & Centered)
     local btn = Instance.new("TextButton", c)
-    btn.Size = UDim2.new(0, 110, 0, 26) -- Compact Pill
-    btn.Position = UDim2.new(0.5, -55, 0.88, 0)
+    btn.Size = UDim2.new(0, 100, 0, 24) -- כפתור קומפקטי
+    btn.Position = UDim2.new(0.5, -50, 0.85, 0) -- בול באמצע
     btn.BackgroundColor3 = Settings.Theme.Discord
     btn.Text = "Copy Discord 👾"
     btn.TextColor3 = Color3.new(1,1,1)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
+    btn.TextSize = 10
     btn.ZIndex = 3
-    Library:Corner(btn, 13)
+    Library:Corner(btn, 12)
     
     btn.MouseButton1Click:Connect(function() 
         setclipboard(discord)
@@ -579,13 +566,13 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     return c
 end
 
--- שימוש ישיר בטאב - מרווחים מתוקנים
-CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.04, 0, 0.05, 0))
-CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.51, 0, 0.05, 0))
-CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.275, 0, 0.40, 0))
+-- שימוש ישיר בטאב - מיקום מדויק
+CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.06, 0, 0.05, 0))
+CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.52, 0, 0.05, 0))
+CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.29, 0, 0.40, 0))
 
--- BETTER SNOW SCENERY (HILLS)
-local SceneContainer = Instance.new("Frame", Tab_Credits_Page); SceneContainer.Size = UDim2.new(1, 0, 0.35, 0); SceneContainer.Position = UDim2.new(0, 0, 0.65, 0); SceneContainer.BackgroundTransparency = 1; SceneContainer.ZIndex=3
+-- BETTER SCENERY (LOWER HILLS)
+local SceneContainer = Instance.new("Frame", Tab_Credits_Page); SceneContainer.Size = UDim2.new(1, 0, 0.3, 0); SceneContainer.Position = UDim2.new(0, 0, 0.7, 0); SceneContainer.BackgroundTransparency = 1; SceneContainer.ZIndex=3
 -- Hill 1
 local Hill1 = Instance.new("Frame", SceneContainer); Hill1.Size = UDim2.new(0.6, 0, 1, 0); Hill1.Position = UDim2.new(-0.1, 0, 0.4, 0); Hill1.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Hill1.BorderSizePixel=0; Library:Corner(Hill1, 100)
 -- Hill 2
@@ -594,19 +581,19 @@ local Hill2 = Instance.new("Frame", SceneContainer); Hill2.Size = UDim2.new(0.7,
 local Hill3 = Instance.new("Frame", SceneContainer); Hill3.Size = UDim2.new(1.1, 0, 0.5, 0); Hill3.Position = UDim2.new(-0.05, 0, 0.7, 0); Hill3.BackgroundColor3 = Color3.fromRGB(250, 255, 255); Hill3.BorderSizePixel=0
 local Gradient = Instance.new("UIGradient", Hill3); Gradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 230, 240)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))}; Gradient.Rotation=90
 
--- Decorations
-local Snowman = Instance.new("TextLabel", SceneContainer); Snowman.Text = "⛄"; Snowman.Size = UDim2.new(0, 70, 0, 70); Snowman.Position = UDim2.new(0.1, 0, 0.45, 0); Snowman.BackgroundTransparency = 1; Snowman.TextSize = 60; Snowman.Rotation = -8; Snowman.ZIndex=4
-local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 90, 0, 90); Tree1.Position = UDim2.new(0.82, 0, 0.35, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 80; Tree1.ZIndex=4
-local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 70, 0, 70); Tree2.Position = UDim2.new(0.72, 0, 0.5, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 60; Tree2.ZIndex=4
+-- Decorations (Lowered)
+local Snowman = Instance.new("TextLabel", SceneContainer); Snowman.Text = "⛄"; Snowman.Size = UDim2.new(0, 70, 0, 70); Snowman.Position = UDim2.new(0.1, 0, 0.5, 0); Snowman.BackgroundTransparency = 1; Snowman.TextSize = 60; Snowman.Rotation = -8; Snowman.ZIndex=4
+local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 90, 0, 90); Tree1.Position = UDim2.new(0.82, 0, 0.4, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 80; Tree1.ZIndex=4
+local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 70, 0, 70); Tree2.Position = UDim2.new(0.72, 0, 0.55, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 60; Tree2.ZIndex=4
 
 --// 10. ניהול מקשים
 UIS.InputBegan:Connect(function(i,g)
     if not g then
-        if i.KeyCode == Settings.Keys.Menu then if MainFrame.Visible then Library:Tween(MainFrame, {Size = UDim2.new(0,0,0,0)}, 0.3, Enum.EasingStyle.Back); task.wait(0.3); MainFrame.Visible = false else MainFrame.Visible = true; MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, 660, 0, 450)}, 0.5, Enum.EasingStyle.Elastic) end end
+        if i.KeyCode == Settings.Keys.Menu then if MainFrame.Visible then Library:Tween(MainFrame, {Size = UDim2.new(0,0,0,0)}, 0.3, Enum.EasingStyle.Back); task.wait(0.3); MainFrame.Visible = false else MainFrame.Visible = true; MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, 680, 0, 460)}, 0.5, Enum.EasingStyle.Elastic) end end
         if i.KeyCode == Settings.Keys.Fly then Settings.Fly.Enabled = not Settings.Fly.Enabled; ToggleFly(Settings.Fly.Enabled); if VisualToggles["Fly"] then VisualToggles["Fly"](Settings.Fly.Enabled) end end
         if i.KeyCode == Settings.Keys.Speed then Settings.Speed.Enabled = not Settings.Speed.Enabled; if not Settings.Speed.Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.WalkSpeed = 16 end; if VisualToggles["Speed"] then VisualToggles["Speed"](Settings.Speed.Enabled) end end
     end
 end)
 RunService.RenderStepped:Connect(function() if Settings.Speed.Enabled and LocalPlayer.Character then local h = LocalPlayer.Character:FindFirstChild("Humanoid"); if h then h.WalkSpeed = Settings.Speed.Value end end end)
 
-print("[SYSTEM] Spaghetti Mafia Hub v1.7 (DEFINITIVE) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v2.0 (OPTIMIZED & CLEAN) Loaded")
