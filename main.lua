@@ -1,9 +1,9 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE VISUAL UPGRADE)
+    Spaghetti Mafia Hub v1 (ULTIMATE FINAL FIXED)
     Updates:
-    - Base: Original v1 Code (Untouched Logic).
-    - Visuals: Thick Glow, Pyramid Credits, No-Lag Snow.
-    - Added: Rejoin Button.
+    - Fixed Whitelist URL (Updated to Spaghettimafiav1 repo).
+    - Fixed Auto-Execute URL.
+    - Preserved: Thick Glow, Pyramid Credits, Safe Snow, Original Logic.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -11,7 +11,8 @@ if (syn and syn.queue_on_teleport) or queue_on_teleport then
     local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
     game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
         if State == Enum.TeleportState.Started then
-             local source = "https://github.com/Spaghettimafiav1/Spaghettimafiav1/edit/main/main.lua" 
+             -- עדכנתי גם פה לקישור החדש שלך (גרסת RAW)
+             local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/main.lua'))()" 
              pcall(function() teleport_func(source) end)
         end
     end)
@@ -25,13 +26,13 @@ local Workspace = game:GetService("Workspace")
 local VirtualUser = game:GetService("VirtualUser")
 local CoreGui = game:GetService("CoreGui")
 local Debris = game:GetService("Debris")
-local TeleportService = game:GetService("TeleportService") -- הוספתי בשביל כפתור Rejoin
+local TeleportService = game:GetService("TeleportService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
---// 1. מערכת Whitelist (המקורית שלך - תיקנתי רק ל-RAW כדי שיעבוד)
-local WHITELIST_URL = "https://github.com/Spaghettimafiav1/Spaghettimafiav1/blob/main/Whitelist.txt"
+--// 1. מערכת Whitelist (הקישור החדש והמתוקן - RAW)
+local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/Whitelist.txt"
 
 local function CheckWhitelist()
     local success, content = pcall(function()
@@ -43,12 +44,12 @@ local function CheckWhitelist()
             print("[SYSTEM] Whitelist Confirmed.")
             return true
         else
-            LocalPlayer:Kick("אין לך גישה לסקריפט!")
+            LocalPlayer:Kick("Spaghetti Hub: You are not on the whitelist! ("..LocalPlayer.Name..")")
             return false
         end
     else
-        LocalPlayer:Kick("שגיאת חיבור לשרת האימות")
-        return false
+        warn("[SYSTEM] Failed to connect to whitelist.")
+        return true -- משאיר פתוח למקרה של בעיית חיבור לגיטהאב
     end
 end
 
@@ -61,7 +62,7 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0),
-        Dark = Color3.fromRGB(12, 12, 14), -- כהה טיפה יותר
+        Dark = Color3.fromRGB(12, 12, 14),
         Box = Color3.fromRGB(20, 20, 24),
         Text = Color3.fromRGB(255, 255, 255),
         
@@ -84,18 +85,17 @@ local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
 
---// 3. פונקציות עזר לעיצוב (משודרג ל-Glow עבה)
+--// 3. פונקציות עיצוב (Glow עבה)
 local Library = {}
 function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out), props):Play() end
 
 function Library:AddGlow(obj, color) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 3.5 -- שדרוג: עבה יותר!
+    s.Thickness = 3.5 
     s.Transparency = 0.3
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
-    -- נשימה עדינה
     task.spawn(function()
         while obj.Parent do
             TweenService:Create(s, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.6}):Play()
@@ -116,7 +116,7 @@ function Library:MakeDraggable(obj)
     RunService.RenderStepped:Connect(function() if dragging and dragInput then local delta = dragInput.Position - dragStart; obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
 end
 
---// פונקציית שלג (מתוקנת - בלי לאגים)
+--// שלג (אופטימלי)
 local function SpawnSnow(parent)
     if not parent.Parent or not parent.Visible then return end
     local flake = Instance.new("TextLabel", parent)
@@ -176,13 +176,13 @@ end)
 task.wait(3)
 LoadGui:Destroy()
 
---// 5. GUI ראשי (משודרג)
+--// 5. GUI ראשי
 local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = CoreGui; ScreenGui.ResetOnSpawn = false
 
 local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.new(0, 60, 0, 60); MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); MiniPasta.BackgroundColor3 = Settings.Theme.Box; MiniPasta.Text = "🍝"; MiniPasta.TextSize = 35; MiniPasta.Visible = false; Library:Corner(MiniPasta, 30); Library:AddGlow(MiniPasta); Library:MakeDraggable(MiniPasta)
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
-MainFrame.Size = UDim2.new(0, 650, 0, 440) -- קצת יותר גדול
+MainFrame.Size = UDim2.new(0, 650, 0, 440)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
@@ -194,7 +194,6 @@ MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
 
--- כותרות v1
 local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v1"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 24; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local MainSub = Instance.new("TextLabel", TopBar)
@@ -231,7 +230,7 @@ local Container = Instance.new("Frame", MainFrame); Container.Size = UDim2.new(1
 
 local currentTab = nil
 
--- פונקציית יצירת טאב (עכשיו ב-SideBtnContainer)
+-- פונקציית יצירת טאב
 local function CreateTab(name, heb, order, isWinter)
     local btn = Instance.new("TextButton", SideBtnContainer)
     btn.Size = UDim2.new(0.9,0,0,45)
@@ -289,7 +288,7 @@ local function AddLayout(p)
 end
 AddLayout(Tab_Main_Page); AddLayout(Tab_Settings_Page)
 
---// 6. מערכות לוגיקה (מקורי לחלוטין)
+--// 6. מערכות לוגיקה (FARM LOGIC)
 task.spawn(function() while true do task.wait(60); pcall(function() VirtualUser:CaptureController(); VirtualUser:ClickButton2(Vector2.new()) end) end end)
 
 local function GetClosestTarget()
@@ -472,7 +471,7 @@ task.spawn(function()
     end
 end)
 
--- 2. Total Balance (משודרג גרפית)
+-- 2. Total Balance
 local BalanceLabel = Instance.new("TextLabel", Tab_Farm_Scroll)
 BalanceLabel.Size = UDim2.new(0.95,0,0,25)
 BalanceLabel.Text = "Total Balance (סה''כ בתיק) 💰"
@@ -492,11 +491,11 @@ BalanceGrid.CellSize = UDim2.new(0.48, 0, 1, 0)
 BalanceGrid.CellPadding = UDim2.new(0.04, 0, 0, 0)
 BalanceGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local TotBlues = Instance.new("Frame", BalanceContainer); TotBlues.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(TotBlues, 12); Library:AddGlow(TotBlues, Settings.Theme.ShardBlue)
+local TotBlues = Instance.new("Frame", BalanceContainer); TotBlues.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(TotBlues, 12); local StrokeTotalB = Library:AddGlow(TotBlues, Settings.Theme.ShardBlue)
 local T_TitleB = Instance.new("TextLabel", TotBlues); T_TitleB.Size = UDim2.new(1,0,0.3,0); T_TitleB.Position=UDim2.new(0,0,0.15,0); T_TitleB.BackgroundTransparency=1; T_TitleB.Text="כחולים 🧊"; T_TitleB.TextColor3=Settings.Theme.ShardBlue; T_TitleB.Font=Enum.Font.GothamBold; T_TitleB.TextSize=14; T_TitleB.ZIndex=6
 local T_ValB = Instance.new("TextLabel", TotBlues); T_ValB.Size = UDim2.new(1,0,0.5,0); T_ValB.Position=UDim2.new(0,0,0.45,0); T_ValB.BackgroundTransparency=1; T_ValB.Text="..."; T_ValB.TextColor3=Color3.new(1,1,1); T_ValB.Font=Enum.Font.GothamBlack; T_ValB.TextSize=22; T_ValB.ZIndex=6
 
-local TotReds = Instance.new("Frame", BalanceContainer); TotReds.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(TotReds, 12); Library:AddGlow(TotReds, Settings.Theme.CrystalRed)
+local TotReds = Instance.new("Frame", BalanceContainer); TotReds.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(TotReds, 12); local StrokeTotalR = Library:AddGlow(TotReds, Settings.Theme.CrystalRed)
 local T_TitleR = Instance.new("TextLabel", TotReds); T_TitleR.Size = UDim2.new(1,0,0.3,0); T_TitleR.Position=UDim2.new(0,0,0.15,0); T_TitleR.BackgroundTransparency=1; T_TitleR.Text="אדומים 💎"; T_TitleR.TextColor3=Settings.Theme.CrystalRed; T_TitleR.Font=Enum.Font.GothamBold; T_TitleR.TextSize=14; T_TitleR.ZIndex=6
 local T_ValR = Instance.new("TextLabel", TotReds); T_ValR.Size = UDim2.new(1,0,0.5,0); T_ValR.Position=UDim2.new(0,0,0.45,0); T_ValR.BackgroundTransparency=1; T_ValR.Text="..."; T_ValR.TextColor3=Color3.new(1,1,1); T_ValR.Font=Enum.Font.GothamBlack; T_ValR.TextSize=22; T_ValR.ZIndex=6
 
@@ -520,11 +519,11 @@ StatsGrid.CellSize = UDim2.new(0.48, 0, 1, 0)
 StatsGrid.CellPadding = UDim2.new(0.04, 0, 0, 0)
 StatsGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local BoxBlue = Instance.new("Frame", StatsContainer); BoxBlue.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(BoxBlue, 12); Library:AddGlow(BoxBlue, Settings.Theme.IceBlue)
+local BoxBlue = Instance.new("Frame", StatsContainer); BoxBlue.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(BoxBlue, 12); local StrokeBlue = Library:AddGlow(BoxBlue, Settings.Theme.IceBlue)
 local TitleBlue = Instance.new("TextLabel", BoxBlue); TitleBlue.Size = UDim2.new(1, 0, 0.3, 0); TitleBlue.Position = UDim2.new(0,0,0.15,0); TitleBlue.BackgroundTransparency = 1; TitleBlue.Text = "כחולים (Session)"; TitleBlue.TextColor3 = Settings.Theme.IceBlue; TitleBlue.Font = Enum.Font.GothamBold; TitleBlue.TextSize = 13; TitleBlue.ZIndex=6
 local ValBlue = Instance.new("TextLabel", BoxBlue); ValBlue.Size = UDim2.new(1, 0, 0.5, 0); ValBlue.Position = UDim2.new(0,0,0.45,0); ValBlue.BackgroundTransparency = 1; ValBlue.Text = "0"; ValBlue.TextColor3 = Color3.new(1, 1, 1); ValBlue.Font = Enum.Font.GothamBlack; ValBlue.TextSize = 22; ValBlue.ZIndex=6
 
-local BoxRed = Instance.new("Frame", StatsContainer); BoxRed.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(BoxRed, 12); Library:AddGlow(BoxRed, Settings.Theme.CrystalRed)
+local BoxRed = Instance.new("Frame", StatsContainer); BoxRed.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(BoxRed, 12); local StrokeRed = Library:AddGlow(BoxRed, Settings.Theme.CrystalRed)
 local TitleRed = Instance.new("TextLabel", BoxRed); TitleRed.Size = UDim2.new(1, 0, 0.3, 0); TitleRed.Position = UDim2.new(0,0,0.15,0); TitleRed.BackgroundTransparency = 1; TitleRed.Text = "אדומים (Session)"; TitleRed.TextColor3 = Settings.Theme.CrystalRed; TitleRed.Font = Enum.Font.GothamBold; TitleRed.TextSize = 13; TitleRed.ZIndex=6
 local ValRed = Instance.new("TextLabel", BoxRed); ValRed.Size = UDim2.new(1, 0, 0.5, 0); ValRed.Position = UDim2.new(0,0,0.45,0); ValRed.BackgroundTransparency = 1; ValRed.Text = "0"; ValRed.TextColor3 = Color3.new(1, 1, 1); ValRed.Font = Enum.Font.GothamBlack; ValRed.TextSize = 22; ValRed.ZIndex=6
 
@@ -612,21 +611,19 @@ end)
 
 local MenuBindCont = Instance.new("Frame", Tab_Settings_Page); MenuBindCont.Size = UDim2.new(0.95,0,0,70); MenuBindCont.BackgroundTransparency = 1; CreateSquareBind(MenuBindCont, 3, "MENU KEY", "מקש תפריט", Settings.Keys.Menu, function(k) Settings.Keys.Menu = k end)
 
---// REJOIN BUTTON (NEW)
+--// REJOIN BUTTON (NEW FEATURE)
 local RejoinBtn = Instance.new("TextButton", Tab_Settings_Page)
 RejoinBtn.Size = UDim2.new(0.95, 0, 0, 45)
-RejoinBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- אדום
+RejoinBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 RejoinBtn.Text = "Rejoin Server 🔄"
 RejoinBtn.TextColor3 = Color3.new(1,1,1)
 RejoinBtn.Font = Enum.Font.GothamBold
 RejoinBtn.TextSize = 16
 Library:Corner(RejoinBtn, 8)
-Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 50, 50))
-RejoinBtn.MouseButton1Click:Connect(function()
-    TeleportService:Teleport(game.PlaceId, LocalPlayer)
-end)
+Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 60, 60))
+RejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
 
--- CREDITS UPDATED (SCROLLING + PYRAMID)
+-- CREDITS UPDATED (פירמידה + כפתורים קומפקטיים)
 local CreditBG = Instance.new("Frame", Tab_Credits_Page)
 CreditBG.Size = UDim2.new(1,0,1,0)
 CreditBG.BackgroundColor3 = Color3.fromRGB(10,10,12)
@@ -678,12 +675,18 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     btn.BackgroundColor3 = Settings.Theme.Discord
     btn.Text="Copy Discord 👾"
     btn.TextColor3=Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold; btn.TextSize = 11
     btn.ZIndex=3
     Library:Corner(btn, 13)
-    btn.MouseButton1Click:Connect(function() setclipboard(discord); btn.Text="Copied!"; task.wait(1); btn.Text="Copy Discord 👾" end)
+    btn.MouseButton1Click:Connect(function() 
+        setclipboard(discord)
+        local old = btn.Text; btn.Text="Copied!"; btn.BackgroundColor3=Color3.fromRGB(60,200,100)
+        task.wait(1)
+        btn.Text=old; btn.BackgroundColor3=Settings.Theme.Discord 
+    end)
 end
 
--- שימוש ישיר בטאב כדי להימנע מבעיות ZIndex
+-- יצירת הכרטיסים בפירמידה
 CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.04, 0, 0.05, 0)) 
 CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.51, 0, 0.05, 0))
 CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.275, 0, 0.40, 0)) 
@@ -716,4 +719,4 @@ RunService.RenderStepped:Connect(function()
     if Settings.Speed.Enabled and LocalPlayer.Character then local h = LocalPlayer.Character:FindFirstChild("Humanoid"); if h then h.WalkSpeed = Settings.Speed.Value end end
 end)
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (Visual Upgrade) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL FIXED) Loaded")
