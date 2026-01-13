@@ -13,7 +13,7 @@ if (syn and syn.queue_on_teleport) or queue_on_teleport then
     local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
     game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
         if State == Enum.TeleportState.Started then
-             local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/neho431/SpaghettiKeys/main/loader.lua'))()" 
+             local source = "loadstring(game:HttpGet("https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/refs/heads/main/main.lua"))()" 
              pcall(function() teleport_func(source) end)
         end
     end)
