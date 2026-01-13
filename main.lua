@@ -32,7 +32,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 --// 1. מערכת Whitelist (ללא שינוי)
-local WHITELIST_URL = "https://github.com/Spaghettimafiav1/Spaghettimafiav1/blob/main/Whitelist.txt"
+local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/refs/heads/main/Whitelist.txt"
 
 local function CheckWhitelist()
     local success, content = pcall(function()
