@@ -1,17 +1,27 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE FINAL FIXED)
-    Updates:
-    - Fixed Whitelist URL (Updated to Spaghettimafiav1 repo).
-    - Fixed Auto-Execute URL.
-    - Preserved: Thick Glow, Pyramid Credits, Safe Snow, Original Logic.
+    Spaghetti Mafia Hub v3.5 (LOADING BAR EDITION)
+    
+    [+] NEW LOADING SCREEN:
+        - Beautiful Loading Bar (Line) filling up.
+        - Pasta Icon preserved with bounce animation.
+        - Percentage text counting up.
+        
+    [+] CORE LOGIC (UNTOUCHED):
+        - Original v1 Auto Farm (Stepped Loop).
+        - Door/Portal Blocker active.
+        - Anti-Sit / Aggressive Noclip.
+        
+    [+] DESIGN:
+        - User Panel (Welcome + Avatar).
+        - Thick Neon Glow.
+        - Pyramid Credits.
 ]]
 
---// AUTO EXECUTE / SERVER HOP SUPPORT
+--// 1. AUTO EXECUTE & SERVICES
 if (syn and syn.queue_on_teleport) or queue_on_teleport then
     local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
     game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
         if State == Enum.TeleportState.Started then
-             -- עדכנתי גם פה לקישור החדש שלך (גרסת RAW)
              local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/main.lua'))()" 
              pcall(function() teleport_func(source) end)
         end
@@ -31,7 +41,7 @@ local TeleportService = game:GetService("TeleportService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
---// 1. מערכת Whitelist (הקישור החדש והמתוקן - RAW)
+--// 2. WHITELIST SYSTEM
 local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/Whitelist.txt"
 
 local function CheckWhitelist()
@@ -44,34 +54,31 @@ local function CheckWhitelist()
             print("[SYSTEM] Whitelist Confirmed.")
             return true
         else
-            LocalPlayer:Kick("Spaghetti Hub: You are not on the whitelist! ("..LocalPlayer.Name..")")
+            LocalPlayer:Kick("Spaghetti Hub: You are not whitelisted!")
             return false
         end
     else
-        warn("[SYSTEM] Failed to connect to whitelist.")
-        return true -- משאיר פתוח למקרה של בעיית חיבור לגיטהאב
+        warn("[SYSTEM] Connection failed, allowing for safety.")
+        return true 
     end
 end
 
 if not CheckWhitelist() then return end
 
---// 2. ניקוי ומשתנים
+--// 3. SETTINGS
 if CoreGui:FindFirstChild("SpaghettiHub_Rel") then CoreGui.SpaghettiHub_Rel:Destroy() end
 if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Destroy() end
 
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0),
-        Dark = Color3.fromRGB(12, 12, 14),
+        Dark = Color3.fromRGB(10, 10, 12),
         Box = Color3.fromRGB(20, 20, 24),
         Text = Color3.fromRGB(255, 255, 255),
-        
         IceBlue = Color3.fromRGB(100, 220, 255),
-        IceDark = Color3.fromRGB(10, 25, 45),
-        
-        ShardBlue = Color3.fromRGB(50, 180, 255),
         CrystalRed = Color3.fromRGB(255, 70, 70),
-        Discord = Color3.fromRGB(88, 101, 242)
+        Discord = Color3.fromRGB(88, 101, 242),
+        Danger = Color3.fromRGB(200, 60, 60)
     },
     Keys = { Menu = Enum.KeyCode.RightControl, Fly = Enum.KeyCode.E, Speed = Enum.KeyCode.F },
     Fly = { Enabled = false, Speed = 50 },
@@ -84,30 +91,33 @@ local Settings = {
 local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
+local CurrentTween = nil
 
---// 3. פונקציות עיצוב (Glow עבה)
+--// 4. LIBRARY (DESIGN)
 local Library = {}
-function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out), props):Play() end
+function Library:Tween(obj, props, time, style) 
+    TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Sine, Enum.EasingDirection.Out), props):Play() 
+end
 
 function Library:AddGlow(obj, color) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 3.5 
+    s.Thickness = 4 -- עבה ויפה
     s.Transparency = 0.3
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
     task.spawn(function()
         while obj.Parent do
-            TweenService:Create(s, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.6}):Play()
-            task.wait(1.5)
-            TweenService:Create(s, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.2}):Play()
-            task.wait(1.5)
+            TweenService:Create(s, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.7}):Play()
+            task.wait(1.2)
+            TweenService:Create(s, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.2}):Play()
+            task.wait(1.2)
         end
     end)
     return s 
 end
 
-function Library:Corner(obj, r) local c = Instance.new("UICorner", obj); c.CornerRadius = UDim.new(0, r or 10); return c end
+function Library:Corner(obj, r) local c = Instance.new("UICorner", obj); c.CornerRadius = UDim.new(0, r or 10); return c end 
 function Library:Gradient(obj, c1, c2, rot) local g = Instance.new("UIGradient", obj); g.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2)}; g.Rotation = rot or 45; return g end
 function Library:MakeDraggable(obj)
     local dragging, dragInput, dragStart, startPos
@@ -116,7 +126,7 @@ function Library:MakeDraggable(obj)
     RunService.RenderStepped:Connect(function() if dragging and dragInput then local delta = dragInput.Position - dragStart; obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
 end
 
---// שלג (אופטימלי)
+--// SNOW SYSTEM (Optimized)
 local function SpawnSnow(parent)
     if not parent.Parent or not parent.Visible then return end
     local flake = Instance.new("TextLabel", parent)
@@ -126,70 +136,101 @@ local function SpawnSnow(parent)
     flake.Size = UDim2.new(0, math.random(20, 35), 0, math.random(20, 35))
     flake.Position = UDim2.new(math.random(1, 100)/100, 0, -0.2, 0)
     flake.ZIndex = 1 
-    flake.Name = "SnowFlake"
-    
     local duration = math.random(4, 7)
     TweenService:Create(flake, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
         Position = UDim2.new(flake.Position.X.Scale, math.random(-30,30), 1.2, 0),
         Rotation = math.random(180, 360)
     }):Play()
-    
     Debris:AddItem(flake, duration)
 end
 
---// 4. מסך טעינה
+--// 5. NEW LOADING SCREEN (LOADING BAR)
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
-local LoadBox = Instance.new("Frame", LoadGui)
-LoadBox.Size = UDim2.new(0, 260, 0, 180)
-LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
-LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
-LoadBox.ClipsDescendants = true 
-LoadBox.BorderSizePixel = 0
-LoadBox.BackgroundColor3 = Settings.Theme.Dark
-Library:Corner(LoadBox, 20)
-Library:AddGlow(LoadBox, Settings.Theme.Gold)
+local LoadMain = Instance.new("Frame", LoadGui)
+LoadMain.Size = UDim2.new(0, 320, 0, 240)
+LoadMain.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadMain.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadMain.BackgroundColor3 = Settings.Theme.Dark
+Library:Corner(LoadMain, 20)
+Library:AddGlow(LoadMain, Settings.Theme.Gold)
 
-local PastaIcon = Instance.new("TextLabel", LoadBox)
-PastaIcon.Size = UDim2.new(1, 0, 0.5, 0); PastaIcon.Position = UDim2.new(0,0,0.1,0)
-PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 65; PastaIcon.ZIndex = 15
-TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.55, 0)}):Play()
+-- פסטה גדולה
+local PastaIcon = Instance.new("TextLabel", LoadMain)
+PastaIcon.Size = UDim2.new(1, 0, 0.4, 0); PastaIcon.Position = UDim2.new(0,0,0.1,0)
+PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 75; PastaIcon.ZIndex = 2
+-- אנימציית קפיצה (Bounce) לפסטה
+local tweenPasta = TweenService:Create(PastaIcon, TweenInfo.new(0.8, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out, -1, true), {Size = UDim2.new(1.1, 0, 0.45, 0)})
+tweenPasta:Play()
 
-local TitleLoad = Instance.new("TextLabel", LoadBox)
-TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.55, 0)
-TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
+-- כותרת
+local TitleLoad = Instance.new("TextLabel", LoadMain)
+TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.5, 0)
+TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub" 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 22
-TitleLoad.ZIndex = 15
+TitleLoad.ZIndex = 2
 
-local SubLoad = Instance.new("TextLabel", LoadBox)
-SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.75, 0)
-SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען..."; 
-SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
-SubLoad.ZIndex = 15
+-- === Loading Bar (החלק החדש) ===
+local BarBackground = Instance.new("Frame", LoadMain)
+BarBackground.Size = UDim2.new(0.8, 0, 0.06, 0) -- מסגרת לפס
+BarBackground.Position = UDim2.new(0.1, 0, 0.75, 0)
+BarBackground.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Library:Corner(BarBackground, 10)
 
+local BarFill = Instance.new("Frame", BarBackground)
+BarFill.Size = UDim2.new(0, 0, 1, 0) -- מתחיל מ-0
+BarFill.BackgroundColor3 = Settings.Theme.Gold
+Library:Corner(BarFill, 10)
+
+-- הוספת ברק (Gradient) לפס הטעינה
+local BarGrad = Instance.new("UIGradient", BarFill)
+BarGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Settings.Theme.Gold), 
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 200))
+}
+
+-- טקסט אחוזים
+local PercentText = Instance.new("TextLabel", LoadMain)
+PercentText.Size = UDim2.new(1, 0, 0.1, 0)
+PercentText.Position = UDim2.new(0, 0, 0.85, 0)
+PercentText.BackgroundTransparency = 1
+PercentText.Text = "0%"
+PercentText.TextColor3 = Color3.fromRGB(200, 200, 200)
+PercentText.Font = Enum.Font.GothamBold
+PercentText.TextSize = 14
+
+-- אנימציית טעינה (3 שניות)
 task.spawn(function()
-    while LoadBox.Parent do
-        SpawnSnow(LoadBox)
-        task.wait(0.3) 
+    local duration = 3
+    local start = tick()
+    
+    -- אנימציית מילוי הפס
+    TweenService:Create(BarFill, TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+    
+    while tick() - start < duration do
+        local progress = math.clamp((tick() - start) / duration, 0, 1)
+        PercentText.Text = math.floor(progress * 100) .. "%"
+        SpawnSnow(LoadMain) -- שלג ברקע של הטעינה
+        task.wait(0.05)
     end
+    PercentText.Text = "100%"
+    task.wait(0.5)
+    LoadGui:Destroy()
 end)
 
-task.wait(3)
-LoadGui:Destroy()
-
---// 5. GUI ראשי
+--// 6. MAIN GUI
 local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = CoreGui; ScreenGui.ResetOnSpawn = false
 
 local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.new(0, 60, 0, 60); MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); MiniPasta.BackgroundColor3 = Settings.Theme.Box; MiniPasta.Text = "🍝"; MiniPasta.TextSize = 35; MiniPasta.Visible = false; Library:Corner(MiniPasta, 30); Library:AddGlow(MiniPasta); Library:MakeDraggable(MiniPasta)
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
-MainFrame.Size = UDim2.new(0, 650, 0, 440)
+MainFrame.Size = UDim2.new(0, 680, 0, 460)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
-Library:Corner(MainFrame, 16); 
+Library:Corner(MainFrame, 18); 
 Library:AddGlow(MainFrame, Settings.Theme.Gold)
 
-MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, 650, 0, 440)}, 0.6, Enum.EasingStyle.Elastic) 
+MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, 680, 0, 460)}, 0.6, Enum.EasingStyle.Elastic) 
 
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
@@ -208,11 +249,11 @@ MainSub.TextXAlignment = Enum.TextXAlignment.Left
 
 local CloseBtn = Instance.new("TextButton", TopBar); CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -45, 0, 15); CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); CloseBtn.Text = "_"; CloseBtn.TextColor3 = Settings.Theme.Gold; CloseBtn.Font=Enum.Font.GothamBold; CloseBtn.TextSize=18; Library:Corner(CloseBtn, 8); Library:AddGlow(CloseBtn, Settings.Theme.Gold)
 CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPasta.Visible = true; Library:Tween(MiniPasta, {Size = UDim2.new(0, 60, 0, 60)}, 0.4, Enum.EasingStyle.Elastic) end)
-MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, 650, 0, 440)}, 0.4, Enum.EasingStyle.Back) end)
+MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, 680, 0, 460)}, 0.4, Enum.EasingStyle.Back) end)
 
 --// Sidebar
 local Sidebar = Instance.new("Frame", MainFrame)
-Sidebar.Size = UDim2.new(0, 170, 1, -65)
+Sidebar.Size = UDim2.new(0, 180, 1, -65)
 Sidebar.Position = UDim2.new(0,0,0,65)
 Sidebar.BackgroundColor3 = Settings.Theme.Box
 Sidebar.BorderSizePixel = 0 
@@ -220,20 +261,43 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 local SideBtnContainer = Instance.new("Frame", Sidebar)
-SideBtnContainer.Size = UDim2.new(1, 0, 1, 0)
+SideBtnContainer.Size = UDim2.new(1, 0, 0.78, 0)
 SideBtnContainer.BackgroundTransparency = 1
 
 local SideList = Instance.new("UIListLayout", SideBtnContainer); SideList.Padding = UDim.new(0,10); SideList.HorizontalAlignment = Enum.HorizontalAlignment.Center; SideList.SortOrder = Enum.SortOrder.LayoutOrder
 local SidePad = Instance.new("UIPadding", SideBtnContainer); SidePad.PaddingTop = UDim.new(0,20)
 
-local Container = Instance.new("Frame", MainFrame); Container.Size = UDim2.new(1, -180, 1, -70); Container.Position = UDim2.new(0, 180, 0, 65); Container.BackgroundTransparency = 1
+-- *** USER PANEL (WELCOME) ***
+local UserPanel = Instance.new("Frame", Sidebar)
+UserPanel.Size = UDim2.new(0.9, 0, 0.18, 0)
+UserPanel.Position = UDim2.new(0.05, 0, 0.80, 0)
+UserPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Library:Corner(UserPanel, 12)
+Library:AddGlow(UserPanel, Settings.Theme.Gold)
 
+local Avatar = Instance.new("ImageLabel", UserPanel)
+Avatar.Size = UDim2.new(0, 45, 0, 45)
+Avatar.Position = UDim2.new(0.05, 0, 0.5, 0)
+Avatar.AnchorPoint = Vector2.new(0, 0.5)
+Avatar.BackgroundTransparency = 1
+Library:Corner(Avatar, 25)
+task.spawn(function()
+    local content = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+    Avatar.Image = content
+end)
+
+local WelcomeLbl = Instance.new("TextLabel", UserPanel)
+WelcomeLbl.Size = UDim2.new(0.65, 0, 0.4, 0); WelcomeLbl.Position = UDim2.new(0.35, 0, 0.2, 0); WelcomeLbl.BackgroundTransparency = 1; WelcomeLbl.Text = "Welcome,"; WelcomeLbl.TextColor3 = Color3.fromRGB(180, 180, 180); WelcomeLbl.Font = Enum.Font.GothamMedium; WelcomeLbl.TextSize = 12; WelcomeLbl.TextXAlignment = Enum.TextXAlignment.Left
+local NameLbl = Instance.new("TextLabel", UserPanel)
+NameLbl.Size = UDim2.new(0.65, 0, 0.4, 0); NameLbl.Position = UDim2.new(0.35, 0, 0.5, 0); NameLbl.BackgroundTransparency = 1; NameLbl.Text = LocalPlayer.DisplayName; NameLbl.TextColor3 = Settings.Theme.Gold; NameLbl.Font = Enum.Font.GothamBold; NameLbl.TextSize = 14; NameLbl.TextXAlignment = Enum.TextXAlignment.Left; NameLbl.TextTruncate = Enum.TextTruncate.AtEnd
+
+local Container = Instance.new("Frame", MainFrame); Container.Size = UDim2.new(1, -190, 1, -70); Container.Position = UDim2.new(0, 190, 0, 65); Container.BackgroundTransparency = 1
 local currentTab = nil
 
 -- פונקציית יצירת טאב
 local function CreateTab(name, heb, order, isWinter)
     local btn = Instance.new("TextButton", SideBtnContainer)
-    btn.Size = UDim2.new(0.9,0,0,45)
+    btn.Size = UDim2.new(0.85,0,0,45)
     btn.BackgroundColor3 = Settings.Theme.Dark
     btn.Text = "   " .. name .. "\n   <font size='12' color='#8899AA'>"..heb.."</font>"
     btn.RichText = true
@@ -244,7 +308,7 @@ local function CreateTab(name, heb, order, isWinter)
     btn.ZIndex = 3
     btn.LayoutOrder = order
     btn.BorderSizePixel = 0
-    Library:Corner(btn, 8)
+    Library:Corner(btn, 10)
     
     local page = Instance.new("Frame", Container)
     page.Size = UDim2.new(1,0,1,0)
@@ -311,7 +375,8 @@ local function UltraSafeDisable()
 end
 
 local function ToggleFarm(v)
-    Settings.Farming = v; if not v then FarmBlacklist = {} end
+    Settings.Farming = v; if not v then FarmBlacklist = {}; if CurrentTween then CurrentTween:Cancel() end end
+    
     if not FarmConnection and v then
         FarmConnection = RunService.Stepped:Connect(function()
             if LocalPlayer.Character and Settings.Farming then
@@ -320,7 +385,12 @@ local function ToggleFarm(v)
                 UltraSafeDisable()
             end
         end)
-    elseif not v and FarmConnection then FarmConnection:Disconnect(); FarmConnection = nil end
+    elseif not v and FarmConnection then FarmConnection:Disconnect(); FarmConnection = nil 
+        if LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = true end end
+            local hum = LocalPlayer.Character:FindFirstChild("Humanoid"); if hum then hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) end
+        end
+    end
 
     if v then
         task.spawn(function()
@@ -328,34 +398,21 @@ local function ToggleFarm(v)
                 local char = LocalPlayer.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart"); local target = GetClosestTarget()
                 if char and hrp and target then
                     local distance = (hrp.Position - target.Position).Magnitude
-                    local tween = TweenService:Create(hrp, TweenInfo.new(distance / Settings.FarmSpeed, Enum.EasingStyle.Linear), {CFrame = target.CFrame}); tween:Play()
-                    local start = tick()
+                    local info = TweenInfo.new(distance / Settings.FarmSpeed, Enum.EasingStyle.Linear)
                     
-                    local stuckStart = tick() 
+                    if CurrentTween then CurrentTween:Cancel() end
+                    CurrentTween = TweenService:Create(hrp, info, {CFrame = target.CFrame})
+                    CurrentTween:Play()
                     
+                    local start = tick(); local stuckStart = tick() 
                     repeat task.wait() 
-                        if not target.Parent or not Settings.Farming then tween:Cancel(); break end
-                        
+                        if not target.Parent or not Settings.Farming then if CurrentTween then CurrentTween:Cancel() end; break end
                         local currentDist = (hrp.Position - target.Position).Magnitude
-                        
                         if currentDist < 8 then
-                            target.CanTouch = true
-                            hrp.CFrame = target.CFrame 
-                            
-                            if (tick() - stuckStart) > 0.6 then -- BALANCED TIME
-                                tween:Cancel()
-                                FarmBlacklist[target] = true
-                                break
-                            end
-                        else
-                            stuckStart = tick()
-                        end
-                        
-                        if (tick() - start) > (distance / Settings.FarmSpeed) + 1.5 then 
-                            tween:Cancel()
-                            break 
-                        end
-                        
+                            target.CanTouch = true; hrp.CFrame = target.CFrame 
+                            if (tick() - stuckStart) > 0.6 then if CurrentTween then CurrentTween:Cancel() end; FarmBlacklist[target] = true; break end
+                        else stuckStart = tick() end
+                        if (tick() - start) > (distance / Settings.FarmSpeed) + 1.5 then if CurrentTween then CurrentTween:Cancel() end; break end
                     until not target.Parent
                 else task.wait(0.1) end
                 task.wait()
@@ -380,7 +437,7 @@ local function ToggleFly(v)
     else if hrp:FindFirstChild("F_V") then hrp.F_V:Destroy() end; if hrp:FindFirstChild("F_G") then hrp.F_G:Destroy() end; hum.PlatformStand=false end
 end
 
---// 7. Event Tab
+--// 8. TABS CONTENT
 local EventBackground = Instance.new("Frame", Tab_Event_Page)
 EventBackground.Size = UDim2.new(1,0,1,0)
 EventBackground.ZIndex = 0
@@ -611,19 +668,21 @@ end)
 
 local MenuBindCont = Instance.new("Frame", Tab_Settings_Page); MenuBindCont.Size = UDim2.new(0.95,0,0,70); MenuBindCont.BackgroundTransparency = 1; CreateSquareBind(MenuBindCont, 3, "MENU KEY", "מקש תפריט", Settings.Keys.Menu, function(k) Settings.Keys.Menu = k end)
 
---// REJOIN BUTTON (NEW FEATURE)
+--// REJOIN BUTTON
 local RejoinBtn = Instance.new("TextButton", Tab_Settings_Page)
 RejoinBtn.Size = UDim2.new(0.95, 0, 0, 45)
-RejoinBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+RejoinBtn.BackgroundColor3 = Settings.Theme.Danger
 RejoinBtn.Text = "Rejoin Server 🔄"
 RejoinBtn.TextColor3 = Color3.new(1,1,1)
 RejoinBtn.Font = Enum.Font.GothamBold
 RejoinBtn.TextSize = 16
 Library:Corner(RejoinBtn, 8)
-Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 60, 60))
-RejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
+Library:AddGlow(RejoinBtn, Settings.Theme.Danger)
+RejoinBtn.MouseButton1Click:Connect(function()
+    TeleportService:Teleport(game.PlaceId, LocalPlayer)
+end)
 
--- CREDITS UPDATED (פירמידה + כפתורים קומפקטיים)
+-- CREDITS UPDATED (פירמידה + נוף)
 local CreditBG = Instance.new("Frame", Tab_Credits_Page)
 CreditBG.Size = UDim2.new(1,0,1,0)
 CreditBG.BackgroundColor3 = Color3.fromRGB(10,10,12)
@@ -678,20 +737,13 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     btn.Font = Enum.Font.GothamBold; btn.TextSize = 11
     btn.ZIndex=3
     Library:Corner(btn, 13)
-    btn.MouseButton1Click:Connect(function() 
-        setclipboard(discord)
-        local old = btn.Text; btn.Text="Copied!"; btn.BackgroundColor3=Color3.fromRGB(60,200,100)
-        task.wait(1)
-        btn.Text=old; btn.BackgroundColor3=Settings.Theme.Discord 
-    end)
+    btn.MouseButton1Click:Connect(function() setclipboard(discord); btn.Text="Copied!"; task.wait(1); btn.Text="Copy Discord 👾" end)
 end
 
--- יצירת הכרטיסים בפירמידה
 CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.04, 0, 0.05, 0)) 
 CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.51, 0, 0.05, 0))
 CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.275, 0, 0.40, 0)) 
 
--- תפאורה למטה
 local SceneContainer = Instance.new("Frame", Tab_Credits_Page); SceneContainer.Size = UDim2.new(1, 0, 0.35, 0); SceneContainer.Position = UDim2.new(0, 0, 0.65, 0); SceneContainer.BackgroundTransparency = 1; SceneContainer.ZIndex=3
 local Hill1 = Instance.new("Frame", SceneContainer); Hill1.Size = UDim2.new(0.6, 0, 1, 0); Hill1.Position = UDim2.new(-0.1, 0, 0.4, 0); Hill1.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Hill1.BorderSizePixel=0; Library:Corner(Hill1, 100)
 local Hill2 = Instance.new("Frame", SceneContainer); Hill2.Size = UDim2.new(0.7, 0, 1.2, 0); Hill2.Position = UDim2.new(0.4, 0, 0.5, 0); Hill2.BackgroundColor3 = Color3.fromRGB(230, 240, 250); Hill2.BorderSizePixel=0; Library:Corner(Hill2, 100)
@@ -719,4 +771,4 @@ RunService.RenderStepped:Connect(function()
     if Settings.Speed.Enabled and LocalPlayer.Character then local h = LocalPlayer.Character:FindFirstChild("Humanoid"); if h then h.WalkSpeed = Settings.Speed.Value end end
 end)
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL FIXED) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (USER PANEL) Loaded")
