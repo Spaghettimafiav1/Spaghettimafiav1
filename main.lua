@@ -1,12 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v5.5 (RESIZED & NEW TOOLS)
+    Spaghetti Mafia Hub v6.0 (FINAL POLISH - ANIMATIONS & FIXES)
     
     Changes:
-    - GUI SIZE: Increased Height to 460px (Fixed Sidebar scrolling issue).
-    - TARGET TAB: Added Hebrew titles.
-    - VISUALS: Toggles now turn GOLD instead of GREEN.
-    - NEW TOOLS: Added "HeadSit" and "Backpack" to Actions.
-    - LAYOUT: Action box resized to fit 4 buttons nicely.
+    - GUI SIZE: Reduced Height to 420px (Perfect fit).
+    - LAYOUT FIX: Action buttons now fit perfectly inside the box (Box Height Increased).
+    - LOGIC ADDED: Real Sit Animation for HeadSit & Backpack.
+    - BACKPACK: Now faces 180 degrees away (Like a real backpack).
+    - BANG: Fixed alignment (Now perfectly behind, not diagonal).
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -87,6 +87,7 @@ local Settings = {
 local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
+local SitAnimTrack = nil -- For HeadSit/Backpack
 
 --// 3. UI FUNCTIONS
 local Library = {}
@@ -139,6 +140,28 @@ local function SpawnSnow(parent)
     Debris:AddItem(flake, duration)
 end
 
+--// HELPER FOR SITTING ANIMATION
+local function PlaySit(play)
+    if play then
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        if hum then
+            local animator = hum:FindFirstChild("Animator") or hum:WaitForChild("Animator")
+            if not SitAnimTrack then
+                local anim = Instance.new("Animation")
+                anim.AnimationId = "rbxassetid://2506281703" -- Standard Sit ID
+                SitAnimTrack = animator:LoadAnimation(anim)
+            end
+            SitAnimTrack:Play()
+        end
+    else
+        if SitAnimTrack then
+            SitAnimTrack:Stop()
+            SitAnimTrack = nil
+        end
+    end
+end
+
 --// 4. LOADING SCREEN
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
@@ -158,13 +181,13 @@ TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.Easi
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
-TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v5.5"; 
+TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v6.0"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
-SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 5.5..."; 
+SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 6.0..."; 
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
 
@@ -201,7 +224,7 @@ local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
 local NEW_WIDTH = 550
-local NEW_HEIGHT = 460 -- INCREASED HEIGHT
+local NEW_HEIGHT = 420 -- REDUCED HEIGHT AS REQUESTED
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
@@ -234,7 +257,7 @@ MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
 
-local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v5.5"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
+local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v6.0"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local MainSub = Instance.new("TextLabel", TopBar)
 MainSub.Size = UDim2.new(0,300,0,20)
@@ -1041,7 +1064,7 @@ end)
 
 -- BOX 2: ACTIONS (RESIZED FOR 4 BUTTONS)
 local ActionBox = Instance.new("Frame", TargetScroll)
-ActionBox.Size = UDim2.new(0.95, 0, 0, 120) -- INCREASED HEIGHT FOR 2 ROWS
+ActionBox.Size = UDim2.new(0.95, 0, 0, 140) -- INCREASED HEIGHT TO FIX OVERFLOW
 ActionBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(ActionBox, 12)
 Library:AddGlow(ActionBox, Settings.Theme.Gold)
@@ -1059,7 +1082,7 @@ TitleBox2.TextXAlignment = Enum.TextXAlignment.Right
 
 -- GRID LAYOUT FOR ACTIONS
 local ActionGrid = Instance.new("UIGridLayout", ActionBox)
-ActionGrid.CellSize = UDim2.new(0.47, 0, 0.38, 0)
+ActionGrid.CellSize = UDim2.new(0.47, 0, 0.40, 0) -- Adjusted for new height
 ActionGrid.CellPadding = UDim2.new(0.02, 0, 0.05, 0)
 ActionGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 ActionGrid.VerticalAlignment = Enum.VerticalAlignment.Center
@@ -1116,7 +1139,12 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
                 return 
             end
             pcall(function()
-                C:WaitForChild('HumanoidRootPart').CFrame = CFrame.new(target.Character:WaitForChild('HumanoidRootPart').Position + target.Character.HumanoidRootPart.CFrame.LookVector * -1) 
+                -- Fixed logic: Directly behind and looking at target
+                local targetHRP = target.Character:WaitForChild('HumanoidRootPart')
+                local myHRP = C:WaitForChild('HumanoidRootPart')
+                
+                local behindPos = targetHRP.CFrame * CFrame.new(0, 0, 1.1)
+                myHRP.CFrame = CFrame.lookAt(behindPos.Position, targetHRP.Position)
             end)
         end)
     end
@@ -1132,16 +1160,18 @@ CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     end
 end)
 
--- 3. HEADSIT (NEW)
+-- 3. HEADSIT (NEW ANIMATION)
 local HeadSitConnection = nil
 CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     if not state then
         if HeadSitConnection then HeadSitConnection:Disconnect() HeadSitConnection = nil end
+        PlaySit(false) -- Stop Animation
         return
     end
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
+         PlaySit(true) -- Play Animation
          HeadSitConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
@@ -1151,21 +1181,23 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     end
 end)
 
--- 4. BACKPACK (NEW)
+-- 4. BACKPACK (NEW ROTATION & ANIMATION)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     if not state then
         if BackpackConnection then BackpackConnection:Disconnect() BackpackConnection = nil end
+        PlaySit(false) -- Stop Animation
         return
     end
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
+         PlaySit(true) -- Play Animation
          BackpackConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
-                 -- Position behind and slightly up
-                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1, 1)
+                 -- Position behind, slightly up, and rotated 180 degrees
+                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1.5, 0.5) * CFrame.Angles(0, math.rad(180), 0)
             end)
          end)
     end
@@ -1434,4 +1466,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v5.5 (RESIZED & NEW TOOLS) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v6.0 (FINAL POLISH - ANIMATIONS & FIXES) Loaded")
