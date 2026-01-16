@@ -1,11 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (ROLLBACK VERSION)
+    Spaghetti Mafia Hub v1 (UPDATED & FIXED)
     
-    Fixes applied:
-    - Version changed to v1.
-    - UI Overflow fixed in Target tab (ClipsDescendants & resizing).
-    - Real Sit Animation added to HeadSit/Backpack.
-    - Target Status (Online/Offline) checks in real-time.
+    Update Log:
+    - Target Tab UI Layout Fixed (Symmetry, Scrollbars, Stroke).
+    - MiniPasta: Drag vs Click logic fixed. Keybind minimizes instead of hiding.
+    - Sit System: Added Real Sit Animation + Humanoid.Sit logic.
+    - Target Status: Added Real-time Online/Offline indicator.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -86,16 +86,17 @@ local Settings = {
 local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
-local SitAnimTrack = nil -- For HeadSit/Backpack
+local SitAnimTrack = nil -- Storage for the sit animation track
 
 --// 3. UI FUNCTIONS
 local Library = {}
 function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play() end
 
-function Library:AddGlow(obj, color) 
+-- Updated AddGlow to allow custom thickness or default to uniform 2
+function Library:AddGlow(obj, color, thickness) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 2 
+    s.Thickness = thickness or 2 
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
@@ -112,11 +113,42 @@ end
 
 function Library:Corner(obj, r) local c = Instance.new("UICorner", obj); c.CornerRadius = UDim.new(0, r or 10); return c end
 function Library:Gradient(obj, c1, c2, rot) local g = Instance.new("UIGradient", obj); g.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2)}; g.Rotation = rot or 45; return g end
-function Library:MakeDraggable(obj)
+
+-- Modified MakeDraggable to detect Drag vs Click for MiniPasta
+function Library:MakeDraggable(obj, isMiniPasta)
     local dragging, dragInput, dragStart, startPos
-    obj.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; dragStart = input.Position; startPos = obj.Position; input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end) end end)
-    obj.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end end)
-    RunService.RenderStepped:Connect(function() if dragging and dragInput then local delta = dragInput.Position - dragStart; obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
+    local isDraggingBool = false -- To distinguish click from drag
+    
+    obj.InputBegan:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then 
+            dragging = true 
+            dragStart = input.Position 
+            startPos = obj.Position 
+            isDraggingBool = false
+            
+            input.Changed:Connect(function() 
+                if input.UserInputState == Enum.UserInputState.End then 
+                    dragging = false 
+                end 
+            end) 
+        end 
+    end)
+    
+    obj.InputChanged:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.MouseMovement then 
+            dragInput = input 
+        end 
+    end)
+    
+    RunService.RenderStepped:Connect(function() 
+        if dragging and dragInput then 
+            local delta = dragInput.Position - dragStart
+            if delta.Magnitude > 5 then isDraggingBool = true end -- Threshold to consider it a drag
+            obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) 
+        end 
+    end)
+    
+    return function() return isDraggingBool end -- Returns a checker function
 end
 
 local function SpawnSnow(parent)
@@ -139,12 +171,16 @@ local function SpawnSnow(parent)
     Debris:AddItem(flake, duration)
 end
 
---// HELPER FOR SITTING ANIMATION (Added for Fix #3)
+--// HELPER FOR SITTING ANIMATION (FIXED)
 local function PlaySit(play)
     if play then
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChild("Humanoid")
         if hum then
+            -- Force Sit State
+            hum.Sit = true
+            
+            -- Load Animation
             local animator = hum:FindFirstChild("Animator") or hum:WaitForChild("Animator")
             if not SitAnimTrack then
                 local anim = Instance.new("Animation")
@@ -158,6 +194,9 @@ local function PlaySit(play)
             SitAnimTrack:Stop()
             SitAnimTrack = nil
         end
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        if hum then hum.Sit = false end
     end
 end
 
@@ -171,7 +210,7 @@ LoadBox.ClipsDescendants = true
 LoadBox.BorderSizePixel = 0
 LoadBox.BackgroundColor3 = Settings.Theme.Dark
 Library:Corner(LoadBox, 20)
-Library:AddGlow(LoadBox, Settings.Theme.Gold)
+Library:AddGlow(LoadBox, Settings.Theme.Gold, 2)
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
 PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
@@ -180,13 +219,13 @@ TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.Easi
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
-TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; -- CHANGED TO V1
+TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
-SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1..."; -- CHANGED TO V1
+SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1...";
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
 
@@ -219,7 +258,17 @@ LoadGui:Destroy()
 --// 5. MAIN GUI STRUCTURE
 local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = CoreGui; ScreenGui.ResetOnSpawn = false
 
-local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.new(0, 60, 0, 60); MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); MiniPasta.BackgroundColor3 = Settings.Theme.Box; MiniPasta.Text = "🍝"; MiniPasta.TextSize = 35; MiniPasta.Visible = false; Library:Corner(MiniPasta, 30); Library:AddGlow(MiniPasta); Library:MakeDraggable(MiniPasta)
+local MiniPasta = Instance.new("TextButton", ScreenGui); 
+MiniPasta.Size = UDim2.new(0, 60, 0, 60); 
+MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); 
+MiniPasta.BackgroundColor3 = Settings.Theme.Box; 
+MiniPasta.Text = "🍝"; 
+MiniPasta.TextSize = 35; 
+MiniPasta.Visible = false; 
+Library:Corner(MiniPasta, 30); 
+Library:AddGlow(MiniPasta, Settings.Theme.Gold, 2); 
+-- New Drag Logic
+local CheckDrag = Library:MakeDraggable(MiniPasta, true) 
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
 local NEW_WIDTH = 550
@@ -231,7 +280,7 @@ MainFrame.ClipsDescendants = true;
 Library:Corner(MainFrame, 16); 
 
 local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Thickness = 3.5 
+MainStroke.Thickness = 2 -- UNIFORM THICKNESS
 MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Color = Color3.fromRGB(255, 255, 255)
 
@@ -256,7 +305,6 @@ MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
 
--- CHANGED TITLE TO V1
 local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v1"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local MainSub = Instance.new("TextLabel", TopBar)
@@ -269,9 +317,17 @@ MainSub.TextSize = 13
 MainSub.TextColor3 = Settings.Theme.IceBlue
 MainSub.TextXAlignment = Enum.TextXAlignment.Left
 
-local CloseBtn = Instance.new("TextButton", TopBar); CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -45, 0, 15); CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); CloseBtn.Text = "_"; CloseBtn.TextColor3 = Settings.Theme.Gold; CloseBtn.Font=Enum.Font.GothamBold; CloseBtn.TextSize=18; Library:Corner(CloseBtn, 8); Library:AddGlow(CloseBtn, Settings.Theme.Gold)
+local CloseBtn = Instance.new("TextButton", TopBar); CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -45, 0, 15); CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); CloseBtn.Text = "_"; CloseBtn.TextColor3 = Settings.Theme.Gold; CloseBtn.Font=Enum.Font.GothamBold; CloseBtn.TextSize=18; Library:Corner(CloseBtn, 8); Library:AddGlow(CloseBtn, Settings.Theme.Gold, 2)
 CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPasta.Visible = true; Library:Tween(MiniPasta, {Size = UDim2.new(0, 60, 0, 60)}, 0.4, Enum.EasingStyle.Back) end)
-MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) end)
+
+-- MiniPasta Click Logic (Separated from drag)
+MiniPasta.MouseButton1Click:Connect(function() 
+    if CheckDrag() == false then -- Only open if not dragging
+        MiniPasta.Visible = false; 
+        MainFrame.Visible = true; 
+        Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) 
+    end
+end)
 
 --// STORM TIMER
 task.spawn(function()
@@ -296,7 +352,7 @@ task.spawn(function()
 
         local TimerStroke = Instance.new("UIStroke", TimerWidget)
         TimerStroke.Color = Settings.Theme.IceBlue
-        TimerStroke.Thickness = 1.5
+        TimerStroke.Thickness = 2 -- Uniform Thickness
         TimerStroke.Transparency = 0.5
         TimerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
@@ -377,7 +433,7 @@ Library:Corner(UserProfile, 10)
 
 local ProfileStroke = Instance.new("UIStroke", UserProfile)
 ProfileStroke.Color = Settings.Theme.Gold
-ProfileStroke.Thickness = 1.5
+ProfileStroke.Thickness = 2 -- Uniform Thickness
 ProfileStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 ProfileStroke.Transparency = 0.3
 
@@ -685,7 +741,7 @@ FarmBtn.BackgroundColor3 = Color3.fromRGB(30, 50, 70)
 FarmBtn.Text = ""
 FarmBtn.LayoutOrder = 1
 Library:Corner(FarmBtn, 12)
-Library:AddGlow(FarmBtn, Settings.Theme.IceBlue)
+Library:AddGlow(FarmBtn, Settings.Theme.IceBlue, 2)
 
 local FarmTitle = Instance.new("TextLabel", FarmBtn)
 FarmTitle.Size = UDim2.new(1, -60, 1, 0)
@@ -754,11 +810,11 @@ BalanceGrid.CellSize = UDim2.new(0.48, 0, 1, 0)
 BalanceGrid.CellPadding = UDim2.new(0.04, 0, 0, 0)
 BalanceGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local TotBlues = Instance.new("Frame", BalanceContainer); TotBlues.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(TotBlues, 12); local StrokeTotalB = Library:AddGlow(TotBlues, Settings.Theme.ShardBlue)
+local TotBlues = Instance.new("Frame", BalanceContainer); TotBlues.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(TotBlues, 12); local StrokeTotalB = Library:AddGlow(TotBlues, Settings.Theme.ShardBlue, 2)
 local T_TitleB = Instance.new("TextLabel", TotBlues); T_TitleB.Size = UDim2.new(1,0,0.3,0); T_TitleB.Position=UDim2.new(0,0,0.15,0); T_TitleB.BackgroundTransparency=1; T_TitleB.Text="כחולים 🧊"; T_TitleB.TextColor3=Settings.Theme.ShardBlue; T_TitleB.Font=Enum.Font.GothamBold; T_TitleB.TextSize=13; T_TitleB.ZIndex=6
 local T_ValB = Instance.new("TextLabel", TotBlues); T_ValB.Size = UDim2.new(1,0,0.5,0); T_ValB.Position=UDim2.new(0,0,0.45,0); T_ValB.BackgroundTransparency=1; T_ValB.Text="..."; T_ValB.TextColor3=Color3.new(1,1,1); T_ValB.Font=Enum.Font.GothamBlack; T_ValB.TextSize=20; T_ValB.ZIndex=6
 
-local TotReds = Instance.new("Frame", BalanceContainer); TotReds.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(TotReds, 12); local StrokeTotalR = Library:AddGlow(TotReds, Settings.Theme.CrystalRed)
+local TotReds = Instance.new("Frame", BalanceContainer); TotReds.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(TotReds, 12); local StrokeTotalR = Library:AddGlow(TotReds, Settings.Theme.CrystalRed, 2)
 local T_TitleR = Instance.new("TextLabel", TotReds); T_TitleR.Size = UDim2.new(1,0,0.3,0); T_TitleR.Position=UDim2.new(0,0,0.15,0); T_TitleR.BackgroundTransparency=1; T_TitleR.Text="אדומים 💎"; T_TitleR.TextColor3=Settings.Theme.CrystalRed; T_TitleR.Font=Enum.Font.GothamBold; T_TitleR.TextSize=13; T_TitleR.ZIndex=6
 local T_ValR = Instance.new("TextLabel", TotReds); T_ValR.Size = UDim2.new(1,0,0.5,0); T_ValR.Position=UDim2.new(0,0,0.45,0); T_ValR.BackgroundTransparency=1; T_ValR.Text="..."; T_ValR.TextColor3=Color3.new(1,1,1); T_ValR.Font=Enum.Font.GothamBlack; T_ValR.TextSize=20; T_ValR.ZIndex=6
 
@@ -782,11 +838,11 @@ StatsGrid.CellSize = UDim2.new(0.48, 0, 1, 0)
 StatsGrid.CellPadding = UDim2.new(0.04, 0, 0, 0)
 StatsGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local BoxBlue = Instance.new("Frame", StatsContainer); BoxBlue.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(BoxBlue, 12); local StrokeBlue = Library:AddGlow(BoxBlue, Settings.Theme.IceBlue)
+local BoxBlue = Instance.new("Frame", StatsContainer); BoxBlue.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(BoxBlue, 12); local StrokeBlue = Library:AddGlow(BoxBlue, Settings.Theme.IceBlue, 2)
 local TitleBlue = Instance.new("TextLabel", BoxBlue); TitleBlue.Size = UDim2.new(1, 0, 0.3, 0); TitleBlue.Position = UDim2.new(0,0,0.15,0); TitleBlue.BackgroundTransparency = 1; TitleBlue.Text = "כחולים (Session)"; TitleBlue.TextColor3 = Settings.Theme.IceBlue; TitleBlue.Font = Enum.Font.GothamBold; TitleBlue.TextSize = 12; TitleBlue.ZIndex=6
 local ValBlue = Instance.new("TextLabel", BoxBlue); ValBlue.Size = UDim2.new(1, 0, 0.5, 0); ValBlue.Position = UDim2.new(0,0,0.45,0); ValBlue.BackgroundTransparency = 1; ValBlue.Text = "0"; ValBlue.TextColor3 = Color3.new(1, 1, 1); ValBlue.Font = Enum.Font.GothamBlack; ValBlue.TextSize = 20; ValBlue.ZIndex=6
 
-local BoxRed = Instance.new("Frame", StatsContainer); BoxRed.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(BoxRed, 12); local StrokeRed = Library:AddGlow(BoxRed, Settings.Theme.CrystalRed)
+local BoxRed = Instance.new("Frame", StatsContainer); BoxRed.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(BoxRed, 12); local StrokeRed = Library:AddGlow(BoxRed, Settings.Theme.CrystalRed, 2)
 local TitleRed = Instance.new("TextLabel", BoxRed); TitleRed.Size = UDim2.new(1, 0, 0.3, 0); TitleRed.Position = UDim2.new(0,0,0.15,0); TitleRed.BackgroundTransparency = 1; TitleRed.Text = "אדומים (Session)"; TitleRed.TextColor3 = Settings.Theme.CrystalRed; TitleRed.Font = Enum.Font.GothamBold; TitleRed.TextSize = 12; TitleRed.ZIndex=6
 local ValRed = Instance.new("TextLabel", BoxRed); ValRed.Size = UDim2.new(1, 0, 0.5, 0); ValRed.Position = UDim2.new(0,0,0.45,0); ValRed.BackgroundTransparency = 1; ValRed.Text = "0"; ValRed.TextColor3 = Color3.new(1, 1, 1); ValRed.Font = Enum.Font.GothamBlack; ValRed.TextSize = 20; ValRed.ZIndex=6
 
@@ -992,7 +1048,8 @@ local BindCont = Instance.new("Frame", MainScroll); BindCont.Size = UDim2.new(0.
 local TargetScroll = Instance.new("ScrollingFrame", Tab_Target_Page)
 TargetScroll.Size = UDim2.new(1, 0, 1, 0)
 TargetScroll.BackgroundTransparency = 1
-TargetScroll.ScrollBarThickness = 2
+TargetScroll.ScrollBarThickness = 6 -- THICKER SCROLLBAR
+TargetScroll.ScrollBarImageColor3 = Settings.Theme.Gold -- VISIBLE SCROLLBAR
 TargetScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 TargetScroll.CanvasSize = UDim2.new(0,0,0,0)
 local TargetList = Instance.new("UIListLayout", TargetScroll); TargetList.SortOrder = Enum.SortOrder.LayoutOrder; TargetList.Padding = UDim.new(0, 10); TargetList.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -1022,7 +1079,7 @@ local TargetBox = Instance.new("Frame", TargetScroll)
 TargetBox.Size = UDim2.new(0.95, 0, 0, 85)
 TargetBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(TargetBox, 12)
-Library:AddGlow(TargetBox, Settings.Theme.Gold)
+Library:AddGlow(TargetBox, Settings.Theme.Gold, 2)
 
 local TargetInput = Instance.new("TextBox", TargetBox)
 TargetInput.Size = UDim2.new(0.65, 0, 0, 45)
@@ -1049,7 +1106,7 @@ TitleBox1.TextXAlignment = Enum.TextXAlignment.Right
 -- AVATAR
 local TargetAvatar = Instance.new("ImageLabel", TargetBox)
 TargetAvatar.Size = UDim2.new(0, 55, 0, 55)
-TargetAvatar.Position = UDim2.new(0.75, 0, 0.22, 0) -- הזזתי קצת שמאלה
+TargetAvatar.Position = UDim2.new(0.75, 0, 0.22, 0) 
 TargetAvatar.BackgroundColor3 = Color3.fromRGB(40,40,40)
 TargetAvatar.Image = "rbxassetid://0"
 Library:Corner(TargetAvatar, 30)
@@ -1057,14 +1114,14 @@ Library:Corner(TargetAvatar, 30)
 -- STATUS LABEL (ONLINE/OFFLINE)
 local StatusLabel = Instance.new("TextLabel", TargetBox)
 StatusLabel.Size = UDim2.new(0, 60, 0, 20)
-StatusLabel.Position = UDim2.new(0.75, 0, 0.85, 0) -- מתחת לתמונה
+StatusLabel.Position = UDim2.new(0.75, 0, 0.85, 0) 
 StatusLabel.Text = "WAITING..."
 StatusLabel.Font = Enum.Font.GothamBlack
 StatusLabel.TextSize = 10
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 
--- FIX: Live Status Checker Loop
+-- LIVE STATUS CHECKER
 task.spawn(function()
     while true do
         task.wait(1)
@@ -1095,13 +1152,13 @@ TargetInput.FocusLost:Connect(function()
     end
 end)
 
--- BOX 2: ACTIONS (FIXED LAYOUT & REAL SIT)
+-- BOX 2: ACTIONS (SYMMETRICAL GRID)
 local ActionBox = Instance.new("Frame", TargetScroll)
 ActionBox.Size = UDim2.new(0.95, 0, 0, 160)
 ActionBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-ActionBox.ClipsDescendants = true -- FIX UI OVERFLOW
+ActionBox.ClipsDescendants = true -- PREVENT OVERFLOW
 Library:Corner(ActionBox, 12)
-Library:AddGlow(ActionBox, Settings.Theme.Gold)
+Library:AddGlow(ActionBox, Settings.Theme.Gold, 2)
 
 local TitleBox2 = Instance.new("TextLabel", ActionBox)
 TitleBox2.Size = UDim2.new(0, 100, 0, 15)
@@ -1113,14 +1170,14 @@ TitleBox2.Font = Enum.Font.GothamBold
 TitleBox2.TextSize = 10
 TitleBox2.TextXAlignment = Enum.TextXAlignment.Right
 
--- GRID LAYOUT (Resized for fit)
+-- GRID LAYOUT (Symmetrical)
 local ActionGrid = Instance.new("UIGridLayout", ActionBox)
-ActionGrid.CellSize = UDim2.new(0.45, 0, 0.30, 0) -- Resized
-ActionGrid.CellPadding = UDim2.new(0.04, 0, 0.08, 0)
+ActionGrid.CellSize = UDim2.new(0.46, 0, 0.35, 0) -- Adjusted for symmetry
+ActionGrid.CellPadding = UDim2.new(0.04, 0, 0.10, 0)
 ActionGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 ActionGrid.VerticalAlignment = Enum.VerticalAlignment.Center
 local ActionPad = Instance.new("UIPadding", ActionBox)
-ActionPad.PaddingTop = UDim.new(0, 20) 
+ActionPad.PaddingTop = UDim.new(0, 25) 
 ActionPad.PaddingBottom = UDim.new(0, 10)
 
 local function CreateToggleBtn(parent, text, callback)
@@ -1194,11 +1251,11 @@ CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     end
 end)
 
--- 3. HEADSIT (Fixed: Real Sit Animation)
+-- 3. HEADSIT (Fixed: Real Sit + Anim)
 local HeadSitConnection = nil
 CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     if not state then
-        PlaySit(false) -- Stop Sit Animation
+        PlaySit(false) -- Stop Sit Anim & State
         if HeadSitConnection then HeadSitConnection:Disconnect() HeadSitConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.Sit = false -- Stand up
@@ -1208,7 +1265,7 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
-         PlaySit(true) -- Play Sit Animation
+         PlaySit(true) -- Start Sit Anim & State
          HeadSitConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
@@ -1219,11 +1276,11 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     end
 end)
 
--- 4. BACKPACK (Fixed: Real Sit Animation)
+-- 4. BACKPACK (Fixed: Real Sit + Anim)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     if not state then
-        PlaySit(false) -- Stop Sit Animation
+        PlaySit(false) -- Stop Sit Anim & State
         if BackpackConnection then BackpackConnection:Disconnect() BackpackConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.Sit = false -- Stand up
@@ -1233,7 +1290,7 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
-         PlaySit(true) -- Play Sit Animation
+         PlaySit(true) -- Start Sit Anim & State
          BackpackConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
@@ -1250,7 +1307,7 @@ local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250)
 ScannerBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(ScannerBox, 12)
-Library:AddGlow(ScannerBox, Settings.Theme.Gold)
+Library:AddGlow(ScannerBox, Settings.Theme.Gold, 2)
 
 -- HEBREW HEADER FOR BOX 3
 local TitleBox3 = Instance.new("TextLabel", ScannerBox)
@@ -1277,7 +1334,8 @@ local ScanResults = Instance.new("ScrollingFrame", ScannerBox)
 ScanResults.Size = UDim2.new(0.9, 0, 0.70, 0)
 ScanResults.Position = UDim2.new(0.05, 0, 0.26, 0)
 ScanResults.BackgroundTransparency = 1
-ScanResults.ScrollBarThickness = 2
+ScanResults.ScrollBarThickness = 6 -- THICKER
+ScanResults.ScrollBarImageColor3 = Settings.Theme.Gold
 ScanResults.AutomaticCanvasSize = Enum.AutomaticSize.Y
 ScanResults.CanvasSize = UDim2.new(0,0,0,0)
 local ScanList = Instance.new("UIListLayout", ScanResults); ScanList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1367,7 +1425,7 @@ RejoinBtn.TextColor3 = Color3.new(1,1,1)
 RejoinBtn.Font = Enum.Font.GothamBold
 RejoinBtn.TextSize = 14
 Library:Corner(RejoinBtn, 8)
-Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 60, 60))
+Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 60, 60), 2)
 RejoinBtn.MouseButton1Click:Connect(function() 
     TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
 end)
@@ -1389,7 +1447,7 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     c.BackgroundColor3 = Settings.Theme.Box
     c.ZIndex = 2
     Library:Corner(c, 12)
-    Library:AddGlow(c, Settings.Theme.Gold)
+    Library:AddGlow(c, Settings.Theme.Gold, 2)
     
     local imgCont = Instance.new("Frame", c)
     imgCont.Size = UDim2.new(0, 60, 0, 60)
@@ -1455,7 +1513,24 @@ local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tr
 --// 12. FINALIZE & LOOPS
 UIS.InputBegan:Connect(function(i,g)
     if not g then
-        if i.KeyCode == Settings.Keys.Menu then if MainFrame.Visible then Library:Tween(MainFrame, {Size = UDim2.new(0,0,0,0)}, 0.4, Enum.EasingStyle.Back); task.wait(0.3); MainFrame.Visible = false else MainFrame.Visible = true; MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT); Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.5, Enum.EasingStyle.Back) end end
+        -- TOGGLE VISIBILITY KEYBIND LOGIC UPDATED
+        if i.KeyCode == Settings.Keys.Menu then 
+            if MainFrame.Visible then 
+                -- HIDE MAIN -> SHOW MINIPASTA
+                Library:Tween(MainFrame, {Size = UDim2.new(0,0,0,0)}, 0.4, Enum.EasingStyle.Back); 
+                task.wait(0.3); 
+                MainFrame.Visible = false 
+                MiniPasta.Visible = true 
+                Library:Tween(MiniPasta, {Size = UDim2.new(0, 60, 0, 60)}, 0.4, Enum.EasingStyle.Back)
+            else 
+                -- SHOW MAIN -> HIDE MINIPASTA
+                MiniPasta.Visible = false
+                MainFrame.Visible = true; 
+                MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT); 
+                Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.5, Enum.EasingStyle.Back) 
+            end 
+        end
+
         if i.KeyCode == Settings.Keys.Fly then Settings.Fly.Enabled = not Settings.Fly.Enabled; ToggleFly(Settings.Fly.Enabled); if VisualToggles["Fly"] then VisualToggles["Fly"](Settings.Fly.Enabled) end end
         if i.KeyCode == Settings.Keys.Speed then 
             Settings.Speed.Enabled = not Settings.Speed.Enabled
@@ -1508,4 +1583,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (ROLLBACK VERSION - ANIMATIONS & FIXES) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FIXED TARGET TAB & INTERACTIONS) Loaded")
