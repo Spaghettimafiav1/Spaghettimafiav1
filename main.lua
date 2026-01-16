@@ -1,9 +1,9 @@
 --[[
-    Spaghetti Mafia Hub v1 (FINAL PREMIUM EDITION)
+    Spaghetti Mafia Hub v1 (FINAL FIXED EDITION)
     Updates:
-    - FIXED TIMER ALIGNMENT (Perfectly centered next to minimize).
-    - ADDED USER PROFILE (Avatar + Welcome text at bottom left).
-    - RETAINED ALL PREVIOUS FEATURES (Storm logic, Auto Farm, etc).
+    - FIXED USER PROFILE (Now loads instantly, no empty black box).
+    - FIXED LAYOUT (Elements won't overlap).
+    - PERFECTED TIMER.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -330,18 +330,18 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 -- ======================================================================================
---                        פרופיל משתמש יוקרתי (למטה בצד שמאל)
+--                        פרופיל משתמש (מתוקן - טעינה אסינכרונית + ZINDEX)
 -- ======================================================================================
 local UserProfile = Instance.new("Frame", Sidebar)
 UserProfile.Name = "UserProfileContainer"
-UserProfile.Size = UDim2.new(0.9, 0, 0, 50) -- גובה הכרטיס
-UserProfile.AnchorPoint = Vector2.new(0.5, 1) -- עיגון לתחתית
-UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0) -- מיקום בתחתית התפריט
-UserProfile.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+UserProfile.Size = UDim2.new(0.9, 0, 0, 50)
+UserProfile.AnchorPoint = Vector2.new(0.5, 1)
+UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
+UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 40) -- קצת יותר בהיר מהרקע כדי שיראו אותו
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
 Library:Corner(UserProfile, 10)
-Library:AddGlow(UserProfile, Color3.fromRGB(0,0,0)) -- צל עדין
+Library:AddGlow(UserProfile, Color3.fromRGB(0,0,0))
 
 -- תמונת פרופיל (עיגול)
 local AvatarFrame = Instance.new("Frame", UserProfile)
@@ -350,30 +350,29 @@ AvatarFrame.Position = UDim2.new(0, 8, 0.5, 0)
 AvatarFrame.AnchorPoint = Vector2.new(0, 0.5)
 AvatarFrame.BackgroundColor3 = Settings.Theme.Gold
 AvatarFrame.BorderSizePixel = 0
-local AvatarCorner = Instance.new("UICorner", AvatarFrame); AvatarCorner.CornerRadius = UDim.new(1, 0) -- הופך לעיגול
+AvatarFrame.ZIndex = 11 -- מעל הפריים הראשי
+local AvatarCorner = Instance.new("UICorner", AvatarFrame); AvatarCorner.CornerRadius = UDim.new(1, 0)
 
 local AvatarImg = Instance.new("ImageLabel", AvatarFrame)
 AvatarImg.Size = UDim2.new(0.9, 0, 0.9, 0)
 AvatarImg.Position = UDim2.new(0.5, 0, 0.5, 0)
 AvatarImg.AnchorPoint = Vector2.new(0.5, 0.5)
 AvatarImg.BackgroundTransparency = 1
--- טעינת התמונה של השחקן (Headshot)
-local thumbType = Enum.ThumbnailType.HeadShot
-local thumbSize = Enum.ThumbnailSize.Size100x100
-local content, isReady = Players:GetUserThumbnailAsync(LocalPlayer.UserId, thumbType, thumbSize)
-AvatarImg.Image = content
+AvatarImg.Image = "" -- מתחיל ריק
+AvatarImg.ZIndex = 12 -- הכי גבוה
 local AvatarImgCorner = Instance.new("UICorner", AvatarImg); AvatarImgCorner.CornerRadius = UDim.new(1, 0)
 
--- טקסט ברוך הבא
+-- טקסט ברוך הבא (נוצר לפני טעינת התמונה)
 local WelcomeText = Instance.new("TextLabel", UserProfile)
 WelcomeText.Text = "Welcome,"
 WelcomeText.Size = UDim2.new(0, 80, 0, 15)
 WelcomeText.Position = UDim2.new(0, 52, 0, 10)
 WelcomeText.BackgroundTransparency = 1
-WelcomeText.TextColor3 = Color3.fromRGB(150, 150, 150)
+WelcomeText.TextColor3 = Color3.fromRGB(200, 200, 200) -- לבן-אפור בהיר
 WelcomeText.Font = Enum.Font.GothamMedium
 WelcomeText.TextSize = 10
 WelcomeText.TextXAlignment = Enum.TextXAlignment.Left
+WelcomeText.ZIndex = 11
 
 -- שם המשתמש
 local UsernameText = Instance.new("TextLabel", UserProfile)
@@ -385,11 +384,21 @@ UsernameText.TextColor3 = Settings.Theme.Gold
 UsernameText.Font = Enum.Font.GothamBold
 UsernameText.TextSize = 12
 UsernameText.TextXAlignment = Enum.TextXAlignment.Left
-UsernameText.TextTruncate = Enum.TextTruncate.AtEnd -- חותך אם השם ארוך מדי
+UsernameText.TextTruncate = Enum.TextTruncate.AtEnd
+UsernameText.ZIndex = 11
+
+-- טעינת התמונה ברקע (כדי לא לתקוע את הסקריפט)
+task.spawn(function()
+    local content = "rbxassetid://0"
+    pcall(function()
+        content = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+    end)
+    AvatarImg.Image = content
+end)
 -- ======================================================================================
 
 local SideBtnContainer = Instance.new("Frame", Sidebar)
-SideBtnContainer.Size = UDim2.new(1, 0, 1, -60) -- מקטינים את אזור הכפתורים כדי לא לדרוס את הפרופיל
+SideBtnContainer.Size = UDim2.new(1, 0, 1, -60) -- מקטינים כדי לא לדרוס את הפרופיל
 SideBtnContainer.BackgroundTransparency = 1
 
 local SideList = Instance.new("UIListLayout", SideBtnContainer); SideList.Padding = UDim.new(0,8); SideList.HorizontalAlignment = Enum.HorizontalAlignment.Center; SideList.SortOrder = Enum.SortOrder.LayoutOrder
