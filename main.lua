@@ -1,10 +1,10 @@
 --[[
-    Spaghetti Mafia Hub v1 (NUCLEAR EDITION)
+    Spaghetti Mafia Hub v1 (FINAL STABLE VERSION)
     Updates:
-    - FIXED WATER: Added Anti-Gravity + Infinite Oxygen + Forced Walking State.
-    - POI BLOCKER: Aggressively disables Doors, Portals, and Interactions.
-    - VISUALS: Hebrew Gold Profile & Premium Main Tab retained.
-    - ALL FEATURES INTACT.
+    - FIXED AUTO FARM: Removed heavy loops that caused crashes.
+    - WATER FIX: Disables Swimming State directly (Character walks in water).
+    - ANTI-STUCK: Character becomes ghost (Noclip) while farming to pass doors/walls.
+    - UI: Premium Hebrew Gold Design preserved.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -175,7 +175,7 @@ CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPas
 MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) end)
 
 -- ======================================================================================
---                        הטיימר המעוצב
+--                        הטיימר
 -- ======================================================================================
 task.spawn(function()
     local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5)
@@ -270,7 +270,7 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 -- ======================================================================================
---                        פרופיל משתמש (ברוך הבא)
+--                        פרופיל משתמש
 -- ======================================================================================
 local UserProfile = Instance.new("Frame", Sidebar)
 UserProfile.Name = "UserProfileContainer"
@@ -431,108 +431,39 @@ local function GetClosestTarget()
 end
 
 -- ======================================================================================
---                        חסימת נקודות עניין (POI Blocker) - מונע תקיעות
--- ======================================================================================
-local function DisablePointsOfInterest()
-    -- חיפוש רחב ב-Workspace כדי לבטל דברים שמפריעים
-    for _, v in pairs(Workspace:GetDescendants()) do
-        if v:IsA("BasePart") then
-            local name = string.lower(v.Name)
-            if name:find("pointofinterest") or name:find("interaction") or name:find("door") or name:find("portal") or name:find("chest") then
-                v.CanCollide = false
-                v.CanTouch = false
-            end
-        elseif v:IsA("ProximityPrompt") or v:IsA("TouchTransmitter") then
-             -- ביטול אינטראקציות
-             v.Enabled = false
-             if v.Parent and v.Parent:IsA("BasePart") then v.Parent.CanTouch = false end
-        end
-    end
-end
-
--- רץ כל שניה כדי לוודא שדברים חדשים גם נחסמים
-task.spawn(function()
-    while true do
-        if Settings.Farming then
-            pcall(DisablePointsOfInterest)
-        end
-        task.wait(2)
-    end
-end)
-
-local function UltraSafeDisable()
-    local char = LocalPlayer.Character; if not char then return end
-    for _, part in pairs(char:GetChildren()) do if part:IsA("BasePart") then part.CanTouch = false end end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        local r = Region3.new(hrp.Position - Vector3.new(30,30,30), hrp.Position + Vector3.new(30,30,30))
-        for _,v in pairs(workspace:FindPartsInRegion3(r, nil, 100)) do 
-            if v.Name:lower():find("door") or v.Name:lower():find("portal") then v.CanTouch = false end 
-        end
-    end
-end
-
--- ======================================================================================
---                        תיקון המים + חמצן + חסימת POI
+--                        מערכת ה-AUTO FARM המתוקנת
 -- ======================================================================================
 local function ToggleFarm(v)
     Settings.Farming = v; if not v then FarmBlacklist = {} end
     if not FarmConnection and v then
-        DisablePointsOfInterest() -- קריאה ראשונית
         FarmConnection = RunService.Stepped:Connect(function()
             if LocalPlayer.Character and Settings.Farming then
-                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
+                -- Ghost Mode (No Collisions) - במקום למחוק דלתות
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do 
+                    if part:IsA("BasePart") then part.CanCollide = false end 
+                end
+                
                 local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
                 if hum then 
                     if hum.Sit then hum.Sit = false end 
-                    hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
                     
                     -- FIX: Disable Swimming State (Walk through water)
+                    -- מכריח את השחקן להיות במצב הליכה גם במים
                     hum:SetStateEnabled(Enum.HumanoidStateType.Swimming, false) 
+                    hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
                     
-                    -- FIX: Infinite Oxygen
+                    -- Infinite Oxygen (לא טובעים)
                     hum.Air = 100
-                end
-                
-                -- Anti-Gravity Logic to stop sinking
-                local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    -- Keeps the character buoyant
-                    local bodyVel = hrp:FindFirstChild("AntiSink")
-                    if not bodyVel then
-                        bodyVel = Instance.new("BodyVelocity")
-                        bodyVel.Name = "AntiSink"
-                        bodyVel.Velocity = Vector3.new(0, 0, 0)
-                        bodyVel.MaxForce = Vector3.new(0, math.huge, 0) -- Only fight gravity (Y axis)
-                        bodyVel.Parent = hrp
-                    end
-                end
-                
-                UltraSafeDisable()
-            else
-                -- Remove Anti-Sink if farming stops
-                if LocalPlayer.Character then
-                    local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp and hrp:FindFirstChild("AntiSink") then
-                        hrp.AntiSink:Destroy()
-                    end
                 end
             end
         end)
     elseif not v and FarmConnection then 
         FarmConnection:Disconnect()
         FarmConnection = nil 
-        if LocalPlayer.Character then
-             local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-             local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-             
-             if hum then
-                hum:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
-                hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) 
-             end
-             if hrp and hrp:FindFirstChild("AntiSink") then
-                hrp.AntiSink:Destroy()
-             end
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            -- Enable Swimming again
+            LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
+            LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true) 
         end
     end
 
@@ -1117,4 +1048,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE PERFECTED) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FULL PREMIUM) Loaded")
