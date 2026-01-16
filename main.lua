@@ -1,11 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (FINAL FIXED EDITION - NO LEAKING)
+    Spaghetti Mafia Hub v1 (FINAL PERFECTED - CLEAN SNOWMAN)
     
-    Fixes:
-    - MOVED SNOWMAN: Positioned higher and inward so he fits INSIDE the frame perfectly.
-    - FIXED ARMS: Arms are now attached directly to the body sides.
-    - MOVED TREES: Shifted left to avoid the bottom-right corner.
-    - PRESERVED: All logic and previous designs.
+    Changes:
+    - REMOVED: Stick arms (Brown lines) deleted as requested.
+    - KEPT: Snowman swaying animation (Side to side).
+    - DESIGN: Gold borders, Clipping, and positions remain perfect.
+    - LOGIC: 100% PRESERVED.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -206,7 +206,7 @@ local NEW_HEIGHT = 370
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
-MainFrame.ClipsDescendants = true; -- חובה לחיתוך
+MainFrame.ClipsDescendants = true; 
 Library:Corner(MainFrame, 16); 
 
 -- === עיצוב פרימיום חדש למסגרת הראשית (Animated Gold Border) ===
@@ -1103,37 +1103,13 @@ SnowmanBody.BackgroundTransparency = 1
 SnowmanBody.TextSize = 60
 SnowmanBody.ZIndex = 4
 
--- Arms connected to the body (Using Frames for better look)
-local LeftArm = Instance.new("Frame", SnowmanBody)
-LeftArm.Size = UDim2.new(0, 25, 0, 3) -- Stick shape
-LeftArm.BackgroundColor3 = Color3.fromRGB(100, 60, 20) -- Brown
-LeftArm.BorderSizePixel = 0
-LeftArm.Position = UDim2.new(0, 0, 0.4, 0) -- Attached to left side
-LeftArm.AnchorPoint = Vector2.new(1, 0.5) -- Pivot from shoulder
-LeftArm.Rotation = -30
-LeftArm.ZIndex = 3
-
-local RightArm = Instance.new("Frame", SnowmanBody)
-RightArm.Size = UDim2.new(0, 25, 0, 3) -- Stick shape
-RightArm.BackgroundColor3 = Color3.fromRGB(100, 60, 20) -- Brown
-RightArm.BorderSizePixel = 0
-RightArm.Position = UDim2.new(1, 0, 0.4, 0) -- Attached to right side
-RightArm.AnchorPoint = Vector2.new(0, 0.5) -- Pivot from shoulder
-RightArm.Rotation = 30
-RightArm.ZIndex = 3
-
--- Snowman Animation Loop
+-- Snowman Animation Loop (Swaying ONLY)
 task.spawn(function()
     local t = 0
     while SnowmanFrame.Parent do
         t = t + 0.15
         -- Swaying Body
         SnowmanBody.Rotation = math.sin(t) * 5
-        
-        -- Waving Arms (Attached correctly now)
-        LeftArm.Rotation = -30 + math.sin(t * 2) * 20
-        RightArm.Rotation = 30 - math.sin(t * 2) * 20
-        
         task.wait(0.03)
     end
 end)
@@ -1201,4 +1177,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL FIXED EDITION - NO LEAKING) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL PERFECTED - CLEAN SNOWMAN) Loaded")
