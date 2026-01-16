@@ -1,8 +1,10 @@
 --[[
-    Spaghetti Mafia Hub v1 (HYBRID ULTIMATE EDITION)
+    Spaghetti Mafia Hub v1 (ULTIMATE HYBRID - HEBREW DESIGN EDITION)
     
-    Base: ULTIMATE PREMIUM EDITION (UI, Big Profile, Visuals)
-    Logic: PERFECTED EDITION (Auto Farm, Tween, Anti-Sit, AFK, Speed)
+    Updates:
+    - CHANGED: "Welcome" text to "ברוך הבא".
+    - REDESIGNED: Main Frame now has a premium moving Gradient Border & Background.
+    - LOGIC: Kept 100% of the Perfected Logic (Farm/Speed/Fly/Anti-Sit).
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -205,7 +207,37 @@ MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
 Library:Corner(MainFrame, 16); 
-Library:AddGlow(MainFrame, Settings.Theme.Gold)
+
+-- === עיצוב פרימיום למסגרת הראשית (NEW PREMIUM BORDER & BACKGROUND) ===
+local MainGradient = Instance.new("UIGradient", MainFrame)
+MainGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Settings.Theme.Dark),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 28)) 
+}
+MainGradient.Rotation = 45
+
+local MainStroke = Instance.new("UIStroke", MainFrame)
+MainStroke.Thickness = 2.5
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Color = Settings.Theme.Gold
+
+local StrokeGradient = Instance.new("UIGradient", MainStroke)
+StrokeGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Settings.Theme.Gold),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 245, 180)), -- Bright Gold Center
+    ColorSequenceKeypoint.new(1, Settings.Theme.Gold)
+}
+StrokeGradient.Rotation = -45
+
+-- אנימציה עדינה למסגרת
+task.spawn(function()
+    while MainFrame.Parent do
+        local t = tick() * 30
+        StrokeGradient.Rotation = t % 360
+        task.wait(0.05)
+    end
+end)
+-- ====================================================================
 
 MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.6, Enum.EasingStyle.Quart) 
 
@@ -229,7 +261,7 @@ CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPas
 MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) end)
 
 -- ======================================================================================
---                        הטיימר המעוצב (מהסקריפט המקורי)
+--                        הטיימר המעוצב 
 -- ======================================================================================
 task.spawn(function()
     local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5)
@@ -324,11 +356,10 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 -- ======================================================================================
---                        פרופיל משתמש מוגדל (ENLARGED) - מהסקריפט המקורי
+--                        פרופיל משתמש מוגדל (ENLARGED) - כולל תיקון עברית
 -- ======================================================================================
 local UserProfile = Instance.new("Frame", Sidebar)
 UserProfile.Name = "UserProfileContainer"
--- הגדלתי את הגובה ל-75 (היה 50)
 UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
@@ -343,7 +374,6 @@ ProfileStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 -- תמונת פרופיל מוגדלת
 local AvatarFrame = Instance.new("Frame", UserProfile)
--- הגדלתי ל-55 (היה 36)
 AvatarFrame.Size = UDim2.new(0, 55, 0, 55)
 AvatarFrame.Position = UDim2.new(0, 10, 0.5, 0)
 AvatarFrame.AnchorPoint = Vector2.new(0, 0.5)
@@ -361,20 +391,19 @@ AvatarImg.Image = ""
 AvatarImg.ZIndex = 12
 local AvatarImgCorner = Instance.new("UICorner", AvatarImg); AvatarImgCorner.CornerRadius = UDim.new(1, 0)
 
--- טקסט ברוך הבא (מוגדל)
+-- טקסט ברוך הבא (מעוצב לעברית)
 local WelcomeText = Instance.new("TextLabel", UserProfile)
-WelcomeText.Text = "Welcome,"
+WelcomeText.Text = "ברוך הבא," -- שונה ל"ברוך הבא"
 WelcomeText.Size = UDim2.new(0, 80, 0, 15)
--- הזזתי ימינה כדי להתאים לתמונה הגדולה
 WelcomeText.Position = UDim2.new(0, 75, 0, 18)
 WelcomeText.BackgroundTransparency = 1
-WelcomeText.TextColor3 = Color3.fromRGB(180, 180, 180)
-WelcomeText.Font = Enum.Font.GothamMedium
-WelcomeText.TextSize = 12 -- הגדלתי ל-12
+WelcomeText.TextColor3 = Color3.fromRGB(200, 200, 200)
+WelcomeText.Font = Enum.Font.GothamBold -- פונט מודגש יותר
+WelcomeText.TextSize = 13
 WelcomeText.TextXAlignment = Enum.TextXAlignment.Left
 WelcomeText.ZIndex = 11
 
--- שם המשתמש (מוגדל)
+-- שם המשתמש
 local UsernameText = Instance.new("TextLabel", UserProfile)
 UsernameText.Text = LocalPlayer.Name
 UsernameText.Size = UDim2.new(0, 90, 0, 20)
@@ -382,7 +411,7 @@ UsernameText.Position = UDim2.new(0, 75, 0, 36)
 UsernameText.BackgroundTransparency = 1
 UsernameText.TextColor3 = Settings.Theme.Gold
 UsernameText.Font = Enum.Font.GothamBold
-UsernameText.TextSize = 15 -- הגדלתי ל-15
+UsernameText.TextSize = 15 
 UsernameText.TextXAlignment = Enum.TextXAlignment.Left
 UsernameText.TextTruncate = Enum.TextTruncate.AtEnd
 UsernameText.ZIndex = 11
@@ -397,7 +426,6 @@ end)
 -- ======================================================================================
 
 local SideBtnContainer = Instance.new("Frame", Sidebar)
--- הקטנתי את אזור הכפתורים כדי לפנות מקום לפרופיל הגדול
 SideBtnContainer.Size = UDim2.new(1, 0, 1, -85) 
 SideBtnContainer.BackgroundTransparency = 1
 
