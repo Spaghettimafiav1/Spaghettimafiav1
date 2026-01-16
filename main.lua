@@ -1,12 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v6.0 (FINAL POLISH - ANIMATIONS & FIXES)
+    Spaghetti Mafia Hub v1 (ROLLBACK VERSION)
     
-    Changes:
-    - GUI SIZE: Reduced Height to 420px (Perfect fit).
-    - LAYOUT FIX: Action buttons now fit perfectly inside the box (Box Height Increased).
-    - LOGIC ADDED: Real Sit Animation for HeadSit & Backpack.
-    - BACKPACK: Now faces 180 degrees away (Like a real backpack).
-    - BANG: Fixed alignment (Now perfectly behind, not diagonal).
+    Fixes applied:
+    - Version changed to v1.
+    - UI Overflow fixed in Target tab (ClipsDescendants & resizing).
+    - Real Sit Animation added to HeadSit/Backpack.
+    - Target Status (Online/Offline) checks in real-time.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -140,7 +139,7 @@ local function SpawnSnow(parent)
     Debris:AddItem(flake, duration)
 end
 
---// HELPER FOR SITTING ANIMATION
+--// HELPER FOR SITTING ANIMATION (Added for Fix #3)
 local function PlaySit(play)
     if play then
         local char = LocalPlayer.Character
@@ -181,13 +180,13 @@ TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.Easi
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
-TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v6.0"; 
+TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; -- CHANGED TO V1
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
-SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 6.0..."; 
+SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1..."; -- CHANGED TO V1
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
 
@@ -224,7 +223,7 @@ local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
 local NEW_WIDTH = 550
-local NEW_HEIGHT = 420 -- REDUCED HEIGHT AS REQUESTED
+local NEW_HEIGHT = 420 
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
@@ -257,7 +256,8 @@ MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
 
-local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v6.0"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
+-- CHANGED TITLE TO V1
+local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v1"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local MainSub = Instance.new("TextLabel", TopBar)
 MainSub.Size = UDim2.new(0,300,0,20)
@@ -1016,6 +1016,7 @@ local function GetPlayer(name)
     end
     return nil
 end
+
 -- BOX 1: HEADER (WITH STATUS)
 local TargetBox = Instance.new("Frame", TargetScroll)
 TargetBox.Size = UDim2.new(0.95, 0, 0, 85)
@@ -1063,27 +1064,42 @@ StatusLabel.TextSize = 10
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 
+-- FIX: Live Status Checker Loop
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if TargetInput.Text ~= "" then
+            local p = GetPlayer(TargetInput.Text)
+            if p then
+                 StatusLabel.Text = "ONLINE 🟢"
+                 StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 100)
+            else
+                 StatusLabel.Text = "OFFLINE 🔴"
+                 StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+            end
+        else
+            StatusLabel.Text = "WAITING..."
+            StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+        end
+    end
+end)
+
 TargetInput.FocusLost:Connect(function()
     local p = GetPlayer(TargetInput.Text)
     if p then
         TargetInput.Text = p.Name
         local content = Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
         TargetAvatar.Image = content
-        -- סטטוס מחובר
-        StatusLabel.Text = "ONLINE 🟢"
-        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 100)
     else
         TargetAvatar.Image = "rbxassetid://0"
-        -- סטטוס מנותק
-        StatusLabel.Text = "OFFLINE 🔴"
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
     end
 end)
 
 -- BOX 2: ACTIONS (FIXED LAYOUT & REAL SIT)
 local ActionBox = Instance.new("Frame", TargetScroll)
-ActionBox.Size = UDim2.new(0.95, 0, 0, 160) -- הגדלתי ל-160 כדי שיהיה מרווח
+ActionBox.Size = UDim2.new(0.95, 0, 0, 160)
 ActionBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+ActionBox.ClipsDescendants = true -- FIX UI OVERFLOW
 Library:Corner(ActionBox, 12)
 Library:AddGlow(ActionBox, Settings.Theme.Gold)
 
@@ -1097,13 +1113,12 @@ TitleBox2.Font = Enum.Font.GothamBold
 TitleBox2.TextSize = 10
 TitleBox2.TextXAlignment = Enum.TextXAlignment.Right
 
--- GRID LAYOUT (כפתורים קטנים יותר וממורכזים)
+-- GRID LAYOUT (Resized for fit)
 local ActionGrid = Instance.new("UIGridLayout", ActionBox)
-ActionGrid.CellSize = UDim2.new(0.46, 0, 0.35, 0) -- הקטנתי טיפה את הכפתורים
-ActionGrid.CellPadding = UDim2.new(0.04, 0, 0.08, 0) -- יותר רווח
+ActionGrid.CellSize = UDim2.new(0.45, 0, 0.30, 0) -- Resized
+ActionGrid.CellPadding = UDim2.new(0.04, 0, 0.08, 0)
 ActionGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 ActionGrid.VerticalAlignment = Enum.VerticalAlignment.Center
--- Padding פנימי לקופסה כדי שהכפתורים לא ייגעו בקצוות
 local ActionPad = Instance.new("UIPadding", ActionBox)
 ActionPad.PaddingTop = UDim.new(0, 20) 
 ActionPad.PaddingBottom = UDim.new(0, 10)
@@ -1179,52 +1194,57 @@ CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     end
 end)
 
--- 3. HEADSIT (תוקן - ישיבה אמיתית)
+-- 3. HEADSIT (Fixed: Real Sit Animation)
 local HeadSitConnection = nil
 CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     if not state then
+        PlaySit(false) -- Stop Sit Animation
         if HeadSitConnection then HeadSitConnection:Disconnect() HeadSitConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.Sit = false -- לקום
+            LocalPlayer.Character.Humanoid.Sit = false -- Stand up
         end
         return
     end
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
+         PlaySit(true) -- Play Sit Animation
          HeadSitConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
-                 LocalPlayer.Character.Humanoid.Sit = true -- מכריח ישיבה
+                 LocalPlayer.Character.Humanoid.Sit = true 
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.Head.CFrame * CFrame.new(0, 1.5, 0)
             end)
          end)
     end
 end)
 
--- 4. BACKPACK (תוקן - ישיבה הפוכה אמיתית)
+-- 4. BACKPACK (Fixed: Real Sit Animation)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     if not state then
+        PlaySit(false) -- Stop Sit Animation
         if BackpackConnection then BackpackConnection:Disconnect() BackpackConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.Sit = false -- לקום
+            LocalPlayer.Character.Humanoid.Sit = false -- Stand up
         end
         return
     end
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
+         PlaySit(true) -- Play Sit Animation
          BackpackConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
-                 LocalPlayer.Character.Humanoid.Sit = true -- מכריח ישיבה
-                 -- יושב הפוך (הגב שלי לגב שלו)
+                 LocalPlayer.Character.Humanoid.Sit = true 
+                 -- Sit reversed
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1.5, 0.5) * CFrame.Angles(0, math.rad(180), 0)
             end)
          end)
     end
 end)
+
 -- BOX 3: SCANNER
 local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250)
@@ -1488,4 +1508,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v6.0 (FINAL POLISH - ANIMATIONS & FIXES) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (ROLLBACK VERSION - ANIMATIONS & FIXES) Loaded")
