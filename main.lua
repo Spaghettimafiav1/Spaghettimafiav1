@@ -1,12 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE FIX - CLIPPING & BORDERS)
+    Spaghetti Mafia Hub v1 (ULTIMATE FIX V5 - SNOWMAN & CLIPPING PERFECTED)
     
     Fixes:
-    - MainFrame.ClipsDescendants = true (Prevents Tree/Snowman leaking).
-    - Added GOLD BORDERS to all internal Sliders and Buttons.
-    - Added GOLD BORDER to Welcome Profile.
-    - Fixed Snowman Arms Pivot (Rotates from shoulder).
-    - Logic remains 100% untouched.
+    - RE-POSITIONED: Trees and Snowman moved slightly inward to avoid corner leaking.
+    - NEW ARMS: Snowman arms are now actual Frames (sticks), not text. They connect perfectly.
+    - ANIMATION: Arms wave naturally from the shoulder.
+    - LOGIC: 100% PRESERVED (Farm, Fly, Speed, Anti-Sit).
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -65,8 +64,8 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0),
-        Dark = Color3.fromRGB(18, 18, 24), -- טיפה בהיר יותר מהשחור המוחלט
-        Box = Color3.fromRGB(30, 30, 35), -- צבע לקופסאות פנימיות
+        Dark = Color3.fromRGB(18, 18, 24), 
+        Box = Color3.fromRGB(30, 30, 35), 
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
@@ -207,7 +206,7 @@ local NEW_HEIGHT = 370
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
-MainFrame.ClipsDescendants = true;  -- ***** תיקון חיתוך: זה חובה כדי שהעץ לא יצא החוצה *****
+MainFrame.ClipsDescendants = true; 
 Library:Corner(MainFrame, 16); 
 
 -- === עיצוב פרימיום חדש למסגרת הראשית (Animated Gold Border) ===
@@ -1090,10 +1089,10 @@ SceneContainer.ZIndex = 3
 local Hill1 = Instance.new("Frame", SceneContainer); Hill1.Size = UDim2.new(0.6, 0, 1, 0); Hill1.Position = UDim2.new(-0.1, 0, 0.4, 0); Hill1.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Hill1.BorderSizePixel=0; Library:Corner(Hill1, 100)
 local Hill2 = Instance.new("Frame", SceneContainer); Hill2.Size = UDim2.new(0.7, 0, 1.2, 0); Hill2.Position = UDim2.new(0.4, 0, 0.5, 0); Hill2.BackgroundColor3 = Color3.fromRGB(230, 240, 250); Hill2.BorderSizePixel=0; Library:Corner(Hill2, 100)
 
--- Snowman Container (For accurate rotation)
+-- Snowman Container (For accurate rotation and position fix)
 local SnowmanFrame = Instance.new("Frame", SceneContainer)
 SnowmanFrame.Size = UDim2.new(0, 80, 0, 80)
-SnowmanFrame.Position = UDim2.new(0.1, 0, 0.50, 0) -- מיקום מתוקן: בתוך המסגרת
+SnowmanFrame.Position = UDim2.new(0.12, 0, 0.45, 0) -- Moved slightly UP and IN
 SnowmanFrame.BackgroundTransparency = 1
 SnowmanFrame.ZIndex = 4
 
@@ -1104,29 +1103,23 @@ SnowmanBody.BackgroundTransparency = 1
 SnowmanBody.TextSize = 60
 SnowmanBody.ZIndex = 4
 
--- Arms connected to the body
-local LeftArm = Instance.new("TextLabel", SnowmanBody)
-LeftArm.Text = "/"
-LeftArm.BackgroundTransparency = 1
-LeftArm.TextColor3 = Color3.new(0.4, 0.2, 0.1)
-LeftArm.Font = Enum.Font.GothamBold
-LeftArm.TextSize = 30
-LeftArm.Size = UDim2.new(0, 30, 0, 30)
-LeftArm.Position = UDim2.new(-0.2, 0, 0.4, 0)
-LeftArm.AnchorPoint = Vector2.new(1, 1) -- Pivot from shoulder
-LeftArm.Rotation = -20
+-- Arms connected to the body (Using Frames for better look)
+local LeftArm = Instance.new("Frame", SnowmanBody)
+LeftArm.Size = UDim2.new(0, 25, 0, 3) -- Stick shape
+LeftArm.BackgroundColor3 = Color3.fromRGB(100, 60, 20) -- Brown
+LeftArm.BorderSizePixel = 0
+LeftArm.Position = UDim2.new(0, 0, 0.5, 0)
+LeftArm.AnchorPoint = Vector2.new(1, 0.5) -- Pivot from shoulder
+LeftArm.Rotation = -30
 LeftArm.ZIndex = 3
 
-local RightArm = Instance.new("TextLabel", SnowmanBody)
-RightArm.Text = "\\"
-RightArm.BackgroundTransparency = 1
-RightArm.TextColor3 = Color3.new(0.4, 0.2, 0.1)
-RightArm.Font = Enum.Font.GothamBold
-RightArm.TextSize = 30
-RightArm.Size = UDim2.new(0, 30, 0, 30)
-RightArm.Position = UDim2.new(1.2, 0, 0.4, 0)
-RightArm.AnchorPoint = Vector2.new(0, 1) -- Pivot from shoulder
-RightArm.Rotation = 20
+local RightArm = Instance.new("Frame", SnowmanBody)
+RightArm.Size = UDim2.new(0, 25, 0, 3) -- Stick shape
+RightArm.BackgroundColor3 = Color3.fromRGB(100, 60, 20) -- Brown
+RightArm.BorderSizePixel = 0
+RightArm.Position = UDim2.new(1, 0, 0.5, 0)
+RightArm.AnchorPoint = Vector2.new(0, 0.5) -- Pivot from shoulder
+RightArm.Rotation = 30
 RightArm.ZIndex = 3
 
 -- Snowman Animation Loop
@@ -1135,18 +1128,18 @@ task.spawn(function()
     while SnowmanFrame.Parent do
         t = t + 0.15
         -- Swaying Body
-        SnowmanBody.Rotation = math.sin(t) * 3
+        SnowmanBody.Rotation = math.sin(t) * 5
         
         -- Waving Arms (Attached correctly now)
-        LeftArm.Rotation = -45 + math.sin(t * 2) * 20
-        RightArm.Rotation = 45 - math.sin(t * 2) * 20
+        LeftArm.Rotation = -30 + math.sin(t * 2) * 20
+        RightArm.Rotation = 30 - math.sin(t * 2) * 20
         
         task.wait(0.03)
     end
 end)
 
-local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 90, 0, 90); Tree1.Position = UDim2.new(0.82, 0, 0.35, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 80; Tree1.ZIndex=4
-local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 70, 0, 70); Tree2.Position = UDim2.new(0.72, 0, 0.5, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 60; Tree2.ZIndex=4
+local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 90, 0, 90); Tree1.Position = UDim2.new(0.80, 0, 0.35, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 80; Tree1.ZIndex=4
+local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 70, 0, 70); Tree2.Position = UDim2.new(0.68, 0, 0.5, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 60; Tree2.ZIndex=4
 
 --// 9. ניהול מקשים ולולאות
 UIS.InputBegan:Connect(function(i,g)
@@ -1208,4 +1201,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE FIX - CLIPPING & BORDERS) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE FIX V5 - SNOWMAN & CLIPPING PERFECTED) Loaded")
