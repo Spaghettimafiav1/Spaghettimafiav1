@@ -1,13 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v5.0 (FINAL PERFECTED)
+    Spaghetti Mafia Hub v5.5 (RESIZED & NEW TOOLS)
     
     Changes:
-    - NEW TAB: "Target" (Separated from Main).
-    - UI: Sidebar is now a ScrollingFrame (Infinite Tabs support).
-    - UI: Main Tab is fully scrollable (Self Tools).
-    - TARGET TAB: 3 Gold Boxes (Header, Actions, Scanner).
-    - SCANNER: Big Cards, Image on RIGHT, Text Aligned RIGHT, Trash Filter.
-    - LOGIC: 100% PRESERVED.
+    - GUI SIZE: Increased Height to 460px (Fixed Sidebar scrolling issue).
+    - TARGET TAB: Added Hebrew titles.
+    - VISUALS: Toggles now turn GOLD instead of GREEN.
+    - NEW TOOLS: Added "HeadSit" and "Backpack" to Actions.
+    - LAYOUT: Action box resized to fit 4 buttons nicely.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -159,13 +158,13 @@ TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.Easi
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
-TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v5.0"; 
+TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v5.5"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
-SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 5.0..."; 
+SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 5.5..."; 
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
 
@@ -202,7 +201,7 @@ local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
 local NEW_WIDTH = 550
-local NEW_HEIGHT = 370
+local NEW_HEIGHT = 460 -- INCREASED HEIGHT
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
@@ -235,7 +234,7 @@ MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
 
-local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v5.0"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
+local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v5.5"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local MainSub = Instance.new("TextLabel", TopBar)
 MainSub.Size = UDim2.new(0,300,0,20)
@@ -1013,6 +1012,17 @@ TargetInput.Font = Enum.Font.GothamBold
 TargetInput.TextSize = 16
 Library:Corner(TargetInput, 8)
 
+-- HEBREW HEADER FOR BOX 1
+local TitleBox1 = Instance.new("TextLabel", TargetBox)
+TitleBox1.Size = UDim2.new(0, 100, 0, 15)
+TitleBox1.Position = UDim2.new(1, -110, 0, 5)
+TitleBox1.Text = "Target Player (מטרה)"
+TitleBox1.TextColor3 = Color3.fromRGB(150,150,150)
+TitleBox1.BackgroundTransparency = 1
+TitleBox1.Font = Enum.Font.GothamBold
+TitleBox1.TextSize = 10
+TitleBox1.TextXAlignment = Enum.TextXAlignment.Right
+
 local TargetAvatar = Instance.new("ImageLabel", TargetBox)
 TargetAvatar.Size = UDim2.new(0, 55, 0, 55)
 TargetAvatar.Position = UDim2.new(0.8, 0, 0.15, 0)
@@ -1029,22 +1039,38 @@ TargetInput.FocusLost:Connect(function()
     end
 end)
 
--- BOX 2: ACTIONS
+-- BOX 2: ACTIONS (RESIZED FOR 4 BUTTONS)
 local ActionBox = Instance.new("Frame", TargetScroll)
-ActionBox.Size = UDim2.new(0.95, 0, 0, 60)
+ActionBox.Size = UDim2.new(0.95, 0, 0, 120) -- INCREASED HEIGHT FOR 2 ROWS
 ActionBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(ActionBox, 12)
 Library:AddGlow(ActionBox, Settings.Theme.Gold)
 
-local function CreateToggleBtn(parent, text, pos, callback)
+-- HEBREW HEADER FOR BOX 2
+local TitleBox2 = Instance.new("TextLabel", ActionBox)
+TitleBox2.Size = UDim2.new(0, 100, 0, 15)
+TitleBox2.Position = UDim2.new(1, -110, 0, 5)
+TitleBox2.Text = "Actions (פעולות)"
+TitleBox2.TextColor3 = Color3.fromRGB(150,150,150)
+TitleBox2.BackgroundTransparency = 1
+TitleBox2.Font = Enum.Font.GothamBold
+TitleBox2.TextSize = 10
+TitleBox2.TextXAlignment = Enum.TextXAlignment.Right
+
+-- GRID LAYOUT FOR ACTIONS
+local ActionGrid = Instance.new("UIGridLayout", ActionBox)
+ActionGrid.CellSize = UDim2.new(0.47, 0, 0.38, 0)
+ActionGrid.CellPadding = UDim2.new(0.02, 0, 0.05, 0)
+ActionGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ActionGrid.VerticalAlignment = Enum.VerticalAlignment.Center
+
+local function CreateToggleBtn(parent, text, callback)
     local b = Instance.new("TextButton", parent)
-    b.Size = UDim2.new(0.45, 0, 0, 40)
-    b.Position = pos
     b.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-    b.Text = text .. " [OFF]"
+    b.Text = text
     b.TextColor3 = Color3.fromRGB(150, 150, 150)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 13
+    b.TextSize = 12
     Library:Corner(b, 8)
     
     local state = false
@@ -1052,20 +1078,19 @@ local function CreateToggleBtn(parent, text, pos, callback)
         state = not state
         callback(state)
         if state then
-            b.BackgroundColor3 = Color3.fromRGB(40, 200, 100)
-            b.TextColor3 = Color3.new(0,0,0)
-            b.Text = text .. " [ON]"
+            b.BackgroundColor3 = Settings.Theme.Gold -- GOLD
+            b.TextColor3 = Color3.new(0,0,0) -- BLACK TEXT
         else
             b.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
             b.TextColor3 = Color3.fromRGB(150, 150, 150)
-            b.Text = text .. " [OFF]"
         end
     end)
     return b
 end
 
+-- 1. BANG
 local TrollConnection = nil
-CreateToggleBtn(ActionBox, "BANG", UDim2.new(0.05, 0, 0.15, 0), function(state)
+CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
     if not state then
         if TrollConnection then TrollConnection:Disconnect() TrollConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -1097,12 +1122,52 @@ CreateToggleBtn(ActionBox, "BANG", UDim2.new(0.05, 0, 0.15, 0), function(state)
     end
 end)
 
-CreateToggleBtn(ActionBox, "SPECTATE", UDim2.new(0.52, 0, 0.15, 0), function(state)
+-- 2. SPECTATE
+CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     local target = GetPlayer(TargetInput.Text)
     if state and target and target.Character then
         workspace.CurrentCamera.CameraSubject = target.Character.Humanoid
     else
         workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
+    end
+end)
+
+-- 3. HEADSIT (NEW)
+local HeadSitConnection = nil
+CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
+    if not state then
+        if HeadSitConnection then HeadSitConnection:Disconnect() HeadSitConnection = nil end
+        return
+    end
+    
+    local target = GetPlayer(TargetInput.Text)
+    if target and target.Character then
+         HeadSitConnection = RunService.RenderStepped:Connect(function()
+            pcall(function()
+                 if not target.Character or not LocalPlayer.Character then return end
+                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.Head.CFrame * CFrame.new(0, 1.5, 0)
+            end)
+         end)
+    end
+end)
+
+-- 4. BACKPACK (NEW)
+local BackpackConnection = nil
+CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
+    if not state then
+        if BackpackConnection then BackpackConnection:Disconnect() BackpackConnection = nil end
+        return
+    end
+    
+    local target = GetPlayer(TargetInput.Text)
+    if target and target.Character then
+         BackpackConnection = RunService.RenderStepped:Connect(function()
+            pcall(function()
+                 if not target.Character or not LocalPlayer.Character then return end
+                 -- Position behind and slightly up
+                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1, 1)
+            end)
+         end)
     end
 end)
 
@@ -1113,9 +1178,20 @@ ScannerBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(ScannerBox, 12)
 Library:AddGlow(ScannerBox, Settings.Theme.Gold)
 
+-- HEBREW HEADER FOR BOX 3
+local TitleBox3 = Instance.new("TextLabel", ScannerBox)
+TitleBox3.Size = UDim2.new(0, 100, 0, 15)
+TitleBox3.Position = UDim2.new(1, -110, 0, 5)
+TitleBox3.Text = "Scanner (סורק)"
+TitleBox3.TextColor3 = Color3.fromRGB(150,150,150)
+TitleBox3.BackgroundTransparency = 1
+TitleBox3.Font = Enum.Font.GothamBold
+TitleBox3.TextSize = 10
+TitleBox3.TextXAlignment = Enum.TextXAlignment.Right
+
 local ScanButton = Instance.new("TextButton", ScannerBox)
 ScanButton.Size = UDim2.new(0.9, 0, 0, 35)
-ScanButton.Position = UDim2.new(0.05, 0, 0.05, 0)
+ScanButton.Position = UDim2.new(0.05, 0, 0.1, 0)
 ScanButton.BackgroundColor3 = Settings.Theme.Gold
 ScanButton.Text = "SCAN INVENTORY 🔍"
 ScanButton.TextColor3 = Color3.new(0,0,0)
@@ -1124,8 +1200,8 @@ ScanButton.TextSize = 14
 Library:Corner(ScanButton, 8)
 
 local ScanResults = Instance.new("ScrollingFrame", ScannerBox)
-ScanResults.Size = UDim2.new(0.9, 0, 0.75, 0)
-ScanResults.Position = UDim2.new(0.05, 0, 0.22, 0)
+ScanResults.Size = UDim2.new(0.9, 0, 0.70, 0)
+ScanResults.Position = UDim2.new(0.05, 0, 0.26, 0)
 ScanResults.BackgroundTransparency = 1
 ScanResults.ScrollBarThickness = 2
 ScanResults.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -1358,4 +1434,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v5.0 (FINAL PERFECTED) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v5.5 (RESIZED & NEW TOOLS) Loaded")
