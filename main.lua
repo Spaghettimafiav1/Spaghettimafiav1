@@ -1,12 +1,13 @@
 --[[
-    Spaghetti Mafia Hub v1.5 (FINAL PERFECTED - GOLD SCANNER ADDED)
+    Spaghetti Mafia Hub v2.0 (FINAL PERFECTED - TOOLS REDESIGN)
     
     Changes:
-    - ADDED: "Bag Scanner" Widget in Main Tab (Top position).
-    - FEATURE: Filters common items, shows only Gold/Rare.
-    - FEATURE: Stacks duplicate items (e.g., "Gold Item x5").
-    - FEATURE: Shows icons/images for items.
-    - LOGIC: All original features (Fly, Speed, Snow, Farm) preserved 100%.
+    - REDESIGN: Player Tools (Target input separated from results).
+    - ADDED: Live Avatar preview of target.
+    - ADDED: Spectate Button (Toggle).
+    - ADDED: Troll/Bang Button (Toggle - Using provided script logic).
+    - IMPROVED: Gold Scanner Logic (Stacks items, filters trash).
+    - LOGIC: 100% PRESERVED (Farm, Fly, Speed, Snow, Credits).
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -973,7 +974,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
 end
 
 -- ======================================================================================
---                        NEW: INTEGRATED BAG SCANNER (GOLD ONLY)
+--                 NEW: PLAYER TOOLS UI (REDESIGNED + SPECTATE + TROLL)
 -- ======================================================================================
 local IgnoreList = {
     ["קולה"] = true, ["קולה מכשפות"] = true, ["קולה תות"] = true, ["קפה סטארבלוקס"] = true,
@@ -984,50 +985,94 @@ local IgnoreList = {
     ["פיצה"] = true, ["Cola"] = true, ["Pizza"] = true, ["Burger"] = true
 }
 
-local ScannerContainer = Instance.new("Frame", Tab_Main_Page)
-ScannerContainer.Size = UDim2.new(0.95, 0, 0, 160)
-ScannerContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-Library:Corner(ScannerContainer, 12)
-Library:AddGlow(ScannerContainer, Settings.Theme.Gold)
+local PlayerTools = Instance.new("Frame", Tab_Main_Page)
+PlayerTools.Size = UDim2.new(0.95, 0, 0, 200)
+PlayerTools.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Library:Corner(PlayerTools, 12)
+Library:AddGlow(PlayerTools, Settings.Theme.Gold)
 
-local ScannerTitle = Instance.new("TextLabel", ScannerContainer)
-ScannerTitle.Size = UDim2.new(1,0,0,25); ScannerTitle.Position = UDim2.new(0,0,0,5)
-ScannerTitle.BackgroundTransparency = 1
-ScannerTitle.Text = "🕵️ Gold Bag Scanner"
-ScannerTitle.TextColor3 = Settings.Theme.Gold; ScannerTitle.Font = Enum.Font.GothamBlack; ScannerTitle.TextSize = 14
+-- Header Section (Input + Avatar)
+local HeaderSection = Instance.new("Frame", PlayerTools)
+HeaderSection.Size = UDim2.new(1, 0, 0, 50)
+HeaderSection.BackgroundTransparency = 1
 
-local ScanInput = Instance.new("TextBox", ScannerContainer)
-ScanInput.Size = UDim2.new(0.65, 0, 0, 30); ScanInput.Position = UDim2.new(0.05, 0, 0.22, 0)
-ScanInput.BackgroundColor3 = Color3.fromRGB(40,40,45); ScanInput.Text = ""; ScanInput.PlaceholderText = "Player Name..."
-ScanInput.TextColor3 = Color3.new(1,1,1); ScanInput.Font = Enum.Font.Gotham
-Library:Corner(ScanInput, 8)
+local TargetInput = Instance.new("TextBox", HeaderSection)
+TargetInput.Size = UDim2.new(0.65, 0, 0, 35)
+TargetInput.Position = UDim2.new(0.05, 0, 0.15, 0)
+TargetInput.BackgroundColor3 = Color3.fromRGB(40,40,45)
+TargetInput.Text = ""
+TargetInput.PlaceholderText = "Target Username..."
+TargetInput.TextColor3 = Color3.new(1,1,1)
+TargetInput.Font = Enum.Font.Gotham
+Library:Corner(TargetInput, 8)
 
-local ScanGo = Instance.new("TextButton", ScannerContainer)
-ScanGo.Size = UDim2.new(0.2, 0, 0, 30); ScanGo.Position = UDim2.new(0.75, 0, 0.22, 0)
-ScanGo.BackgroundColor3 = Settings.Theme.Gold; ScanGo.Text = "SCAN"; ScanGo.TextColor3 = Color3.new(0,0,0)
-ScanGo.Font = Enum.Font.GothamBold; ScanGo.TextSize = 12
-Library:Corner(ScanGo, 8)
+local TargetAvatar = Instance.new("ImageLabel", HeaderSection)
+TargetAvatar.Size = UDim2.new(0, 35, 0, 35)
+TargetAvatar.Position = UDim2.new(0.8, 0, 0.15, 0)
+TargetAvatar.BackgroundColor3 = Color3.fromRGB(40,40,40)
+TargetAvatar.Image = "rbxassetid://0"
+Library:Corner(TargetAvatar, 20)
 
-local ScanResults = Instance.new("ScrollingFrame", ScannerContainer)
-ScanResults.Size = UDim2.new(0.9, 0, 0.5, 0); ScanResults.Position = UDim2.new(0.05, 0, 0.45, 0)
-ScanResults.BackgroundTransparency = 1; ScanResults.ScrollBarThickness = 3
-local ScanList = Instance.new("UIListLayout", ScanResults); ScanList.SortOrder = Enum.SortOrder.LayoutOrder
-
-ScanGo.MouseButton1Click:Connect(function()
-    for _,v in pairs(ScanResults:GetChildren()) do if v:IsA("Frame") or v:IsA("TextLabel") then v:Destroy() end end
-    
-    local targetName = ScanInput.Text
-    local target = nil
+TargetInput.FocusLost:Connect(function()
+    local name = TargetInput.Text
+    local found = nil
     for _, p in pairs(Players:GetPlayers()) do
-        if string.sub(string.lower(p.Name), 1, #targetName) == string.lower(targetName) or 
-           string.sub(string.lower(p.DisplayName), 1, #targetName) == string.lower(targetName) then
-            target = p; break
+        if string.sub(string.lower(p.Name), 1, #name) == string.lower(name) or 
+           string.sub(string.lower(p.DisplayName), 1, #name) == string.lower(name) then
+            found = p
+            TargetInput.Text = p.Name -- Auto complete
+            break
         end
     end
+    if found then
+        local content = Players:GetUserThumbnailAsync(found.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+        TargetAvatar.Image = content
+    end
+end)
+
+-- Buttons Section (Middle)
+local ButtonsFrame = Instance.new("Frame", PlayerTools)
+ButtonsFrame.Size = UDim2.new(0.9, 0, 0, 35)
+ButtonsFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+ButtonsFrame.BackgroundTransparency = 1
+local ButtonLayout = Instance.new("UIListLayout", ButtonsFrame); ButtonLayout.FillDirection=Enum.FillDirection.Horizontal; ButtonLayout.Padding=UDim.new(0,5); ButtonLayout.HorizontalAlignment=Enum.HorizontalAlignment.Center
+
+local function CreateMiniBtn(txt, color, callback)
+    local b = Instance.new("TextButton", ButtonsFrame)
+    b.Size = UDim2.new(0.3, 0, 1, 0)
+    b.BackgroundColor3 = color
+    b.Text = txt
+    b.TextColor3 = Color3.new(0,0,0)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 12
+    Library:Corner(b, 6)
+    b.MouseButton1Click:Connect(callback)
+    return b
+end
+
+-- Results Section (Bottom - Separated)
+local ScanResults = Instance.new("ScrollingFrame", PlayerTools)
+ScanResults.Size = UDim2.new(0.9, 0, 0.45, 0)
+ScanResults.Position = UDim2.new(0.05, 0, 0.52, 0)
+ScanResults.BackgroundTransparency = 1
+ScanResults.ScrollBarThickness = 3
+local ScanList = Instance.new("UIListLayout", ScanResults); ScanList.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- LOGIC VARIABLES
+local ViewConnection = nil
+local TrollConnection = nil
+local IsTrolling = false
+local IsViewing = false
+
+-- 1. SCAN FUNCTION
+local function RunScan()
+    for _,v in pairs(ScanResults:GetChildren()) do if v:IsA("Frame") or v:IsA("TextLabel") then v:Destroy() end end
+    local targetName = TargetInput.Text
+    local target = Players:FindFirstChild(targetName)
     
-    if not target then
-        local err = Instance.new("TextLabel", ScanResults); err.Size=UDim2.new(1,0,0,20); err.BackgroundTransparency=1; err.Text="Player not found!"; err.TextColor3=Color3.fromRGB(255,50,50); err.Font=Enum.Font.GothamBold; err.TextSize=12
-        return
+    if not target then 
+         local err = Instance.new("TextLabel", ScanResults); err.Size=UDim2.new(1,0,0,20); err.BackgroundTransparency=1; err.Text="Player not found! (Type full name)"; err.TextColor3=Color3.fromRGB(255,50,50); err.Font=Enum.Font.GothamBold; err.TextSize=12
+         return 
     end
 
     local itemsCount = {}
@@ -1068,8 +1113,7 @@ ScanGo.MouseButton1Click:Connect(function()
         icon.Size = UDim2.new(0, 20, 0, 20)
         icon.Position = UDim2.new(0, 0, 0, 2)
         icon.BackgroundTransparency = 1
-        -- אם יש תמונה אמיתית נשתמש בה, אחרת נשים אייקון מתנה
-        if itemsIcon[name] then icon.Image = itemsIcon[name] else icon.Image = "rbxassetid://6503956166" end -- Generic Gift Icon
+        if itemsIcon[name] then icon.Image = itemsIcon[name] else icon.Image = "rbxassetid://6503956166" end 
         
         local txt = Instance.new("TextLabel", row)
         txt.Size = UDim2.new(1, -25, 1, 0)
@@ -1086,7 +1130,73 @@ ScanGo.MouseButton1Click:Connect(function()
         local msg = Instance.new("TextLabel", ScanResults); msg.Size=UDim2.new(1,0,0,20); msg.BackgroundTransparency=1; msg.Text="No rare items found."; msg.TextColor3=Color3.fromRGB(150,150,150); msg.Font=Enum.Font.Gotham; msg.TextSize=12
     end
     ScanResults.CanvasSize = UDim2.new(0, 0, 0, ScanList.AbsoluteContentSize.Y)
-end)
+end
+
+-- 2. SPECTATE FUNCTION
+local function ToggleSpectate()
+    local targetName = TargetInput.Text
+    local target = Players:FindFirstChild(targetName)
+    
+    if IsViewing then
+        IsViewing = false
+        workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
+        return
+    end
+
+    if target and target.Character then
+        IsViewing = true
+        workspace.CurrentCamera.CameraSubject = target.Character.Humanoid
+    end
+end
+
+-- 3. TROLL/BANG FUNCTION (IMPORTED LOGIC)
+local function ToggleTroll()
+    if IsTrolling then
+        IsTrolling = false
+        if TrollConnection then TrollConnection:Disconnect() TrollConnection = nil end
+        -- Stop Animation
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+             for _, anim in pairs(LocalPlayer.Character.Humanoid:GetPlayingAnimationTracks()) do
+                 if anim.Animation.AnimationId == "rbxassetid://148840371" then anim:Stop() end
+             end
+        end
+        return
+    end
+
+    local targetName = TargetInput.Text
+    local target = Players:FindFirstChild(targetName)
+    
+    if target and target.Character and LocalPlayer.Character then
+        IsTrolling = true
+        local Victim = targetName
+        
+        -- Animation Setup
+        local A = Instance.new('Animation')
+        A.AnimationId = 'rbxassetid://148840371'
+        local P = Players.LocalPlayer
+        local C = P.Character or P.CharacterAdded:Wait()
+        local H = C:WaitForChild('Humanoid'):LoadAnimation(A)
+        H:Play()
+        H:AdjustSpeed(2.5)
+        
+        -- Loop Logic
+        TrollConnection = RunService.Stepped:Connect(function()
+            if not IsTrolling or not target.Character or not P.Character then 
+                if TrollConnection then TrollConnection:Disconnect() end
+                return 
+            end
+            pcall(function()
+                C:WaitForChild('HumanoidRootPart').CFrame = CFrame.new(target.Character:WaitForChild('HumanoidRootPart').Position + target.Character.HumanoidRootPart.CFrame.LookVector * -1) 
+            end)
+        end)
+    end
+end
+
+-- Create the buttons
+CreateMiniBtn("SCAN 🔍", Settings.Theme.Gold, RunScan)
+CreateMiniBtn("VIEW 👁️", Color3.fromRGB(100, 200, 255), ToggleSpectate)
+CreateMiniBtn("😈", Color3.fromRGB(255, 100, 100), ToggleTroll)
+
 -- ======================================================================================
 
 CreateSlider(Tab_Main_Page, "Walk Speed", "מהירות הליכה", 1, 250, 16, function(v) 
@@ -1295,4 +1405,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL PERFECTED - CLEAN SNOWMAN) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v2.0 (FINAL PERFECTED - TOOLS REDESIGN) Loaded")
