@@ -1,9 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (FINAL FIXED EDITION)
+    Spaghetti Mafia Hub v1 (ULTIMATE PREMIUM EDITION)
     Updates:
-    - FIXED USER PROFILE (Now loads instantly, no empty black box).
-    - FIXED LAYOUT (Elements won't overlap).
-    - PERFECTED TIMER.
+    - ENLARGED USER PROFILE (Bigger Avatar, Bigger Text).
+    - REDESIGNED 'MAIN' TAB (Premium look with Glow/Stroke).
+    - IMPROVED FLY SYSTEM (Space = Up, Ctrl = Down).
+    - FIXED REJOIN (Rejoins the SAME server instance).
+    - VERIFIED ALL SYSTEMS.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -230,19 +232,17 @@ CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPas
 MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) end)
 
 -- ======================================================================================
---                        הטיימר המעוצב (מתוקן ומיושר)
+--                        הטיימר המעוצב
 -- ======================================================================================
 task.spawn(function()
     local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5)
     
     if StormValue then
-        -- קופסה ראשית מעוצבת
         local TimerWidget = Instance.new("Frame", TopBar)
         TimerWidget.Name = "StormTimerWidgetPro"
-        -- גודל מעט יותר רחב, מיושר לאמצע הגובה של ה-TopBar
         TimerWidget.Size = UDim2.new(0, 135, 0, 40)
-        TimerWidget.AnchorPoint = Vector2.new(1, 0.5) -- עוגן אמצע-ימין
-        TimerWidget.Position = UDim2.new(1, -55, 0.5, 0) -- ממוקם שמאלה מכפתור המיזעור
+        TimerWidget.AnchorPoint = Vector2.new(1, 0.5)
+        TimerWidget.Position = UDim2.new(1, -55, 0.5, 0)
         TimerWidget.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
         TimerWidget.BorderSizePixel = 0
         Library:Corner(TimerWidget, 10)
@@ -260,7 +260,6 @@ task.spawn(function()
         TimerStroke.Transparency = 0.5
         TimerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-        -- כותרת
         local T_Header = Instance.new("TextLabel", TimerWidget)
         T_Header.Size = UDim2.new(1, 0, 0.35, 0)
         T_Header.Position = UDim2.new(0, 0, 0.1, 0)
@@ -271,7 +270,6 @@ task.spawn(function()
         T_Header.TextSize = 10
         T_Header.ZIndex = 2
 
-        -- זמן
         local T_Time = Instance.new("TextLabel", TimerWidget)
         T_Time.Size = UDim2.new(1, 0, 0.55, 0)
         T_Time.Position = UDim2.new(0, 0, 0.4, 0)
@@ -282,7 +280,6 @@ task.spawn(function()
         T_Time.TextSize = 18
         T_Time.ZIndex = 2
 
-        -- פונקציה לעדכון
         local function UpdateStormTimer(val)
             local mins = math.floor(val / 60)
             local secs = val % 60
@@ -330,27 +327,32 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 -- ======================================================================================
---                        פרופיל משתמש (מתוקן - טעינה אסינכרונית + ZINDEX)
+--                        פרופיל משתמש מוגדל (ENLARGED)
 -- ======================================================================================
 local UserProfile = Instance.new("Frame", Sidebar)
 UserProfile.Name = "UserProfileContainer"
-UserProfile.Size = UDim2.new(0.9, 0, 0, 50)
+-- הגדלתי את הגובה ל-75 (היה 50)
+UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
-UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 40) -- קצת יותר בהיר מהרקע כדי שיראו אותו
+UserProfile.BackgroundColor3 = Color3.fromRGB(28, 28, 33) 
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
 Library:Corner(UserProfile, 10)
-Library:AddGlow(UserProfile, Color3.fromRGB(0,0,0))
+local ProfileStroke = Instance.new("UIStroke", UserProfile)
+ProfileStroke.Color = Color3.fromRGB(50, 50, 60)
+ProfileStroke.Thickness = 1.2
+ProfileStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
--- תמונת פרופיל (עיגול)
+-- תמונת פרופיל מוגדלת
 local AvatarFrame = Instance.new("Frame", UserProfile)
-AvatarFrame.Size = UDim2.new(0, 36, 0, 36)
-AvatarFrame.Position = UDim2.new(0, 8, 0.5, 0)
+-- הגדלתי ל-55 (היה 36)
+AvatarFrame.Size = UDim2.new(0, 55, 0, 55)
+AvatarFrame.Position = UDim2.new(0, 10, 0.5, 0)
 AvatarFrame.AnchorPoint = Vector2.new(0, 0.5)
 AvatarFrame.BackgroundColor3 = Settings.Theme.Gold
 AvatarFrame.BorderSizePixel = 0
-AvatarFrame.ZIndex = 11 -- מעל הפריים הראשי
+AvatarFrame.ZIndex = 11
 local AvatarCorner = Instance.new("UICorner", AvatarFrame); AvatarCorner.CornerRadius = UDim.new(1, 0)
 
 local AvatarImg = Instance.new("ImageLabel", AvatarFrame)
@@ -358,47 +360,48 @@ AvatarImg.Size = UDim2.new(0.9, 0, 0.9, 0)
 AvatarImg.Position = UDim2.new(0.5, 0, 0.5, 0)
 AvatarImg.AnchorPoint = Vector2.new(0.5, 0.5)
 AvatarImg.BackgroundTransparency = 1
-AvatarImg.Image = "" -- מתחיל ריק
-AvatarImg.ZIndex = 12 -- הכי גבוה
+AvatarImg.Image = ""
+AvatarImg.ZIndex = 12
 local AvatarImgCorner = Instance.new("UICorner", AvatarImg); AvatarImgCorner.CornerRadius = UDim.new(1, 0)
 
--- טקסט ברוך הבא (נוצר לפני טעינת התמונה)
+-- טקסט ברוך הבא (מוגדל)
 local WelcomeText = Instance.new("TextLabel", UserProfile)
 WelcomeText.Text = "Welcome,"
 WelcomeText.Size = UDim2.new(0, 80, 0, 15)
-WelcomeText.Position = UDim2.new(0, 52, 0, 10)
+-- הזזתי ימינה כדי להתאים לתמונה הגדולה
+WelcomeText.Position = UDim2.new(0, 75, 0, 18)
 WelcomeText.BackgroundTransparency = 1
-WelcomeText.TextColor3 = Color3.fromRGB(200, 200, 200) -- לבן-אפור בהיר
+WelcomeText.TextColor3 = Color3.fromRGB(180, 180, 180)
 WelcomeText.Font = Enum.Font.GothamMedium
-WelcomeText.TextSize = 10
+WelcomeText.TextSize = 12 -- הגדלתי ל-12
 WelcomeText.TextXAlignment = Enum.TextXAlignment.Left
 WelcomeText.ZIndex = 11
 
--- שם המשתמש
+-- שם המשתמש (מוגדל)
 local UsernameText = Instance.new("TextLabel", UserProfile)
 UsernameText.Text = LocalPlayer.Name
-UsernameText.Size = UDim2.new(0, 90, 0, 18)
-UsernameText.Position = UDim2.new(0, 52, 0, 24)
+UsernameText.Size = UDim2.new(0, 90, 0, 20)
+UsernameText.Position = UDim2.new(0, 75, 0, 36)
 UsernameText.BackgroundTransparency = 1
 UsernameText.TextColor3 = Settings.Theme.Gold
 UsernameText.Font = Enum.Font.GothamBold
-UsernameText.TextSize = 12
+UsernameText.TextSize = 15 -- הגדלתי ל-15
 UsernameText.TextXAlignment = Enum.TextXAlignment.Left
 UsernameText.TextTruncate = Enum.TextTruncate.AtEnd
 UsernameText.ZIndex = 11
 
--- טעינת התמונה ברקע (כדי לא לתקוע את הסקריפט)
 task.spawn(function()
     local content = "rbxassetid://0"
     pcall(function()
-        content = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+        content = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
     end)
     AvatarImg.Image = content
 end)
 -- ======================================================================================
 
 local SideBtnContainer = Instance.new("Frame", Sidebar)
-SideBtnContainer.Size = UDim2.new(1, 0, 1, -60) -- מקטינים כדי לא לדרוס את הפרופיל
+-- הקטנתי את אזור הכפתורים כדי לפנות מקום לפרופיל הגדול
+SideBtnContainer.Size = UDim2.new(1, 0, 1, -85) 
 SideBtnContainer.BackgroundTransparency = 1
 
 local SideList = Instance.new("UIListLayout", SideBtnContainer); SideList.Padding = UDim.new(0,8); SideList.HorizontalAlignment = Enum.HorizontalAlignment.Center; SideList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -466,11 +469,10 @@ local function AddLayout(p)
 end
 AddLayout(Tab_Main_Page); AddLayout(Tab_Settings_Page)
 
---// 6. מערכות לוגיקה (FARM LOGIC & ANTI-SIT)
--- Anti-AFK Check
+--// 6. מערכות לוגיקה
 task.spawn(function() 
     while true do 
-        task.wait(30) -- לוחץ כל 30 שניות
+        task.wait(30)
         pcall(function() 
             VirtualUser:CaptureController()
             VirtualUser:ClickButton2(Vector2.new()) 
@@ -505,7 +507,6 @@ local function ToggleFarm(v)
                 for _, part in pairs(LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
                 local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
                 if hum then 
-                    -- SMART ANTI SIT (Farming)
                     if hum.Sit then hum.Sit = false end 
                     hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) 
                 end
@@ -515,7 +516,6 @@ local function ToggleFarm(v)
     elseif not v and FarmConnection then 
         FarmConnection:Disconnect()
         FarmConnection = nil 
-        -- Restore sitting
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true) 
         end
@@ -529,19 +529,14 @@ local function ToggleFarm(v)
                     local distance = (hrp.Position - target.Position).Magnitude
                     local tween = TweenService:Create(hrp, TweenInfo.new(distance / Settings.FarmSpeed, Enum.EasingStyle.Linear), {CFrame = target.CFrame}); tween:Play()
                     local start = tick()
-                    
                     local stuckStart = tick() 
-                    
                     repeat task.wait() 
                         if not target.Parent or not Settings.Farming then tween:Cancel(); break end
-                        
                         local currentDist = (hrp.Position - target.Position).Magnitude
-                        
                         if currentDist < 8 then
                             target.CanTouch = true
                             hrp.CFrame = target.CFrame 
-                            
-                            if (tick() - stuckStart) > 0.6 then -- BALANCED TIME
+                            if (tick() - stuckStart) > 0.6 then
                                 tween:Cancel()
                                 FarmBlacklist[target] = true
                                 break
@@ -549,12 +544,10 @@ local function ToggleFarm(v)
                         else
                             stuckStart = tick()
                         end
-                        
                         if (tick() - start) > (distance / Settings.FarmSpeed) + 1.5 then 
                             tween:Cancel()
                             break 
                         end
-                        
                     until not target.Parent
                 else task.wait(0.1) end
                 task.wait()
@@ -573,7 +566,6 @@ local function ToggleFly(v)
     if not hrp or not hum then return end
 
     if v then
-        -- Clear old fly if exists
         if hrp:FindFirstChild("F_V") then hrp.F_V:Destroy() end
         if hrp:FindFirstChild("F_G") then hrp.F_G:Destroy() end
 
@@ -590,7 +582,6 @@ local function ToggleFly(v)
         
         task.spawn(function()
             while Settings.Fly.Enabled and char.Parent and hum.Health > 0 do
-                -- ANTI SIT (Flying)
                 if hum.Sit then hum.Sit = false end
                 
                 local cam = workspace.CurrentCamera
@@ -600,11 +591,14 @@ local function ToggleFly(v)
                 if UIS:IsKeyDown(Enum.KeyCode.D) then d = d + cam.CFrame.RightVector end
                 if UIS:IsKeyDown(Enum.KeyCode.A) then d = d - cam.CFrame.RightVector end
                 
+                -- תוספת: שליטה עם SPACE ו-CTRL
+                if UIS:IsKeyDown(Enum.KeyCode.Space) then d = d + Vector3.new(0, 1, 0) end
+                if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then d = d - Vector3.new(0, 1, 0) end
+                
                 bv.Velocity = d * Settings.Fly.Speed
                 bg.CFrame = cam.CFrame
                 RunService.RenderStepped:Wait()
             end
-            -- Cleanup when loop breaks
             if hrp:FindFirstChild("F_V") then hrp.F_V:Destroy() end
             if hrp:FindFirstChild("F_G") then hrp.F_G:Destroy() end
             hum.PlatformStand = false
@@ -791,15 +785,52 @@ task.spawn(function()
     end
 end)
 
---// 8. רכיבים וטאבים אחרים (SLIDER FIX: DRAG LOGIC)
+--// 8. רכיבים וטאבים אחרים (SLIDER FIX: DRAG LOGIC + PREMIUM DESIGN)
 local function CreateSlider(parent, title, heb, min, max, default, callback, toggleCallback, toggleName)
-    local f = Instance.new("Frame", parent); f.Size = UDim2.new(0.95,0,0,65); f.BackgroundColor3 = Settings.Theme.Box; Library:Corner(f, 8); Library:AddGlow(f, Color3.fromRGB(50,50,50))
-    local l = Instance.new("TextLabel", f); l.Size = UDim2.new(0.7,0,0,25); l.Position = UDim2.new(0,10,0,6); l.Text = title .. " ("..heb..") : " .. default; l.TextColor3=Color3.new(1,1,1); l.Font=Enum.Font.GothamBold; l.TextSize=13; l.TextXAlignment=Enum.TextXAlignment.Left; l.BackgroundTransparency=1
-    local line = Instance.new("Frame", f); line.Size = UDim2.new(0.9,0,0,10); line.Position = UDim2.new(0.05,0,0.65,0); line.BackgroundColor3 = Color3.fromRGB(50,50,50); Library:Corner(line,5)
-    local fill = Instance.new("Frame", line); fill.Size = UDim2.new((default-min)/(max-min),0,1,0); fill.BackgroundColor3 = Settings.Theme.Gold; Library:Corner(fill,5)
-    local btn = Instance.new("TextButton", f); btn.Size = UDim2.new(1,0,1,0); btn.BackgroundTransparency = 1; btn.Text = ""
+    local f = Instance.new("Frame", parent)
+    f.Size = UDim2.new(0.95,0,0,65)
+    f.BackgroundColor3 = Settings.Theme.Box
+    Library:Corner(f, 8)
     
-    -- FIXED DRAGGING LOGIC
+    -- עיצוב פרימיום חדש לסליידרים
+    local stroke = Instance.new("UIStroke", f)
+    stroke.Color = Color3.fromRGB(50, 50, 60)
+    stroke.Thickness = 1.2
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local l = Instance.new("TextLabel", f)
+    l.Size = UDim2.new(0.7,0,0,25)
+    l.Position = UDim2.new(0,10,0,6)
+    l.Text = title .. " ("..heb..") : " .. default
+    l.TextColor3=Color3.new(1,1,1)
+    l.Font=Enum.Font.GothamBold
+    l.TextSize=13
+    l.TextXAlignment=Enum.TextXAlignment.Left
+    l.BackgroundTransparency=1
+    
+    local line = Instance.new("Frame", f)
+    line.Size = UDim2.new(0.9,0,0,10)
+    line.Position = UDim2.new(0.05,0,0.65,0)
+    line.BackgroundColor3 = Color3.fromRGB(40,40,45)
+    Library:Corner(line,5)
+    
+    local fill = Instance.new("Frame", line)
+    fill.Size = UDim2.new((default-min)/(max-min),0,1,0)
+    fill.BackgroundColor3 = Settings.Theme.Gold
+    Library:Corner(fill,5)
+    
+    -- גרדיאנט לסליידר
+    local grad = Instance.new("UIGradient", fill)
+    grad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Settings.Theme.Gold),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 230, 100))
+    }
+    
+    local btn = Instance.new("TextButton", f)
+    btn.Size = UDim2.new(1,0,1,0)
+    btn.BackgroundTransparency = 1
+    btn.Text = ""
+    
     btn.MouseButton1Down:Connect(function()
         local dragging = true
         local inputConn
@@ -822,19 +853,81 @@ local function CreateSlider(parent, title, heb, min, max, default, callback, tog
     end)
 
     if toggleCallback then
-        local t = Instance.new("TextButton", f); t.Size = UDim2.new(0,50,0,22); t.Position = UDim2.new(1,-60,0,8); t.BackgroundColor3 = Color3.fromRGB(40,40,40); t.Text = "OFF"; t.TextColor3 = Color3.new(1,1,1); t.Font = Enum.Font.GothamBold; Library:Corner(t,4); t.TextSize=12
-        local on = false; local function Update(s) on=s; t.Text=on and "ON" or "OFF"; t.BackgroundColor3=on and Settings.Theme.Gold or Color3.fromRGB(40,40,40); t.TextColor3=on and Color3.new(0,0,0) or Color3.new(1,1,1); toggleCallback(on) end
+        local t = Instance.new("TextButton", f)
+        t.Size = UDim2.new(0,50,0,22)
+        t.Position = UDim2.new(1,-60,0,8)
+        t.BackgroundColor3 = Color3.fromRGB(40,40,40)
+        t.Text = "OFF"
+        t.TextColor3 = Color3.new(1,1,1)
+        t.Font = Enum.Font.GothamBold
+        Library:Corner(t,4)
+        t.TextSize=12
+        
+        local on = false
+        local function Update(s) 
+            on=s
+            t.Text=on and "ON" or "OFF"
+            t.BackgroundColor3=on and Settings.Theme.Gold or Color3.fromRGB(40,40,40)
+            t.TextColor3=on and Color3.new(0,0,0) or Color3.new(1,1,1)
+            toggleCallback(on) 
+        end
+        
         t.MouseButton1Click:Connect(function() Update(not on) end)
         if toggleName then VisualToggles[toggleName] = function(v) Update(v) end end
     end
 end
 
 local function CreateSquareBind(parent, id, title, heb, default, callback)
-    local f = Instance.new("TextButton", parent); local sizeY = id==3 and 55 or 70; f.Position = id==1 and UDim2.new(0,0,0,0) or (id==2 and UDim2.new(0.52,0,0,0) or UDim2.new(0,0,0,0)); f.Size = UDim2.new(id==3 and 1 or 0.48,0,0,sizeY); f.BackgroundColor3 = Settings.Theme.Box; f.Text=""; f.AutoButtonColor=false; Library:Corner(f, 8); Library:AddGlow(f, Color3.fromRGB(50,50,50))
-    local t = Instance.new("TextLabel", f); t.Size = UDim2.new(1,0,0,20); t.Position = UDim2.new(0,0,id==3 and 0.1 or 0.15,0); t.Text=title; t.TextColor3=Color3.fromRGB(150,150,150); t.Font=Enum.Font.Gotham; t.TextSize=12; t.BackgroundTransparency=1
-    local h = Instance.new("TextLabel", f); h.Size = UDim2.new(1,0,0,15); h.Position = UDim2.new(0,0,0.35,0); h.Text=heb; h.TextColor3=Color3.fromRGB(100,100,100); h.Font=Enum.Font.Gotham; h.TextSize=10; h.BackgroundTransparency=1
-    local k = Instance.new("TextLabel", f); k.Size = UDim2.new(1,0,0,30); k.Position = UDim2.new(0,0,id==3 and 0.5 or 0.6,0); k.Text=default.Name; k.TextColor3=Settings.Theme.Gold; k.Font=Enum.Font.GothamBold; k.TextSize=18; k.BackgroundTransparency=1
-    f.MouseButton1Click:Connect(function() k.Text="..."; local i=UIS.InputBegan:Wait(); if i.UserInputType==Enum.UserInputType.Keyboard then k.Text=i.KeyCode.Name; callback(i.KeyCode) end end)
+    local f = Instance.new("TextButton", parent)
+    local sizeY = id==3 and 55 or 70
+    f.Position = id==1 and UDim2.new(0,0,0,0) or (id==2 and UDim2.new(0.52,0,0,0) or UDim2.new(0,0,0,0))
+    f.Size = UDim2.new(id==3 and 1 or 0.48,0,0,sizeY)
+    f.BackgroundColor3 = Settings.Theme.Box
+    f.Text=""
+    f.AutoButtonColor=false
+    Library:Corner(f, 8)
+    
+    -- עיצוב פרימיום לכפתורים
+    local s = Instance.new("UIStroke", f)
+    s.Color = Color3.fromRGB(50,50,60)
+    s.Thickness = 1.2
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local t = Instance.new("TextLabel", f)
+    t.Size = UDim2.new(1,0,0,20)
+    t.Position = UDim2.new(0,0,id==3 and 0.1 or 0.15,0)
+    t.Text=title
+    t.TextColor3=Color3.fromRGB(150,150,150)
+    t.Font=Enum.Font.Gotham
+    t.TextSize=12
+    t.BackgroundTransparency=1
+    
+    local h = Instance.new("TextLabel", f)
+    h.Size = UDim2.new(1,0,0,15)
+    h.Position = UDim2.new(0,0,0.35,0)
+    h.Text=heb
+    h.TextColor3=Color3.fromRGB(100,100,100)
+    h.Font=Enum.Font.Gotham
+    h.TextSize=10
+    h.BackgroundTransparency=1
+    
+    local k = Instance.new("TextLabel", f)
+    k.Size = UDim2.new(1,0,0,30)
+    k.Position = UDim2.new(0,0,id==3 and 0.5 or 0.6,0)
+    k.Text=default.Name
+    k.TextColor3=Settings.Theme.Gold
+    k.Font=Enum.Font.GothamBold
+    k.TextSize=18
+    k.BackgroundTransparency=1
+    
+    f.MouseButton1Click:Connect(function() 
+        k.Text="..."
+        local i=UIS.InputBegan:Wait() 
+        if i.UserInputType==Enum.UserInputType.Keyboard then 
+            k.Text=i.KeyCode.Name
+            callback(i.KeyCode) 
+        end 
+    end)
     return f
 end
 
@@ -862,7 +955,7 @@ end)
 
 local MenuBindCont = Instance.new("Frame", Tab_Settings_Page); MenuBindCont.Size = UDim2.new(0.95,0,0,60); MenuBindCont.BackgroundTransparency = 1; CreateSquareBind(MenuBindCont, 3, "MENU KEY", "מקש תפריט", Settings.Keys.Menu, function(k) Settings.Keys.Menu = k end)
 
---// REJOIN BUTTON
+--// REJOIN BUTTON (FIXED TO SAME SERVER)
 local RejoinBtn = Instance.new("TextButton", Tab_Settings_Page)
 RejoinBtn.Size = UDim2.new(0.95, 0, 0, 40)
 RejoinBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
@@ -872,7 +965,10 @@ RejoinBtn.Font = Enum.Font.GothamBold
 RejoinBtn.TextSize = 14
 Library:Corner(RejoinBtn, 8)
 Library:AddGlow(RejoinBtn, Color3.fromRGB(200, 60, 60))
-RejoinBtn.MouseButton1Click:Connect(function() TeleportService:Teleport(game.PlaceId, LocalPlayer) end)
+RejoinBtn.MouseButton1Click:Connect(function() 
+    -- תיקון: חזרה לאותו שרת בדיוק
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+end)
 
 -- CREDITS (BALANCED SPACING)
 local CreditBG = Instance.new("Frame", Tab_Credits_Page)
