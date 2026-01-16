@@ -1,14 +1,5 @@
 --[[
-    Spaghetti Mafia Hub v4.0 (FINAL - TARGET TAB & BIG SCANNER)
-    
-    Changes:
-    - NEW TAB: "Target" (Contains Scanner, Spectate, Bang).
-    - MAIN TAB: Cleaned up (Contains only Speed, Fly, etc).
-    - SCANNER REDESIGN: 
-      * Items now appear as large cards.
-      * Big Images (50px).
-      * Clear Text & Counts.
-    - LAYOUT: Optimized sizes for best visibility.
+    Spaghetti Mafia Hub v4.5 (FINAL FIXED - TARGET TAB & BOXES)
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -1222,7 +1213,7 @@ end)
 
 -- ======================================================================================
 
-CreateSlider(Tab_Main_Page, "Walk Speed", "מהירות הליכה", 1, 250, 16, function(v) 
+CreateSlider(MainScroll, "Walk Speed", "מהירות הליכה", 1, 250, 16, function(v) 
     Settings.Speed.Value = v 
     if Settings.Speed.Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = v
@@ -1234,8 +1225,8 @@ end, function(t)
     end
 end, "Speed")
 
-CreateSlider(Tab_Main_Page, "Fly Speed", "מהירות תעופה", 20, 300, 50, function(v) Settings.Fly.Speed = v end, function(t) ToggleFly(t) end, "Fly")
-local BindCont = Instance.new("Frame", Tab_Main_Page); BindCont.Size = UDim2.new(0.95,0,0,70); BindCont.BackgroundTransparency = 1; CreateSquareBind(BindCont, 1, "FLY", "תעופה", Settings.Keys.Fly, function(k) Settings.Keys.Fly = k end); CreateSquareBind(BindCont, 2, "SPEED", "מהירות", Settings.Keys.Speed, function(k) Settings.Keys.Speed = k end)
+CreateSlider(MainScroll, "Fly Speed", "מהירות תעופה", 20, 300, 50, function(v) Settings.Fly.Speed = v end, function(t) ToggleFly(t) end, "Fly")
+local BindCont = Instance.new("Frame", MainScroll); BindCont.Size = UDim2.new(0.95,0,0,70); BindCont.BackgroundTransparency = 1; CreateSquareBind(BindCont, 1, "FLY", "תעופה", Settings.Keys.Fly, function(k) Settings.Keys.Fly = k end); CreateSquareBind(BindCont, 2, "SPEED", "מהירות", Settings.Keys.Speed, function(k) Settings.Keys.Speed = k end)
 
 CreateSlider(Tab_Settings_Page, "FOV", "שדה ראייה", 70, 120, 70, function(v) Camera.FieldOfView = v end)
 
@@ -1428,4 +1419,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v4.0 (FINAL - TARGET TAB & BIG SCANNER) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v4.5 (FINAL FIXED - TARGET TAB & BOXES) Loaded")
