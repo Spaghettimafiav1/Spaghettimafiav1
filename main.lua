@@ -1,9 +1,9 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE EDITION + PRO TIMER)
+    Spaghetti Mafia Hub v1 (FINAL PREMIUM EDITION)
     Updates:
-    - REDESIGNED STORM TIMER (Luxury Style).
-    - HEBREW STATUS TEXT (Next Storm / Active).
-    - FIXED ALL PREVIOUS FEATURES.
+    - FIXED TIMER ALIGNMENT (Perfectly centered next to minimize).
+    - ADDED USER PROFILE (Avatar + Welcome text at bottom left).
+    - RETAINED ALL PREVIOUS FEATURES (Storm logic, Auto Farm, etc).
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -230,7 +230,7 @@ CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPas
 MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) end)
 
 -- ======================================================================================
---                        הטיימר החדש והמשודרג (LUXURY DESIGN)
+--                        הטיימר המעוצב (מתוקן ומיושר)
 -- ======================================================================================
 task.spawn(function()
     local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5)
@@ -239,14 +239,14 @@ task.spawn(function()
         -- קופסה ראשית מעוצבת
         local TimerWidget = Instance.new("Frame", TopBar)
         TimerWidget.Name = "StormTimerWidgetPro"
-        TimerWidget.Size = UDim2.new(0, 130, 0, 42) -- קצת יותר גדול
-        TimerWidget.Position = UDim2.new(1, -90, 0, 8) -- ליד כפתור ה-X
-        TimerWidget.AnchorPoint = Vector2.new(1, 0)
+        -- גודל מעט יותר רחב, מיושר לאמצע הגובה של ה-TopBar
+        TimerWidget.Size = UDim2.new(0, 135, 0, 40)
+        TimerWidget.AnchorPoint = Vector2.new(1, 0.5) -- עוגן אמצע-ימין
+        TimerWidget.Position = UDim2.new(1, -55, 0.5, 0) -- ממוקם שמאלה מכפתור המיזעור
         TimerWidget.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
         TimerWidget.BorderSizePixel = 0
         Library:Corner(TimerWidget, 10)
         
-        -- הוספת גרדיאנט (מעבר צבע) לרקע
         local TimerGradient = Instance.new("UIGradient", TimerWidget)
         TimerGradient.Color = ColorSequence.new{
             ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
@@ -254,17 +254,16 @@ task.spawn(function()
         }
         TimerGradient.Rotation = 90
 
-        -- מסגרת זוהרת (Stroke)
         local TimerStroke = Instance.new("UIStroke", TimerWidget)
         TimerStroke.Color = Settings.Theme.IceBlue
         TimerStroke.Thickness = 1.5
         TimerStroke.Transparency = 0.5
         TimerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-        -- כותרת עליונה (סטטוס)
+        -- כותרת
         local T_Header = Instance.new("TextLabel", TimerWidget)
-        T_Header.Size = UDim2.new(1, 0, 0.4, 0)
-        T_Header.Position = UDim2.new(0, 0, 0.05, 0)
+        T_Header.Size = UDim2.new(1, 0, 0.35, 0)
+        T_Header.Position = UDim2.new(0, 0, 0.1, 0)
         T_Header.BackgroundTransparency = 1
         T_Header.Text = "סופה הבאה:"
         T_Header.TextColor3 = Color3.fromRGB(180, 200, 220)
@@ -272,7 +271,7 @@ task.spawn(function()
         T_Header.TextSize = 10
         T_Header.ZIndex = 2
 
-        -- זמן (גדול)
+        -- זמן
         local T_Time = Instance.new("TextLabel", TimerWidget)
         T_Time.Size = UDim2.new(1, 0, 0.55, 0)
         T_Time.Position = UDim2.new(0, 0, 0.4, 0)
@@ -280,55 +279,42 @@ task.spawn(function()
         T_Time.Text = "00:00"
         T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
         T_Time.Font = Enum.Font.GothamBlack
-        T_Time.TextSize = 19
+        T_Time.TextSize = 18
         T_Time.ZIndex = 2
 
-        -- פונקציה לעדכון (חכמה)
+        -- פונקציה לעדכון
         local function UpdateStormTimer(val)
             local mins = math.floor(val / 60)
             local secs = val % 60
             
-            -- אנימציית דופק אם הסופה פעילה
             if val <= 0 then
-                -- מצב סופה פעילה
                 T_Header.Text = "⚠️ סטטוס ⚠️"
                 T_Header.TextColor3 = Color3.fromRGB(255, 100, 100)
-                
                 T_Time.Text = "סופה פעילה!"
-                T_Time.TextSize = 14 -- הקטנה כדי שייכנס הכל
+                T_Time.TextSize = 13 
                 T_Time.TextColor3 = Settings.Theme.CrystalRed
-                
-                -- שינוי צבע המסגרת לאדום בוהק
                 TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Color3.fromRGB(255, 0, 0), Transparency = 0}):Play()
                 TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(40, 10, 10)}):Play()
-                
             elseif val <= 30 then
-                -- מצב מתקרב (כתום)
                 T_Header.Text = "מתקרב..."
                 T_Header.TextColor3 = Color3.fromRGB(255, 200, 100)
-                
                 T_Time.Text = string.format("%02d:%02d", mins, secs)
-                T_Time.TextSize = 19
+                T_Time.TextSize = 18
                 T_Time.TextColor3 = Settings.Theme.Gold
-                
                 TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.Gold, Transparency = 0.2}):Play()
-                
             else
-                -- מצב רגיל (כחול/לבן)
                 T_Header.Text = "סופה הבאה:"
                 T_Header.TextColor3 = Color3.fromRGB(150, 180, 200)
-                
                 T_Time.Text = string.format("%02d:%02d", mins, secs)
-                T_Time.TextSize = 19
+                T_Time.TextSize = 18
                 T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
-                
                 TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.IceBlue, Transparency = 0.6}):Play()
                 TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
             end
         end
 
         StormValue.Changed:Connect(UpdateStormTimer)
-        UpdateStormTimer(StormValue.Value) -- הרצה ראשונית
+        UpdateStormTimer(StormValue.Value)
     end
 end)
 -- ======================================================================================
@@ -343,8 +329,67 @@ Sidebar.BorderSizePixel = 0
 Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
+-- ======================================================================================
+--                        פרופיל משתמש יוקרתי (למטה בצד שמאל)
+-- ======================================================================================
+local UserProfile = Instance.new("Frame", Sidebar)
+UserProfile.Name = "UserProfileContainer"
+UserProfile.Size = UDim2.new(0.9, 0, 0, 50) -- גובה הכרטיס
+UserProfile.AnchorPoint = Vector2.new(0.5, 1) -- עיגון לתחתית
+UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0) -- מיקום בתחתית התפריט
+UserProfile.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+UserProfile.BorderSizePixel = 0
+UserProfile.ZIndex = 10
+Library:Corner(UserProfile, 10)
+Library:AddGlow(UserProfile, Color3.fromRGB(0,0,0)) -- צל עדין
+
+-- תמונת פרופיל (עיגול)
+local AvatarFrame = Instance.new("Frame", UserProfile)
+AvatarFrame.Size = UDim2.new(0, 36, 0, 36)
+AvatarFrame.Position = UDim2.new(0, 8, 0.5, 0)
+AvatarFrame.AnchorPoint = Vector2.new(0, 0.5)
+AvatarFrame.BackgroundColor3 = Settings.Theme.Gold
+AvatarFrame.BorderSizePixel = 0
+local AvatarCorner = Instance.new("UICorner", AvatarFrame); AvatarCorner.CornerRadius = UDim.new(1, 0) -- הופך לעיגול
+
+local AvatarImg = Instance.new("ImageLabel", AvatarFrame)
+AvatarImg.Size = UDim2.new(0.9, 0, 0.9, 0)
+AvatarImg.Position = UDim2.new(0.5, 0, 0.5, 0)
+AvatarImg.AnchorPoint = Vector2.new(0.5, 0.5)
+AvatarImg.BackgroundTransparency = 1
+-- טעינת התמונה של השחקן (Headshot)
+local thumbType = Enum.ThumbnailType.HeadShot
+local thumbSize = Enum.ThumbnailSize.Size100x100
+local content, isReady = Players:GetUserThumbnailAsync(LocalPlayer.UserId, thumbType, thumbSize)
+AvatarImg.Image = content
+local AvatarImgCorner = Instance.new("UICorner", AvatarImg); AvatarImgCorner.CornerRadius = UDim.new(1, 0)
+
+-- טקסט ברוך הבא
+local WelcomeText = Instance.new("TextLabel", UserProfile)
+WelcomeText.Text = "Welcome,"
+WelcomeText.Size = UDim2.new(0, 80, 0, 15)
+WelcomeText.Position = UDim2.new(0, 52, 0, 10)
+WelcomeText.BackgroundTransparency = 1
+WelcomeText.TextColor3 = Color3.fromRGB(150, 150, 150)
+WelcomeText.Font = Enum.Font.GothamMedium
+WelcomeText.TextSize = 10
+WelcomeText.TextXAlignment = Enum.TextXAlignment.Left
+
+-- שם המשתמש
+local UsernameText = Instance.new("TextLabel", UserProfile)
+UsernameText.Text = LocalPlayer.Name
+UsernameText.Size = UDim2.new(0, 90, 0, 18)
+UsernameText.Position = UDim2.new(0, 52, 0, 24)
+UsernameText.BackgroundTransparency = 1
+UsernameText.TextColor3 = Settings.Theme.Gold
+UsernameText.Font = Enum.Font.GothamBold
+UsernameText.TextSize = 12
+UsernameText.TextXAlignment = Enum.TextXAlignment.Left
+UsernameText.TextTruncate = Enum.TextTruncate.AtEnd -- חותך אם השם ארוך מדי
+-- ======================================================================================
+
 local SideBtnContainer = Instance.new("Frame", Sidebar)
-SideBtnContainer.Size = UDim2.new(1, 0, 1, 0)
+SideBtnContainer.Size = UDim2.new(1, 0, 1, -60) -- מקטינים את אזור הכפתורים כדי לא לדרוס את הפרופיל
 SideBtnContainer.BackgroundTransparency = 1
 
 local SideList = Instance.new("UIListLayout", SideBtnContainer); SideList.Padding = UDim.new(0,8); SideList.HorizontalAlignment = Enum.HorizontalAlignment.Center; SideList.SortOrder = Enum.SortOrder.LayoutOrder
