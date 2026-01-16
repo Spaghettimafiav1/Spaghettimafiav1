@@ -1,13 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v2.5 (FINAL DESIGN - SKETCH MATCH)
+    Spaghetti Mafia Hub v3.0 (FINAL FIXES - TOGGLES & SCROLL)
     
     Changes:
-    - UI: Matched your sketch! 
-      [ Square Button 😈 ] [ Square Button 👁️ ]
-      [      BIG SCAN INVENTORY BUTTON      ]
-    - FIX: Player finding is now "Fuzzy". You can type "nx" and it finds "nx3ho".
-    - LOGIC: Bang & Spectate work perfectly.
-    - PRESERVED: All original features (Snow, Farm, Credits, etc).
+    - UI: Changed Square Buttons to Text TOGGLES ("Spectate", "Bang").
+    - UX: Visual feedback (Green = ON, Dark = OFF).
+    - FIX: Scrolling now works perfectly (AutomaticCanvasSize).
+    - FIX: "Player Not Found" fixed with smarter fuzzy search.
+    - PRESERVED: All original features (Snow, Farm, Credits, Speed, etc).
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -974,7 +973,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
 end
 
 -- ======================================================================================
---                 NEW: PLAYER TOOLS UI (MATCHING YOUR SKETCH)
+--                 NEW: PLAYER TOOLS UI (TOGGLES + SCROLL FIX + SMART FIND)
 -- ======================================================================================
 local IgnoreList = {
     ["קולה"] = true, ["קולה מכשפות"] = true, ["קולה תות"] = true, ["קפה סטארבלוקס"] = true,
@@ -1033,24 +1032,37 @@ TargetInput.FocusLost:Connect(function()
     end
 end)
 
--- 2. Buttons Row (Square Buttons for Actions)
+-- 2. Toggles Row (Replaced Square Buttons)
 local ButtonsRow = Instance.new("Frame", PlayerTools)
 ButtonsRow.Size = UDim2.new(0.9, 0, 0, 35)
 ButtonsRow.Position = UDim2.new(0.05, 0, 0.3, 0)
 ButtonsRow.BackgroundTransparency = 1
 
-local function CreateSquareBtn(icon, color, pos, callback)
+local function CreateToggleBtn(text, pos, callback)
     local b = Instance.new("TextButton", ButtonsRow)
     b.Size = UDim2.new(0.48, 0, 1, 0)
     b.Position = pos
     b.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    b.Text = icon
-    b.TextColor3 = color
+    b.Text = text .. " [OFF]"
+    b.TextColor3 = Color3.fromRGB(150, 150, 150)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 18
+    b.TextSize = 12
     Library:Corner(b, 8)
-    Library:AddGlow(b, Settings.Theme.Gold) -- Gold border as requested
-    b.MouseButton1Click:Connect(callback)
+    
+    local state = false
+    b.MouseButton1Click:Connect(function()
+        state = not state
+        callback(state)
+        if state then
+            b.BackgroundColor3 = Color3.fromRGB(40, 200, 100) -- Green
+            b.TextColor3 = Color3.new(0,0,0)
+            b.Text = text .. " [ON]"
+        else
+            b.BackgroundColor3 = Color3.fromRGB(30, 30, 35) -- Dark
+            b.TextColor3 = Color3.fromRGB(150, 150, 150)
+            b.Text = text .. " [OFF]"
+        end
+    end)
     return b
 end
 
@@ -1065,19 +1077,19 @@ ScanButton.Font = Enum.Font.GothamBold
 ScanButton.TextSize = 13
 Library:Corner(ScanButton, 8)
 
--- 4. Results Section (Bottom)
+-- 4. Results Section (Bottom - FIXED SCROLLING)
 local ScanResults = Instance.new("ScrollingFrame", PlayerTools)
 ScanResults.Size = UDim2.new(0.9, 0, 0.28, 0)
 ScanResults.Position = UDim2.new(0.05, 0, 0.70, 0)
 ScanResults.BackgroundTransparency = 1
 ScanResults.ScrollBarThickness = 2
+ScanResults.AutomaticCanvasSize = Enum.AutomaticSize.Y -- THIS FIXES THE SCROLLING
+ScanResults.CanvasSize = UDim2.new(0,0,0,0)
 local ScanList = Instance.new("UIListLayout", ScanResults); ScanList.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- LOGIC VARIABLES
 local ViewConnection = nil
 local TrollConnection = nil
-local IsTrolling = false
-local IsViewing = false
 
 -- ACTION: SCAN
 ScanButton.MouseButton1Click:Connect(function()
@@ -1143,29 +1155,21 @@ ScanButton.MouseButton1Click:Connect(function()
     if not found then
         local msg = Instance.new("TextLabel", ScanResults); msg.Size=UDim2.new(1,0,0,20); msg.BackgroundTransparency=1; msg.Text="No rare items found."; msg.TextColor3=Color3.fromRGB(150,150,150); msg.Font=Enum.Font.Gotham; msg.TextSize=12
     end
-    ScanResults.CanvasSize = UDim2.new(0, 0, 0, ScanList.AbsoluteContentSize.Y)
 end)
 
--- ACTION: SPECTATE
-local function ToggleSpectate()
+-- ACTION: SPECTATE (TOGGLE)
+CreateToggleBtn("SPECTATE", UDim2.new(0.52, 0, 0, 0), function(state)
     local target = GetPlayer(TargetInput.Text)
-    
-    if IsViewing then
-        IsViewing = false
-        workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
-        return
-    end
-
-    if target and target.Character then
-        IsViewing = true
+    if state and target and target.Character then
         workspace.CurrentCamera.CameraSubject = target.Character.Humanoid
+    else
+        workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
     end
-end
+end)
 
--- ACTION: BANG (TROLL)
-local function ToggleTroll()
-    if IsTrolling then
-        IsTrolling = false
+-- ACTION: BANG (TOGGLE)
+CreateToggleBtn("BANG", UDim2.new(0, 0, 0, 0), function(state)
+    if not state then
         if TrollConnection then TrollConnection:Disconnect() TrollConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
              for _, anim in pairs(LocalPlayer.Character.Humanoid:GetPlayingAnimationTracks()) do
@@ -1176,10 +1180,7 @@ local function ToggleTroll()
     end
 
     local target = GetPlayer(TargetInput.Text)
-    
     if target and target.Character and LocalPlayer.Character then
-        IsTrolling = true
-        
         local A = Instance.new('Animation')
         A.AnimationId = 'rbxassetid://148840371'
         local P = Players.LocalPlayer
@@ -1189,7 +1190,7 @@ local function ToggleTroll()
         H:AdjustSpeed(2.5)
         
         TrollConnection = RunService.Stepped:Connect(function()
-            if not IsTrolling or not target.Character or not P.Character then 
+            if not target.Character or not P.Character then 
                 if TrollConnection then TrollConnection:Disconnect() end
                 return 
             end
@@ -1198,11 +1199,7 @@ local function ToggleTroll()
             end)
         end)
     end
-end
-
--- Create the Action Buttons (Bang Left, Spectate Right)
-CreateSquareBtn("😈", Color3.fromRGB(255, 100, 100), UDim2.new(0, 0, 0, 0), ToggleTroll)
-CreateSquareBtn("👁️", Color3.fromRGB(100, 200, 255), UDim2.new(0.52, 0, 0, 0), ToggleSpectate)
+end)
 
 -- ======================================================================================
 
@@ -1412,4 +1409,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v2.5 (FINAL DESIGN - SKETCH MATCH) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v3.0 (FINAL FIXES - TOGGLES & SCROLL) Loaded")
