@@ -1,12 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v3.0 (FINAL FIXES - TOGGLES & SCROLL)
+    Spaghetti Mafia Hub v3.5 (FINAL - SEPARATED BOXES & SCROLL FIX)
     
     Changes:
-    - UI: Changed Square Buttons to Text TOGGLES ("Spectate", "Bang").
-    - UX: Visual feedback (Green = ON, Dark = OFF).
-    - FIX: Scrolling now works perfectly (AutomaticCanvasSize).
-    - FIX: "Player Not Found" fixed with smarter fuzzy search.
-    - PRESERVED: All original features (Snow, Farm, Credits, Speed, etc).
+    - UI RESTRUCTURE: Main Tab is now fully scrollable.
+    - LAYOUT: Split Player Tools into 3 separate Gold Boxes (Target, Actions, Scanner).
+    - VISUALS: Bigger Avatar, Bigger Input, Cleaner Layout.
+    - LOGIC: 100% PRESERVED.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -973,7 +972,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
 end
 
 -- ======================================================================================
---                 NEW: PLAYER TOOLS UI (TOGGLES + SCROLL FIX + SMART FIND)
+--                 NEW: PLAYER TOOLS UI (SPLIT BOXES + SCROLL FIX)
 -- ======================================================================================
 local IgnoreList = {
     ["קולה"] = true, ["קולה מכשפות"] = true, ["קולה תות"] = true, ["קפה סטארבלוקס"] = true,
@@ -984,33 +983,40 @@ local IgnoreList = {
     ["פיצה"] = true, ["Cola"] = true, ["Pizza"] = true, ["Burger"] = true
 }
 
-local PlayerTools = Instance.new("Frame", Tab_Main_Page)
-PlayerTools.Size = UDim2.new(0.95, 0, 0, 200)
-PlayerTools.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-Library:Corner(PlayerTools, 12)
-Library:AddGlow(PlayerTools, Settings.Theme.Gold)
+-- !!! MAIN SCROLLING CONTAINER FOR THE MAIN TAB !!!
+local MainScroll = Instance.new("ScrollingFrame", Tab_Main_Page)
+MainScroll.Size = UDim2.new(1, 0, 1, 0)
+MainScroll.BackgroundTransparency = 1
+MainScroll.ScrollBarThickness = 2
+MainScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+MainScroll.CanvasSize = UDim2.new(0,0,0,0)
+local MainList = Instance.new("UIListLayout", MainScroll); MainList.SortOrder = Enum.SortOrder.LayoutOrder; MainList.Padding = UDim.new(0, 10); MainList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+local MainPad = Instance.new("UIPadding", MainScroll); MainPad.PaddingTop = UDim.new(0,5)
 
--- 1. Header (Input + Avatar)
-local HeaderSection = Instance.new("Frame", PlayerTools)
-HeaderSection.Size = UDim2.new(1, 0, 0, 50)
-HeaderSection.BackgroundTransparency = 1
+-- BOX 1: HEADER (TARGET & AVATAR)
+local TargetBox = Instance.new("Frame", MainScroll)
+TargetBox.Size = UDim2.new(0.95, 0, 0, 80) -- Bigger box
+TargetBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Library:Corner(TargetBox, 12)
+Library:AddGlow(TargetBox, Settings.Theme.Gold)
 
-local TargetInput = Instance.new("TextBox", HeaderSection)
-TargetInput.Size = UDim2.new(0.65, 0, 0, 35)
-TargetInput.Position = UDim2.new(0.05, 0, 0.15, 0)
+local TargetInput = Instance.new("TextBox", TargetBox)
+TargetInput.Size = UDim2.new(0.7, 0, 0, 45) -- Bigger input
+TargetInput.Position = UDim2.new(0.05, 0, 0.22, 0)
 TargetInput.BackgroundColor3 = Color3.fromRGB(40,40,45)
 TargetInput.Text = ""
 TargetInput.PlaceholderText = "Player Name..."
 TargetInput.TextColor3 = Color3.new(1,1,1)
-TargetInput.Font = Enum.Font.Gotham
+TargetInput.Font = Enum.Font.GothamBold -- Bolder font
+TargetInput.TextSize = 16 -- Bigger Text
 Library:Corner(TargetInput, 8)
 
-local TargetAvatar = Instance.new("ImageLabel", HeaderSection)
-TargetAvatar.Size = UDim2.new(0, 35, 0, 35)
+local TargetAvatar = Instance.new("ImageLabel", TargetBox)
+TargetAvatar.Size = UDim2.new(0, 55, 0, 55) -- Bigger Avatar
 TargetAvatar.Position = UDim2.new(0.8, 0, 0.15, 0)
 TargetAvatar.BackgroundColor3 = Color3.fromRGB(40,40,40)
 TargetAvatar.Image = "rbxassetid://0"
-Library:Corner(TargetAvatar, 20)
+Library:Corner(TargetAvatar, 30)
 
 -- FUZZY FIND PLAYER FUNCTION (Fixes "Not Found")
 local function GetPlayer(name)
@@ -1032,21 +1038,22 @@ TargetInput.FocusLost:Connect(function()
     end
 end)
 
--- 2. Toggles Row (Replaced Square Buttons)
-local ButtonsRow = Instance.new("Frame", PlayerTools)
-ButtonsRow.Size = UDim2.new(0.9, 0, 0, 35)
-ButtonsRow.Position = UDim2.new(0.05, 0, 0.3, 0)
-ButtonsRow.BackgroundTransparency = 1
+-- BOX 2: ACTIONS (TOGGLES)
+local ActionBox = Instance.new("Frame", MainScroll)
+ActionBox.Size = UDim2.new(0.95, 0, 0, 60)
+ActionBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Library:Corner(ActionBox, 12)
+Library:AddGlow(ActionBox, Settings.Theme.Gold)
 
 local function CreateToggleBtn(text, pos, callback)
-    local b = Instance.new("TextButton", ButtonsRow)
-    b.Size = UDim2.new(0.48, 0, 1, 0)
+    local b = Instance.new("TextButton", ActionBox)
+    b.Size = UDim2.new(0.45, 0, 0, 40)
     b.Position = pos
-    b.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    b.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
     b.Text = text .. " [OFF]"
     b.TextColor3 = Color3.fromRGB(150, 150, 150)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 12
+    b.TextSize = 13
     Library:Corner(b, 8)
     
     local state = false
@@ -1058,7 +1065,7 @@ local function CreateToggleBtn(text, pos, callback)
             b.TextColor3 = Color3.new(0,0,0)
             b.Text = text .. " [ON]"
         else
-            b.BackgroundColor3 = Color3.fromRGB(30, 30, 35) -- Dark
+            b.BackgroundColor3 = Color3.fromRGB(35, 35, 40) -- Dark
             b.TextColor3 = Color3.fromRGB(150, 150, 150)
             b.Text = text .. " [OFF]"
         end
@@ -1066,24 +1073,29 @@ local function CreateToggleBtn(text, pos, callback)
     return b
 end
 
--- 3. Big Scan Button (Below Actions)
-local ScanButton = Instance.new("TextButton", PlayerTools)
-ScanButton.Size = UDim2.new(0.9, 0, 0, 30)
-ScanButton.Position = UDim2.new(0.05, 0, 0.52, 0)
+-- BOX 3: SCANNER
+local ScannerBox = Instance.new("Frame", MainScroll)
+ScannerBox.Size = UDim2.new(0.95, 0, 0, 250) -- Taller for results
+ScannerBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Library:Corner(ScannerBox, 12)
+Library:AddGlow(ScannerBox, Settings.Theme.Gold)
+
+local ScanButton = Instance.new("TextButton", ScannerBox)
+ScanButton.Size = UDim2.new(0.9, 0, 0, 35)
+ScanButton.Position = UDim2.new(0.05, 0, 0.05, 0)
 ScanButton.BackgroundColor3 = Settings.Theme.Gold
 ScanButton.Text = "SCAN INVENTORY 🔍"
 ScanButton.TextColor3 = Color3.new(0,0,0)
 ScanButton.Font = Enum.Font.GothamBold
-ScanButton.TextSize = 13
+ScanButton.TextSize = 14
 Library:Corner(ScanButton, 8)
 
--- 4. Results Section (Bottom - FIXED SCROLLING)
-local ScanResults = Instance.new("ScrollingFrame", PlayerTools)
-ScanResults.Size = UDim2.new(0.9, 0, 0.28, 0)
-ScanResults.Position = UDim2.new(0.05, 0, 0.70, 0)
+local ScanResults = Instance.new("ScrollingFrame", ScannerBox)
+ScanResults.Size = UDim2.new(0.9, 0, 0.75, 0)
+ScanResults.Position = UDim2.new(0.05, 0, 0.22, 0)
 ScanResults.BackgroundTransparency = 1
 ScanResults.ScrollBarThickness = 2
-ScanResults.AutomaticCanvasSize = Enum.AutomaticSize.Y -- THIS FIXES THE SCROLLING
+ScanResults.AutomaticCanvasSize = Enum.AutomaticSize.Y
 ScanResults.CanvasSize = UDim2.new(0,0,0,0)
 local ScanList = Instance.new("UIListLayout", ScanResults); ScanList.SortOrder = Enum.SortOrder.LayoutOrder
 
@@ -1097,7 +1109,7 @@ ScanButton.MouseButton1Click:Connect(function()
     local target = GetPlayer(TargetInput.Text)
     
     if not target then 
-         local err = Instance.new("TextLabel", ScanResults); err.Size=UDim2.new(1,0,0,20); err.BackgroundTransparency=1; err.Text="Player not found!"; err.TextColor3=Color3.fromRGB(255,50,50); err.Font=Enum.Font.GothamBold; err.TextSize=12
+         local err = Instance.new("TextLabel", ScanResults); err.Size=UDim2.new(1,0,0,20); err.BackgroundTransparency=1; err.Text="Player not found!"; err.TextColor3=Color3.fromRGB(255,50,50); err.Font=Enum.Font.GothamBold; err.TextSize=14
          return 
     end
 
@@ -1132,43 +1144,33 @@ ScanButton.MouseButton1Click:Connect(function()
     for name, count in pairs(itemsCount) do
         found = true
         local row = Instance.new("Frame", ScanResults)
-        row.Size = UDim2.new(1, 0, 0, 25)
+        row.Size = UDim2.new(1, 0, 0, 30) -- Taller row
         row.BackgroundTransparency = 1
         
         local icon = Instance.new("ImageLabel", row)
-        icon.Size = UDim2.new(0, 20, 0, 20)
+        icon.Size = UDim2.new(0, 25, 0, 25)
         icon.Position = UDim2.new(0, 0, 0, 2)
         icon.BackgroundTransparency = 1
         if itemsIcon[name] then icon.Image = itemsIcon[name] else icon.Image = "rbxassetid://6503956166" end 
         
         local txt = Instance.new("TextLabel", row)
-        txt.Size = UDim2.new(1, -25, 1, 0)
-        txt.Position = UDim2.new(0, 25, 0, 0)
+        txt.Size = UDim2.new(1, -30, 1, 0)
+        txt.Position = UDim2.new(0, 30, 0, 0)
         txt.BackgroundTransparency = 1
         txt.Text = name .. "  x" .. count
         txt.TextColor3 = Settings.Theme.Gold
         txt.Font = Enum.Font.GothamBold
-        txt.TextSize = 13
+        txt.TextSize = 14 -- Bigger text
         txt.TextXAlignment = Enum.TextXAlignment.Left
     end
     
     if not found then
-        local msg = Instance.new("TextLabel", ScanResults); msg.Size=UDim2.new(1,0,0,20); msg.BackgroundTransparency=1; msg.Text="No rare items found."; msg.TextColor3=Color3.fromRGB(150,150,150); msg.Font=Enum.Font.Gotham; msg.TextSize=12
+        local msg = Instance.new("TextLabel", ScanResults); msg.Size=UDim2.new(1,0,0,20); msg.BackgroundTransparency=1; msg.Text="No rare items found."; msg.TextColor3=Color3.fromRGB(150,150,150); msg.Font=Enum.Font.Gotham; msg.TextSize=14
     end
 end)
 
--- ACTION: SPECTATE (TOGGLE)
-CreateToggleBtn("SPECTATE", UDim2.new(0.52, 0, 0, 0), function(state)
-    local target = GetPlayer(TargetInput.Text)
-    if state and target and target.Character then
-        workspace.CurrentCamera.CameraSubject = target.Character.Humanoid
-    else
-        workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
-    end
-end)
-
--- ACTION: BANG (TOGGLE)
-CreateToggleBtn("BANG", UDim2.new(0, 0, 0, 0), function(state)
+-- ACTION: TOGGLES LOGIC
+CreateToggleBtn("BANG", UDim2.new(0.05, 0, 0.15, 0), function(state)
     if not state then
         if TrollConnection then TrollConnection:Disconnect() TrollConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -1201,9 +1203,18 @@ CreateToggleBtn("BANG", UDim2.new(0, 0, 0, 0), function(state)
     end
 end)
 
+CreateToggleBtn("SPECTATE", UDim2.new(0.52, 0, 0.15, 0), function(state)
+    local target = GetPlayer(TargetInput.Text)
+    if state and target and target.Character then
+        workspace.CurrentCamera.CameraSubject = target.Character.Humanoid
+    else
+        workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
+    end
+end)
+
 -- ======================================================================================
 
-CreateSlider(Tab_Main_Page, "Walk Speed", "מהירות הליכה", 1, 250, 16, function(v) 
+CreateSlider(MainScroll, "Walk Speed", "מהירות הליכה", 1, 250, 16, function(v) 
     Settings.Speed.Value = v 
     if Settings.Speed.Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = v
@@ -1215,8 +1226,8 @@ end, function(t)
     end
 end, "Speed")
 
-CreateSlider(Tab_Main_Page, "Fly Speed", "מהירות תעופה", 20, 300, 50, function(v) Settings.Fly.Speed = v end, function(t) ToggleFly(t) end, "Fly")
-local BindCont = Instance.new("Frame", Tab_Main_Page); BindCont.Size = UDim2.new(0.95,0,0,70); BindCont.BackgroundTransparency = 1; CreateSquareBind(BindCont, 1, "FLY", "תעופה", Settings.Keys.Fly, function(k) Settings.Keys.Fly = k end); CreateSquareBind(BindCont, 2, "SPEED", "מהירות", Settings.Keys.Speed, function(k) Settings.Keys.Speed = k end)
+CreateSlider(MainScroll, "Fly Speed", "מהירות תעופה", 20, 300, 50, function(v) Settings.Fly.Speed = v end, function(t) ToggleFly(t) end, "Fly")
+local BindCont = Instance.new("Frame", MainScroll); BindCont.Size = UDim2.new(0.95,0,0,70); BindCont.BackgroundTransparency = 1; CreateSquareBind(BindCont, 1, "FLY", "תעופה", Settings.Keys.Fly, function(k) Settings.Keys.Fly = k end); CreateSquareBind(BindCont, 2, "SPEED", "מהירות", Settings.Keys.Speed, function(k) Settings.Keys.Speed = k end)
 
 CreateSlider(Tab_Settings_Page, "FOV", "שדה ראייה", 70, 120, 70, function(v) Camera.FieldOfView = v end)
 
@@ -1409,4 +1420,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v3.0 (FINAL FIXES - TOGGLES & SCROLL) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v3.5 (FINAL - SEPARATED BOXES & SCROLL FIX) Loaded")
