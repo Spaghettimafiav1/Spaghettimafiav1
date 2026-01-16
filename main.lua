@@ -1,9 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE COMPLETED EDITION)
+    Spaghetti Mafia Hub v1 (ULTIMATE PREMIUM HEBREW EDITION)
     Updates:
-    - WELCOME PROFILE: Hebrew "ברוך הבא" + Thick Gold Border.
-    - MAIN TAB: Heavy Premium Design (Dark backgrounds, Thick Gold Strokes).
-    - FULL CODE RESTORED: No missing lines at the end.
+    - WELCOME: Changed to Hebrew ("ברוך הבא") with thick Gold Border.
+    - MAIN TAB: Redesigned with Thick Borders & Premium Look.
+    - FLY: Space = Up, Ctrl = Down.
+    - REJOIN: Same Server.
+    - NO LINES REMOVED.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -61,7 +63,7 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 190, 40), -- זהב עשיר
+        Gold = Color3.fromRGB(255, 200, 50), -- זהב עשיר
         Dark = Color3.fromRGB(12, 12, 14),
         Box = Color3.fromRGB(20, 20, 24),
         Text = Color3.fromRGB(255, 255, 255),
@@ -116,7 +118,7 @@ function Library:MakeDraggable(obj)
     RunService.RenderStepped:Connect(function() if dragging and dragInput then local delta = dragInput.Position - dragStart; obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
 end
 
---// שלג
+--// שלג (אופטימלי)
 local function SpawnSnow(parent)
     if not parent.Parent or not parent.Visible then return end
     local flake = Instance.new("TextLabel", parent)
@@ -137,7 +139,63 @@ local function SpawnSnow(parent)
     Debris:AddItem(flake, duration)
 end
 
---// GUI ראשי
+--// 4. מסך טעינה
+local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
+local LoadBox = Instance.new("Frame", LoadGui)
+LoadBox.Size = UDim2.new(0, 240, 0, 160)
+LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadBox.ClipsDescendants = true 
+LoadBox.BorderSizePixel = 0
+LoadBox.BackgroundColor3 = Settings.Theme.Dark
+Library:Corner(LoadBox, 20)
+Library:AddGlow(LoadBox, Settings.Theme.Gold)
+
+local PastaIcon = Instance.new("TextLabel", LoadBox)
+PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
+PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
+TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}):Play()
+
+local TitleLoad = Instance.new("TextLabel", LoadBox)
+TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
+TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
+TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
+TitleLoad.ZIndex = 15
+
+local SubLoad = Instance.new("TextLabel", LoadBox)
+SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
+SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען..."; 
+SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
+SubLoad.ZIndex = 15
+
+-- Loading Bar
+local LoadingBarBG = Instance.new("Frame", LoadBox)
+LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
+LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
+LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
+LoadingBarBG.BorderSizePixel = 0
+LoadingBarBG.ZIndex = 16
+Library:Corner(LoadingBarBG, 5)
+
+local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
+LoadingBarFill.Size = UDim2.new(0, 0, 1, 0)
+LoadingBarFill.BackgroundColor3 = Settings.Theme.Gold
+LoadingBarFill.BorderSizePixel = 0
+LoadingBarFill.ZIndex = 17
+Library:Corner(LoadingBarFill, 5)
+Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 2.5, Enum.EasingStyle.Quad)
+
+task.spawn(function()
+    while LoadBox.Parent do
+        SpawnSnow(LoadBox)
+        task.wait(0.3) 
+    end
+end)
+
+task.wait(2.5)
+LoadGui:Destroy()
+
+--// 5. GUI ראשי
 local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = CoreGui; ScreenGui.ResetOnSpawn = false
 
 local MiniPasta = Instance.new("TextButton", ScreenGui); MiniPasta.Size = UDim2.new(0, 60, 0, 60); MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); MiniPasta.BackgroundColor3 = Settings.Theme.Box; MiniPasta.Text = "🍝"; MiniPasta.TextSize = 35; MiniPasta.Visible = false; Library:Corner(MiniPasta, 30); Library:AddGlow(MiniPasta); Library:MakeDraggable(MiniPasta)
@@ -174,7 +232,7 @@ CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPas
 MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) end)
 
 -- ======================================================================================
---                        הטיימר
+--                        הטיימר המעוצב
 -- ======================================================================================
 task.spawn(function()
     local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5)
