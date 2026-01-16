@@ -1016,16 +1016,15 @@ local function GetPlayer(name)
     end
     return nil
 end
-
--- BOX 1: HEADER
+-- BOX 1: HEADER (WITH STATUS)
 local TargetBox = Instance.new("Frame", TargetScroll)
-TargetBox.Size = UDim2.new(0.95, 0, 0, 80)
+TargetBox.Size = UDim2.new(0.95, 0, 0, 85)
 TargetBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(TargetBox, 12)
 Library:AddGlow(TargetBox, Settings.Theme.Gold)
 
 local TargetInput = Instance.new("TextBox", TargetBox)
-TargetInput.Size = UDim2.new(0.7, 0, 0, 45)
+TargetInput.Size = UDim2.new(0.65, 0, 0, 45)
 TargetInput.Position = UDim2.new(0.05, 0, 0.22, 0)
 TargetInput.BackgroundColor3 = Color3.fromRGB(40,40,45)
 TargetInput.Text = ""
@@ -1035,7 +1034,7 @@ TargetInput.Font = Enum.Font.GothamBold
 TargetInput.TextSize = 16
 Library:Corner(TargetInput, 8)
 
--- HEBREW HEADER FOR BOX 1
+-- HEADER TEXT
 local TitleBox1 = Instance.new("TextLabel", TargetBox)
 TitleBox1.Size = UDim2.new(0, 100, 0, 15)
 TitleBox1.Position = UDim2.new(1, -110, 0, 5)
@@ -1046,12 +1045,23 @@ TitleBox1.Font = Enum.Font.GothamBold
 TitleBox1.TextSize = 10
 TitleBox1.TextXAlignment = Enum.TextXAlignment.Right
 
+-- AVATAR
 local TargetAvatar = Instance.new("ImageLabel", TargetBox)
 TargetAvatar.Size = UDim2.new(0, 55, 0, 55)
-TargetAvatar.Position = UDim2.new(0.8, 0, 0.15, 0)
+TargetAvatar.Position = UDim2.new(0.75, 0, 0.22, 0) -- הזזתי קצת שמאלה
 TargetAvatar.BackgroundColor3 = Color3.fromRGB(40,40,40)
 TargetAvatar.Image = "rbxassetid://0"
 Library:Corner(TargetAvatar, 30)
+
+-- STATUS LABEL (ONLINE/OFFLINE)
+local StatusLabel = Instance.new("TextLabel", TargetBox)
+StatusLabel.Size = UDim2.new(0, 60, 0, 20)
+StatusLabel.Position = UDim2.new(0.75, 0, 0.85, 0) -- מתחת לתמונה
+StatusLabel.Text = "WAITING..."
+StatusLabel.Font = Enum.Font.GothamBlack
+StatusLabel.TextSize = 10
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 
 TargetInput.FocusLost:Connect(function()
     local p = GetPlayer(TargetInput.Text)
@@ -1059,17 +1069,24 @@ TargetInput.FocusLost:Connect(function()
         TargetInput.Text = p.Name
         local content = Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
         TargetAvatar.Image = content
+        -- סטטוס מחובר
+        StatusLabel.Text = "ONLINE 🟢"
+        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 100)
+    else
+        TargetAvatar.Image = "rbxassetid://0"
+        -- סטטוס מנותק
+        StatusLabel.Text = "OFFLINE 🔴"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
     end
 end)
 
--- BOX 2: ACTIONS (RESIZED FOR 4 BUTTONS)
+-- BOX 2: ACTIONS (FIXED LAYOUT & REAL SIT)
 local ActionBox = Instance.new("Frame", TargetScroll)
-ActionBox.Size = UDim2.new(0.95, 0, 0, 140) -- INCREASED HEIGHT TO FIX OVERFLOW
+ActionBox.Size = UDim2.new(0.95, 0, 0, 160) -- הגדלתי ל-160 כדי שיהיה מרווח
 ActionBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(ActionBox, 12)
 Library:AddGlow(ActionBox, Settings.Theme.Gold)
 
--- HEBREW HEADER FOR BOX 2
 local TitleBox2 = Instance.new("TextLabel", ActionBox)
 TitleBox2.Size = UDim2.new(0, 100, 0, 15)
 TitleBox2.Position = UDim2.new(1, -110, 0, 5)
@@ -1080,12 +1097,16 @@ TitleBox2.Font = Enum.Font.GothamBold
 TitleBox2.TextSize = 10
 TitleBox2.TextXAlignment = Enum.TextXAlignment.Right
 
--- GRID LAYOUT FOR ACTIONS
+-- GRID LAYOUT (כפתורים קטנים יותר וממורכזים)
 local ActionGrid = Instance.new("UIGridLayout", ActionBox)
-ActionGrid.CellSize = UDim2.new(0.47, 0, 0.40, 0) -- Adjusted for new height
-ActionGrid.CellPadding = UDim2.new(0.02, 0, 0.05, 0)
+ActionGrid.CellSize = UDim2.new(0.46, 0, 0.35, 0) -- הקטנתי טיפה את הכפתורים
+ActionGrid.CellPadding = UDim2.new(0.04, 0, 0.08, 0) -- יותר רווח
 ActionGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 ActionGrid.VerticalAlignment = Enum.VerticalAlignment.Center
+-- Padding פנימי לקופסה כדי שהכפתורים לא ייגעו בקצוות
+local ActionPad = Instance.new("UIPadding", ActionBox)
+ActionPad.PaddingTop = UDim.new(0, 20) 
+ActionPad.PaddingBottom = UDim.new(0, 10)
 
 local function CreateToggleBtn(parent, text, callback)
     local b = Instance.new("TextButton", parent)
@@ -1093,7 +1114,7 @@ local function CreateToggleBtn(parent, text, callback)
     b.Text = text
     b.TextColor3 = Color3.fromRGB(150, 150, 150)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 12
+    b.TextSize = 11
     Library:Corner(b, 8)
     
     local state = false
@@ -1101,8 +1122,8 @@ local function CreateToggleBtn(parent, text, callback)
         state = not state
         callback(state)
         if state then
-            b.BackgroundColor3 = Settings.Theme.Gold -- GOLD
-            b.TextColor3 = Color3.new(0,0,0) -- BLACK TEXT
+            b.BackgroundColor3 = Settings.Theme.Gold
+            b.TextColor3 = Color3.new(0,0,0)
         else
             b.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
             b.TextColor3 = Color3.fromRGB(150, 150, 150)
@@ -1139,10 +1160,8 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
                 return 
             end
             pcall(function()
-                -- Fixed logic: Directly behind and looking at target
                 local targetHRP = target.Character:WaitForChild('HumanoidRootPart')
                 local myHRP = C:WaitForChild('HumanoidRootPart')
-                
                 local behindPos = targetHRP.CFrame * CFrame.new(0, 0, 1.1)
                 myHRP.CFrame = CFrame.lookAt(behindPos.Position, targetHRP.Position)
             end)
@@ -1160,49 +1179,52 @@ CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     end
 end)
 
--- 3. HEADSIT (NEW ANIMATION)
+-- 3. HEADSIT (תוקן - ישיבה אמיתית)
 local HeadSitConnection = nil
 CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     if not state then
         if HeadSitConnection then HeadSitConnection:Disconnect() HeadSitConnection = nil end
-        PlaySit(false) -- Stop Animation
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.Sit = false -- לקום
+        end
         return
     end
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
-         PlaySit(true) -- Play Animation
          HeadSitConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
+                 LocalPlayer.Character.Humanoid.Sit = true -- מכריח ישיבה
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.Head.CFrame * CFrame.new(0, 1.5, 0)
             end)
          end)
     end
 end)
 
--- 4. BACKPACK (NEW ROTATION & ANIMATION)
+-- 4. BACKPACK (תוקן - ישיבה הפוכה אמיתית)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     if not state then
         if BackpackConnection then BackpackConnection:Disconnect() BackpackConnection = nil end
-        PlaySit(false) -- Stop Animation
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.Sit = false -- לקום
+        end
         return
     end
     
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
-         PlaySit(true) -- Play Animation
          BackpackConnection = RunService.RenderStepped:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
-                 -- Position behind, slightly up, and rotated 180 degrees
+                 LocalPlayer.Character.Humanoid.Sit = true -- מכריח ישיבה
+                 -- יושב הפוך (הגב שלי לגב שלו)
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1.5, 0.5) * CFrame.Angles(0, math.rad(180), 0)
             end)
          end)
     end
 end)
-
 -- BOX 3: SCANNER
 local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250)
