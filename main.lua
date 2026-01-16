@@ -1,10 +1,10 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE FINAL FIXED VERSION)
+    Spaghetti Mafia Hub v1 (NUCLEAR EDITION)
     Updates:
-    - RESTORED: Point of Interest (POI) Blocker - Prevents getting stuck on interactions.
-    - WATER FIX: Disables Swimming & Drowning (Infinite Oxygen).
-    - VISUALS: Premium Hebrew Gold Design retained.
-    - NO LINES REMOVED.
+    - FIXED WATER: Added Anti-Gravity + Infinite Oxygen + Forced Walking State.
+    - POI BLOCKER: Aggressively disables Doors, Portals, and Interactions.
+    - VISUALS: Hebrew Gold Profile & Premium Main Tab retained.
+    - ALL FEATURES INTACT.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -270,7 +270,7 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 -- ======================================================================================
---                        פרופיל משתמש - עיצוב זהב עברית
+--                        פרופיל משתמש (ברוך הבא)
 -- ======================================================================================
 local UserProfile = Instance.new("Frame", Sidebar)
 UserProfile.Name = "UserProfileContainer"
@@ -312,7 +312,7 @@ AvatarImg.ZIndex = 12
 local AvatarImgCorner = Instance.new("UICorner", AvatarImg); AvatarImgCorner.CornerRadius = UDim.new(1, 0)
 
 local WelcomeText = Instance.new("TextLabel", UserProfile)
-WelcomeText.Text = "ברוך הבא,"
+WelcomeText.Text = "ברוך הבא," 
 WelcomeText.Size = UDim2.new(0, 80, 0, 15)
 WelcomeText.Position = UDim2.new(0, 75, 0, 18)
 WelcomeText.BackgroundTransparency = 1
@@ -434,7 +434,7 @@ end
 --                        חסימת נקודות עניין (POI Blocker) - מונע תקיעות
 -- ======================================================================================
 local function DisablePointsOfInterest()
-    -- חיפוש רחב ב-Workspace
+    -- חיפוש רחב ב-Workspace כדי לבטל דברים שמפריעים
     for _, v in pairs(Workspace:GetDescendants()) do
         if v:IsA("BasePart") then
             local name = string.lower(v.Name)
@@ -442,9 +442,23 @@ local function DisablePointsOfInterest()
                 v.CanCollide = false
                 v.CanTouch = false
             end
+        elseif v:IsA("ProximityPrompt") or v:IsA("TouchTransmitter") then
+             -- ביטול אינטראקציות
+             v.Enabled = false
+             if v.Parent and v.Parent:IsA("BasePart") then v.Parent.CanTouch = false end
         end
     end
 end
+
+-- רץ כל שניה כדי לוודא שדברים חדשים גם נחסמים
+task.spawn(function()
+    while true do
+        if Settings.Farming then
+            pcall(DisablePointsOfInterest)
+        end
+        task.wait(2)
+    end
+end)
 
 local function UltraSafeDisable()
     local char = LocalPlayer.Character; if not char then return end
@@ -456,9 +470,6 @@ local function UltraSafeDisable()
             if v.Name:lower():find("door") or v.Name:lower():find("portal") then v.CanTouch = false end 
         end
     end
-    
-    -- קריאה לפונקציית החסימה החדשה
-    DisablePointsOfInterest()
 end
 
 -- ======================================================================================
@@ -467,6 +478,7 @@ end
 local function ToggleFarm(v)
     Settings.Farming = v; if not v then FarmBlacklist = {} end
     if not FarmConnection and v then
+        DisablePointsOfInterest() -- קריאה ראשונית
         FarmConnection = RunService.Stepped:Connect(function()
             if LocalPlayer.Character and Settings.Farming then
                 for _, part in pairs(LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
@@ -481,16 +493,46 @@ local function ToggleFarm(v)
                     -- FIX: Infinite Oxygen
                     hum.Air = 100
                 end
+                
+                -- Anti-Gravity Logic to stop sinking
+                local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    -- Keeps the character buoyant
+                    local bodyVel = hrp:FindFirstChild("AntiSink")
+                    if not bodyVel then
+                        bodyVel = Instance.new("BodyVelocity")
+                        bodyVel.Name = "AntiSink"
+                        bodyVel.Velocity = Vector3.new(0, 0, 0)
+                        bodyVel.MaxForce = Vector3.new(0, math.huge, 0) -- Only fight gravity (Y axis)
+                        bodyVel.Parent = hrp
+                    end
+                end
+                
                 UltraSafeDisable()
+            else
+                -- Remove Anti-Sink if farming stops
+                if LocalPlayer.Character then
+                    local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp and hrp:FindFirstChild("AntiSink") then
+                        hrp.AntiSink:Destroy()
+                    end
+                end
             end
         end)
     elseif not v and FarmConnection then 
         FarmConnection:Disconnect()
         FarmConnection = nil 
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            -- Enable Swimming again
-            LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
-            LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true) 
+        if LocalPlayer.Character then
+             local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+             local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+             
+             if hum then
+                hum:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
+                hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true) 
+             end
+             if hrp and hrp:FindFirstChild("AntiSink") then
+                hrp.AntiSink:Destroy()
+             end
         end
     end
 
@@ -759,7 +801,7 @@ task.spawn(function()
     end
 end)
 
---// 8. רכיבים וטאבים אחרים (עיצוב פרימיום ל-MAIN)
+--// 8. רכיבים וטאבים אחרים (עיצוב פרימיום חדש ל-MAIN)
 local function CreateSlider(parent, title, heb, min, max, default, callback, toggleCallback, toggleName)
     local f = Instance.new("Frame", parent)
     f.Size = UDim2.new(0.95,0,0,65)
@@ -1075,4 +1117,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL ULTIMATE) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE PERFECTED) Loaded")
