@@ -1,9 +1,9 @@
 --[[
-    Spaghetti Mafia Hub v1 (HEBREW PREMIUM EDITION)
+    Spaghetti Mafia Hub v1 (ULTIMATE COMPLETED EDITION)
     Updates:
-    - WELCOME MSG: Changed to Hebrew ("ברוך הבא"), added thick Gold border.
-    - MAIN TAB: Redesigned with Thick Borders, Gradients, and "Premium" feel.
-    - LOGIC: All previous fixes (Fly, Rejoin, Farm) are intact.
+    - WELCOME PROFILE: Hebrew "ברוך הבא" + Thick Gold Border.
+    - MAIN TAB: Heavy Premium Design (Dark backgrounds, Thick Gold Strokes).
+    - FULL CODE RESTORED: No missing lines at the end.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -61,7 +61,7 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 200, 50), -- זהב עשיר יותר
+        Gold = Color3.fromRGB(255, 190, 40), -- זהב עשיר
         Dark = Color3.fromRGB(12, 12, 14),
         Box = Color3.fromRGB(20, 20, 24),
         Text = Color3.fromRGB(255, 255, 255),
@@ -269,7 +269,7 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 -- ======================================================================================
---                        פרופיל משתמש - עיצוב זהב עברית (Welcome)
+--                        פרופיל משתמש - עיצוב זהב עברית (ברוך הבא)
 -- ======================================================================================
 local UserProfile = Instance.new("Frame", Sidebar)
 UserProfile.Name = "UserProfileContainer"
@@ -283,8 +283,8 @@ Library:Corner(UserProfile, 12)
 
 -- מסגרת זהב עבה מסביב להכל
 local ProfileStroke = Instance.new("UIStroke", UserProfile)
-ProfileStroke.Color = Settings.Theme.Gold -- צבע זהב
-ProfileStroke.Thickness = 2.5 -- מסגרת עבה
+ProfileStroke.Color = Settings.Theme.Gold
+ProfileStroke.Thickness = 2.5
 ProfileStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 -- תמונת פרופיל מוגדלת
@@ -297,7 +297,7 @@ AvatarFrame.BorderSizePixel = 0
 AvatarFrame.ZIndex = 11
 local AvatarCorner = Instance.new("UICorner", AvatarFrame); AvatarCorner.CornerRadius = UDim.new(1, 0)
 
--- הוספת זוהר סביב התמונה
+-- זוהר סביב התמונה
 local AvatarGlow = Instance.new("UIStroke", AvatarFrame)
 AvatarGlow.Color = Settings.Theme.Gold
 AvatarGlow.Thickness = 2
@@ -556,14 +556,14 @@ local function ToggleFly(v)
     end
 end
 
---// 8. רכיבים וטאבים אחרים (עיצוב פרימיום חדש ל-MAIN)
+--// 8. רכיבים וטאבים אחרים (עיצוב פרימיום ל-MAIN)
 local function CreateSlider(parent, title, heb, min, max, default, callback, toggleCallback, toggleName)
     local f = Instance.new("Frame", parent)
     f.Size = UDim2.new(0.95,0,0,65)
-    f.BackgroundColor3 = Color3.fromRGB(10, 10, 15) -- רקע כהה יותר בתוך המיין
+    f.BackgroundColor3 = Color3.fromRGB(10, 10, 15) -- רקע כהה יותר
     Library:Corner(f, 8)
     
-    -- מסגרת זהב עבה לפרימיום
+    -- מסגרת זהב עבה
     local stroke = Instance.new("UIStroke", f)
     stroke.Color = Settings.Theme.Gold
     stroke.Thickness = 2
@@ -657,7 +657,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
     f.AutoButtonColor=false
     Library:Corner(f, 8)
     
-    -- מסגרת זהב עבה לכפתורים ב-MAIN
+    -- מסגרת זהב עבה
     local s = Instance.new("UIStroke", f)
     s.Color = Settings.Theme.Gold
     s.Thickness = 2
@@ -739,11 +739,135 @@ RejoinBtn.MouseButton1Click:Connect(function()
     TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
 end)
 
--- CREDITS
+-- CREDITS (FULL RESTORE)
 local CreditBG = Instance.new("Frame", Tab_Credits_Page)
 CreditBG.Size = UDim2.new(1,0,1,0)
 CreditBG.BackgroundColor3 = Color3.fromRGB(10,10,12)
 CreditBG.ZIndex=0
 Library:Corner(CreditBG, 0)
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (HEBREW PREMIUM) Loaded")
+local CreditSnow = Instance.new("Frame", Tab_Credits_Page)
+CreditSnow.Size = UDim2.new(1,0,1,0); CreditSnow.BackgroundTransparency=1; CreditSnow.ClipsDescendants=true; CreditSnow.ZIndex=1
+task.spawn(function() while Tab_Credits_Page.Parent do if Tab_Credits_Page.Visible then SpawnSnow(CreditSnow) end; task.wait(0.5) end end)
+
+local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
+    local c = Instance.new("Frame", parent)
+    c.Size = size or UDim2.new(0.44, 0, 0, 110)
+    c.Position = pos or UDim2.new(0,0,0,0)
+    c.BackgroundColor3 = Settings.Theme.Box
+    c.ZIndex = 2
+    Library:Corner(c, 12)
+    Library:AddGlow(c, Settings.Theme.Gold)
+    
+    local imgCont = Instance.new("Frame", c)
+    imgCont.Size = UDim2.new(0, 60, 0, 60)
+    imgCont.Position = UDim2.new(0.5, -30, 0.1, 0)
+    imgCont.BackgroundColor3 = Color3.fromRGB(30,30,35)
+    imgCont.ZIndex = 3
+    Library:Corner(imgCont, 30)
+    
+    local img = Instance.new("ImageLabel", imgCont)
+    img.Size = UDim2.new(1, 0, 1, 0)
+    img.BackgroundTransparency = 1
+    img.Image = "rbxassetid://" .. decal 
+    img.ZIndex = 4
+    Library:Corner(img, 30)
+    
+    local tName = Instance.new("TextLabel", c)
+    tName.Size = UDim2.new(1,0,0,20)
+    tName.Position = UDim2.new(0,0,0.60,0)
+    tName.BackgroundTransparency = 1
+    tName.Text = name; tName.Font=Enum.Font.GothamBlack; tName.TextSize=15; tName.TextColor3 = Settings.Theme.Gold; tName.ZIndex=3
+    
+    local tRole = Instance.new("TextLabel", c)
+    tRole.Size = UDim2.new(1,0,0,15)
+    tRole.Position = UDim2.new(0,0,0.72,0)
+    tRole.BackgroundTransparency = 1
+    tRole.Text = role; tRole.TextColor3 = Settings.Theme.IceBlue; tRole.Font=Enum.Font.GothamBold; tRole.TextSize=11; tRole.ZIndex=3
+    
+    local btn = Instance.new("TextButton", c)
+    btn.Size = UDim2.new(0, 100, 0, 22)
+    btn.Position = UDim2.new(0.5, -50, 0.88, 0)
+    btn.BackgroundColor3 = Settings.Theme.Discord
+    btn.Text="Copy Discord 👾"
+    btn.TextColor3=Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold; btn.TextSize = 10
+    btn.ZIndex=3
+    Library:Corner(btn, 11)
+    btn.MouseButton1Click:Connect(function() 
+        setclipboard(discord)
+        local old = btn.Text; btn.Text="Copied!"; btn.BackgroundColor3=Color3.fromRGB(60,200,100)
+        task.wait(1)
+        btn.Text=old; btn.BackgroundColor3=Settings.Theme.Discord 
+    end)
+end
+
+CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982", UDim2.new(0.04, 0, 0.05, 0)) 
+CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.52, 0, 0.05, 0)) 
+CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.28, 0, 0.45, 0)) 
+
+local SceneContainer = Instance.new("Frame", Tab_Credits_Page); SceneContainer.Size = UDim2.new(1, 0, 0.35, 0); SceneContainer.Position = UDim2.new(0, 0, 0.65, 0); SceneContainer.BackgroundTransparency = 1; SceneContainer.ZIndex=3
+local Hill1 = Instance.new("Frame", SceneContainer); Hill1.Size = UDim2.new(0.6, 0, 1, 0); Hill1.Position = UDim2.new(-0.1, 0, 0.4, 0); Hill1.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Hill1.BorderSizePixel=0; Library:Corner(Hill1, 100)
+local Hill2 = Instance.new("Frame", SceneContainer); Hill2.Size = UDim2.new(0.7, 0, 1.2, 0); Hill2.Position = UDim2.new(0.4, 0, 0.5, 0); Hill2.BackgroundColor3 = Color3.fromRGB(230, 240, 250); Hill2.BorderSizePixel=0; Library:Corner(Hill2, 100)
+local Snowman = Instance.new("TextLabel", SceneContainer); Snowman.Text = "⛄"; Snowman.Size = UDim2.new(0, 70, 0, 70); Snowman.Position = UDim2.new(0.1, 0, 0.45, 0); Snowman.BackgroundTransparency = 1; Snowman.TextSize = 60; Snowman.Rotation = -8; Snowman.ZIndex=4
+local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 90, 0, 90); Tree1.Position = UDim2.new(0.82, 0, 0.35, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 80; Tree1.ZIndex=4
+local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 70, 0, 70); Tree2.Position = UDim2.new(0.72, 0, 0.5, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 60; Tree2.ZIndex=4
+
+--// 9. ניהול מקשים ולולאות
+UIS.InputBegan:Connect(function(i,g)
+    if not g then
+        if i.KeyCode == Settings.Keys.Menu then if MainFrame.Visible then Library:Tween(MainFrame, {Size = UDim2.new(0,0,0,0)}, 0.4, Enum.EasingStyle.Back); task.wait(0.3); MainFrame.Visible = false else MainFrame.Visible = true; MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT); Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.5, Enum.EasingStyle.Back) end end
+        if i.KeyCode == Settings.Keys.Fly then Settings.Fly.Enabled = not Settings.Fly.Enabled; ToggleFly(Settings.Fly.Enabled); if VisualToggles["Fly"] then VisualToggles["Fly"](Settings.Fly.Enabled) end end
+        
+        if i.KeyCode == Settings.Keys.Speed then 
+            Settings.Speed.Enabled = not Settings.Speed.Enabled
+            if not Settings.Speed.Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.WalkSpeed = 16
+            end
+            if VisualToggles["Speed"] then VisualToggles["Speed"](Settings.Speed.Enabled) end 
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if Settings.Speed.Enabled and LocalPlayer.Character then 
+        local h = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if h then 
+            if h.WalkSpeed ~= Settings.Speed.Value then
+                h.WalkSpeed = Settings.Speed.Value
+            end
+        end 
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    task.wait(0.5)
+    if Settings.Speed.Enabled then
+        local h = newChar:WaitForChild("Humanoid", 5)
+        if h then h.WalkSpeed = Settings.Speed.Value end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if MiniPasta and MiniPasta.Visible then
+            local scale = 1 + math.sin(tick() * 3) * 0.1
+            MiniPasta.Rotation = math.sin(tick() * 2) * 5
+        end
+        task.wait(0.1)
+    end
+end)
+
+for _, btn in pairs(SideBtnContainer:GetChildren()) do
+    if btn:IsA("TextButton") then
+        btn.MouseEnter:Connect(function() Library:Tween(btn, {Size = UDim2.new(0.95, 0, 0, 40)}, 0.3, Enum.EasingStyle.Quart) end)
+        btn.MouseLeave:Connect(function() Library:Tween(btn, {Size = UDim2.new(0.9, 0, 0, 40)}, 0.3, Enum.EasingStyle.Quart) end)
+    end
+end
+
+if RejoinBtn then
+    RejoinBtn.MouseEnter:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(230, 80, 80)}, 0.2) end)
+    RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
+end
+
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FULL PREMIUM) Loaded")
