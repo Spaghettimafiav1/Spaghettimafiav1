@@ -1,11 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE FIX V5 - SNOWMAN & CLIPPING PERFECTED)
+    Spaghetti Mafia Hub v1 (FINAL FIXED EDITION - NO LEAKING)
     
     Fixes:
-    - RE-POSITIONED: Trees and Snowman moved slightly inward to avoid corner leaking.
-    - NEW ARMS: Snowman arms are now actual Frames (sticks), not text. They connect perfectly.
-    - ANIMATION: Arms wave naturally from the shoulder.
-    - LOGIC: 100% PRESERVED (Farm, Fly, Speed, Anti-Sit).
+    - MOVED SNOWMAN: Positioned higher and inward so he fits INSIDE the frame perfectly.
+    - FIXED ARMS: Arms are now attached directly to the body sides.
+    - MOVED TREES: Shifted left to avoid the bottom-right corner.
+    - PRESERVED: All logic and previous designs.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -206,7 +206,7 @@ local NEW_HEIGHT = 370
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
-MainFrame.ClipsDescendants = true; 
+MainFrame.ClipsDescendants = true; -- חובה לחיתוך
 Library:Corner(MainFrame, 16); 
 
 -- === עיצוב פרימיום חדש למסגרת הראשית (Animated Gold Border) ===
@@ -1089,10 +1089,10 @@ SceneContainer.ZIndex = 3
 local Hill1 = Instance.new("Frame", SceneContainer); Hill1.Size = UDim2.new(0.6, 0, 1, 0); Hill1.Position = UDim2.new(-0.1, 0, 0.4, 0); Hill1.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Hill1.BorderSizePixel=0; Library:Corner(Hill1, 100)
 local Hill2 = Instance.new("Frame", SceneContainer); Hill2.Size = UDim2.new(0.7, 0, 1.2, 0); Hill2.Position = UDim2.new(0.4, 0, 0.5, 0); Hill2.BackgroundColor3 = Color3.fromRGB(230, 240, 250); Hill2.BorderSizePixel=0; Library:Corner(Hill2, 100)
 
--- Snowman Container (For accurate rotation and position fix)
+-- Snowman Container (Moved UP and RIGHT to avoid clipping issues)
 local SnowmanFrame = Instance.new("Frame", SceneContainer)
 SnowmanFrame.Size = UDim2.new(0, 80, 0, 80)
-SnowmanFrame.Position = UDim2.new(0.12, 0, 0.45, 0) -- Moved slightly UP and IN
+SnowmanFrame.Position = UDim2.new(0.15, 0, 0.35, 0) -- מיקום מתוקן: גבוה יותר ופנימה
 SnowmanFrame.BackgroundTransparency = 1
 SnowmanFrame.ZIndex = 4
 
@@ -1108,7 +1108,7 @@ local LeftArm = Instance.new("Frame", SnowmanBody)
 LeftArm.Size = UDim2.new(0, 25, 0, 3) -- Stick shape
 LeftArm.BackgroundColor3 = Color3.fromRGB(100, 60, 20) -- Brown
 LeftArm.BorderSizePixel = 0
-LeftArm.Position = UDim2.new(0, 0, 0.5, 0)
+LeftArm.Position = UDim2.new(0, 0, 0.4, 0) -- Attached to left side
 LeftArm.AnchorPoint = Vector2.new(1, 0.5) -- Pivot from shoulder
 LeftArm.Rotation = -30
 LeftArm.ZIndex = 3
@@ -1117,7 +1117,7 @@ local RightArm = Instance.new("Frame", SnowmanBody)
 RightArm.Size = UDim2.new(0, 25, 0, 3) -- Stick shape
 RightArm.BackgroundColor3 = Color3.fromRGB(100, 60, 20) -- Brown
 RightArm.BorderSizePixel = 0
-RightArm.Position = UDim2.new(1, 0, 0.5, 0)
+RightArm.Position = UDim2.new(1, 0, 0.4, 0) -- Attached to right side
 RightArm.AnchorPoint = Vector2.new(0, 0.5) -- Pivot from shoulder
 RightArm.Rotation = 30
 RightArm.ZIndex = 3
@@ -1138,7 +1138,7 @@ task.spawn(function()
     end
 end)
 
-local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 90, 0, 90); Tree1.Position = UDim2.new(0.80, 0, 0.35, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 80; Tree1.ZIndex=4
+local Tree1 = Instance.new("TextLabel", SceneContainer); Tree1.Text = "🌲"; Tree1.Size = UDim2.new(0, 90, 0, 90); Tree1.Position = UDim2.new(0.78, 0, 0.35, 0); Tree1.BackgroundTransparency = 1; Tree1.TextSize = 80; Tree1.ZIndex=4
 local Tree2 = Instance.new("TextLabel", SceneContainer); Tree2.Text = "🌲"; Tree2.Size = UDim2.new(0, 70, 0, 70); Tree2.Position = UDim2.new(0.68, 0, 0.5, 0); Tree2.BackgroundTransparency = 1; Tree2.TextSize = 60; Tree2.ZIndex=4
 
 --// 9. ניהול מקשים ולולאות
@@ -1201,4 +1201,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE FIX V5 - SNOWMAN & CLIPPING PERFECTED) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL FIXED EDITION - NO LEAKING) Loaded")
