@@ -1,12 +1,9 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE EDITION + STORM TIMER)
+    Spaghetti Mafia Hub v1 (ULTIMATE EDITION + PRO TIMER)
     Updates:
-    - INTEGRATED STORM TIMER (Top Right).
-    - FIXED HEBREW TEXT.
-    - ULTRA ROBUST WALKSPEED.
-    - SMART ANTI-SIT.
-    - VERIFIED ANTI-AFK.
-    - BALANCED CREDITS.
+    - REDESIGNED STORM TIMER (Luxury Style).
+    - HEBREW STATUS TEXT (Next Storm / Active).
+    - FIXED ALL PREVIOUS FEATURES.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -29,7 +26,7 @@ local VirtualUser = game:GetService("VirtualUser")
 local CoreGui = game:GetService("CoreGui")
 local Debris = game:GetService("Debris")
 local TeleportService = game:GetService("TeleportService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage") -- הוספתי את זה בשביל הטיימר
+local ReplicatedStorage = game:GetService("ReplicatedStorage") 
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
@@ -233,64 +230,100 @@ CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPas
 MiniPasta.MouseButton1Click:Connect(function() MiniPasta.Visible = false; MainFrame.Visible = true; Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.4, Enum.EasingStyle.Back) end)
 
 -- ======================================================================================
---                        הוספת הטיימר (STORM TIMER INTEGRATION)
+--                        הטיימר החדש והמשודרג (LUXURY DESIGN)
 -- ======================================================================================
 task.spawn(function()
-    local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5) -- מחפש את הטיימר
+    local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5)
     
     if StormValue then
-        -- יצירת הקופסה של הטיימר ליד כפתור המיזעור
+        -- קופסה ראשית מעוצבת
         local TimerWidget = Instance.new("Frame", TopBar)
-        TimerWidget.Name = "StormTimerWidget"
-        TimerWidget.Size = UDim2.new(0, 110, 0, 28)
-        TimerWidget.Position = UDim2.new(1, -85, 0, 16) -- ממוקם משמאל לכפתור ה-X
+        TimerWidget.Name = "StormTimerWidgetPro"
+        TimerWidget.Size = UDim2.new(0, 130, 0, 42) -- קצת יותר גדול
+        TimerWidget.Position = UDim2.new(1, -90, 0, 8) -- ליד כפתור ה-X
         TimerWidget.AnchorPoint = Vector2.new(1, 0)
-        TimerWidget.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-        Library:Corner(TimerWidget, 8)
+        TimerWidget.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+        TimerWidget.BorderSizePixel = 0
+        Library:Corner(TimerWidget, 10)
         
-        -- מסגרת דקה (Stroke)
+        -- הוספת גרדיאנט (מעבר צבע) לרקע
+        local TimerGradient = Instance.new("UIGradient", TimerWidget)
+        TimerGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 20))
+        }
+        TimerGradient.Rotation = 90
+
+        -- מסגרת זוהרת (Stroke)
         local TimerStroke = Instance.new("UIStroke", TimerWidget)
-        TimerStroke.Color = Color3.fromRGB(60, 60, 80)
-        TimerStroke.Thickness = 1.2
+        TimerStroke.Color = Settings.Theme.IceBlue
+        TimerStroke.Thickness = 1.5
+        TimerStroke.Transparency = 0.5
         TimerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-        -- אייקון
-        local T_Icon = Instance.new("TextLabel", TimerWidget)
-        T_Icon.Text = "⚡"
-        T_Icon.Size = UDim2.new(0, 25, 1, 0)
-        T_Icon.BackgroundTransparency = 1
-        T_Icon.TextColor3 = Settings.Theme.Gold
-        T_Icon.TextSize = 14
-        
-        -- טקסט הזמן
-        local T_Time = Instance.new("TextLabel", TimerWidget)
-        T_Time.Size = UDim2.new(1, -25, 1, 0)
-        T_Time.Position = UDim2.new(0, 25, 0, 0)
-        T_Time.BackgroundTransparency = 1
-        T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
-        T_Time.Font = Enum.Font.GothamBold
-        T_Time.TextSize = 14
-        T_Time.TextXAlignment = Enum.TextXAlignment.Left
-        T_Time.Text = "--:--"
+        -- כותרת עליונה (סטטוס)
+        local T_Header = Instance.new("TextLabel", TimerWidget)
+        T_Header.Size = UDim2.new(1, 0, 0.4, 0)
+        T_Header.Position = UDim2.new(0, 0, 0.05, 0)
+        T_Header.BackgroundTransparency = 1
+        T_Header.Text = "סופה הבאה:"
+        T_Header.TextColor3 = Color3.fromRGB(180, 200, 220)
+        T_Header.Font = Enum.Font.GothamBold
+        T_Header.TextSize = 10
+        T_Header.ZIndex = 2
 
-        -- לוגיקת עדכון
+        -- זמן (גדול)
+        local T_Time = Instance.new("TextLabel", TimerWidget)
+        T_Time.Size = UDim2.new(1, 0, 0.55, 0)
+        T_Time.Position = UDim2.new(0, 0, 0.4, 0)
+        T_Time.BackgroundTransparency = 1
+        T_Time.Text = "00:00"
+        T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
+        T_Time.Font = Enum.Font.GothamBlack
+        T_Time.TextSize = 19
+        T_Time.ZIndex = 2
+
+        -- פונקציה לעדכון (חכמה)
         local function UpdateStormTimer(val)
             local mins = math.floor(val / 60)
             local secs = val % 60
-            T_Time.Text = string.format("%02d:%02d", mins, secs)
-
+            
+            -- אנימציית דופק אם הסופה פעילה
             if val <= 0 then
-                T_Time.Text = "STORM!"
+                -- מצב סופה פעילה
+                T_Header.Text = "⚠️ סטטוס ⚠️"
+                T_Header.TextColor3 = Color3.fromRGB(255, 100, 100)
+                
+                T_Time.Text = "סופה פעילה!"
+                T_Time.TextSize = 14 -- הקטנה כדי שייכנס הכל
                 T_Time.TextColor3 = Settings.Theme.CrystalRed
-                TimerStroke.Color = Settings.Theme.CrystalRed
-                T_Icon.Text = "⚠️"
+                
+                -- שינוי צבע המסגרת לאדום בוהק
+                TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Color3.fromRGB(255, 0, 0), Transparency = 0}):Play()
+                TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(40, 10, 10)}):Play()
+                
             elseif val <= 30 then
-                T_Time.TextColor3 = Color3.fromRGB(255, 170, 0)
-                TimerStroke.Color = Color3.fromRGB(255, 170, 0)
+                -- מצב מתקרב (כתום)
+                T_Header.Text = "מתקרב..."
+                T_Header.TextColor3 = Color3.fromRGB(255, 200, 100)
+                
+                T_Time.Text = string.format("%02d:%02d", mins, secs)
+                T_Time.TextSize = 19
+                T_Time.TextColor3 = Settings.Theme.Gold
+                
+                TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.Gold, Transparency = 0.2}):Play()
+                
             else
+                -- מצב רגיל (כחול/לבן)
+                T_Header.Text = "סופה הבאה:"
+                T_Header.TextColor3 = Color3.fromRGB(150, 180, 200)
+                
+                T_Time.Text = string.format("%02d:%02d", mins, secs)
+                T_Time.TextSize = 19
                 T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
-                TimerStroke.Color = Color3.fromRGB(60, 60, 80)
-                T_Icon.Text = "⚡"
+                
+                TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.IceBlue, Transparency = 0.6}):Play()
+                TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
             end
         end
 
