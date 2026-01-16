@@ -1,11 +1,14 @@
 --[[
-    Spaghetti Mafia Hub v3.5 (FINAL - SEPARATED BOXES & SCROLL FIX)
+    Spaghetti Mafia Hub v4.0 (FINAL - TARGET TAB & BIG SCANNER)
     
     Changes:
-    - UI RESTRUCTURE: Main Tab is now fully scrollable.
-    - LAYOUT: Split Player Tools into 3 separate Gold Boxes (Target, Actions, Scanner).
-    - VISUALS: Bigger Avatar, Bigger Input, Cleaner Layout.
-    - LOGIC: 100% PRESERVED.
+    - NEW TAB: "Target" (Contains Scanner, Spectate, Bang).
+    - MAIN TAB: Cleaned up (Contains only Speed, Fly, etc).
+    - SCANNER REDESIGN: 
+      * Items now appear as large cards.
+      * Big Images (50px).
+      * Clear Text & Counts.
+    - LAYOUT: Optimized sizes for best visibility.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -481,15 +484,16 @@ local function CreateTab(name, heb, order, isWinter)
 end
 
 local Tab_Event_Page = CreateTab("Winter Event", "אירוע חורף", 1, true) 
-local Tab_Main_Page = CreateTab("Main", "ראשי", 2, false)
-local Tab_Settings_Page = CreateTab("Settings", "הגדרות", 3, false)
-local Tab_Credits_Page = CreateTab("Credits", "קרדיטים", 4, false)
+local Tab_Target_Page = CreateTab("Target", "מטרה", 2, false) -- NEW TAB!
+local Tab_Main_Page = CreateTab("Main", "ראשי", 3, false)
+local Tab_Settings_Page = CreateTab("Settings", "הגדרות", 4, false)
+local Tab_Credits_Page = CreateTab("Credits", "קרדיטים", 5, false)
 
 local function AddLayout(p) 
     local l = Instance.new("UIListLayout", p); l.Padding = UDim.new(0,10); l.HorizontalAlignment = Enum.HorizontalAlignment.Center
     local pad = Instance.new("UIPadding", p); pad.PaddingTop = UDim.new(0,5) 
 end
-AddLayout(Tab_Main_Page); AddLayout(Tab_Settings_Page)
+AddLayout(Tab_Main_Page); AddLayout(Tab_Settings_Page); AddLayout(Tab_Target_Page)
 
 --// 6. מערכות לוגיקה (FARM LOGIC & ANTI-SIT - IMPORTED FROM PERFECTED EDITION)
 -- Anti-AFK Check (Verified Version)
@@ -972,7 +976,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
 end
 
 -- ======================================================================================
---                 NEW: PLAYER TOOLS UI (SPLIT BOXES + SCROLL FIX)
+--                 NEW: PLAYER TOOLS UI (NOW IN SEPARATE "TARGET" TAB)
 -- ======================================================================================
 local IgnoreList = {
     ["קולה"] = true, ["קולה מכשפות"] = true, ["קולה תות"] = true, ["קפה סטארבלוקס"] = true,
@@ -983,18 +987,18 @@ local IgnoreList = {
     ["פיצה"] = true, ["Cola"] = true, ["Pizza"] = true, ["Burger"] = true
 }
 
--- !!! MAIN SCROLLING CONTAINER FOR THE MAIN TAB !!!
-local MainScroll = Instance.new("ScrollingFrame", Tab_Main_Page)
-MainScroll.Size = UDim2.new(1, 0, 1, 0)
-MainScroll.BackgroundTransparency = 1
-MainScroll.ScrollBarThickness = 2
-MainScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-MainScroll.CanvasSize = UDim2.new(0,0,0,0)
-local MainList = Instance.new("UIListLayout", MainScroll); MainList.SortOrder = Enum.SortOrder.LayoutOrder; MainList.Padding = UDim.new(0, 10); MainList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-local MainPad = Instance.new("UIPadding", MainScroll); MainPad.PaddingTop = UDim.new(0,5)
+-- TARGET TAB SCROLLING CONTAINER
+local TargetScroll = Instance.new("ScrollingFrame", Tab_Target_Page)
+TargetScroll.Size = UDim2.new(1, 0, 1, 0)
+TargetScroll.BackgroundTransparency = 1
+TargetScroll.ScrollBarThickness = 2
+TargetScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+TargetScroll.CanvasSize = UDim2.new(0,0,0,0)
+local TargetList = Instance.new("UIListLayout", TargetScroll); TargetList.SortOrder = Enum.SortOrder.LayoutOrder; TargetList.Padding = UDim.new(0, 10); TargetList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+local TargetPad = Instance.new("UIPadding", TargetScroll); TargetPad.PaddingTop = UDim.new(0,5)
 
 -- BOX 1: HEADER (TARGET & AVATAR)
-local TargetBox = Instance.new("Frame", MainScroll)
+local TargetBox = Instance.new("Frame", TargetScroll)
 TargetBox.Size = UDim2.new(0.95, 0, 0, 80) -- Bigger box
 TargetBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(TargetBox, 12)
@@ -1039,7 +1043,7 @@ TargetInput.FocusLost:Connect(function()
 end)
 
 -- BOX 2: ACTIONS (TOGGLES)
-local ActionBox = Instance.new("Frame", MainScroll)
+local ActionBox = Instance.new("Frame", TargetScroll)
 ActionBox.Size = UDim2.new(0.95, 0, 0, 60)
 ActionBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(ActionBox, 12)
@@ -1073,8 +1077,8 @@ local function CreateToggleBtn(text, pos, callback)
     return b
 end
 
--- BOX 3: SCANNER
-local ScannerBox = Instance.new("Frame", MainScroll)
+-- BOX 3: SCANNER (REDESIGNED FOR BIGGER IMAGES)
+local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250) -- Taller for results
 ScannerBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Library:Corner(ScannerBox, 12)
@@ -1097,7 +1101,7 @@ ScanResults.BackgroundTransparency = 1
 ScanResults.ScrollBarThickness = 2
 ScanResults.AutomaticCanvasSize = Enum.AutomaticSize.Y
 ScanResults.CanvasSize = UDim2.new(0,0,0,0)
-local ScanList = Instance.new("UIListLayout", ScanResults); ScanList.SortOrder = Enum.SortOrder.LayoutOrder
+local ScanList = Instance.new("UIListLayout", ScanResults); ScanList.SortOrder = Enum.SortOrder.LayoutOrder; ScanList.Padding = UDim.new(0, 5)
 
 -- LOGIC VARIABLES
 local ViewConnection = nil
@@ -1119,7 +1123,8 @@ ScanButton.MouseButton1Click:Connect(function()
     local function ScanFolder(f)
         if not f then return end
         for _, item in pairs(f:GetChildren()) do
-            if not IgnoreList[item.Name] and not item:IsA("Folder") then
+            -- Filter out common items AND ensure it's not a folder/script
+            if not IgnoreList[item.Name] and not item:IsA("Folder") and not item:IsA("Script") and not item:IsA("LocalScript") and item.Name ~= "TextLabel" then
                  itemsCount[item.Name] = (itemsCount[item.Name] or 0) + 1
                  if item:IsA("Tool") and item.TextureId ~= "" then
                      itemsIcon[item.Name] = item.TextureId
@@ -1144,24 +1149,27 @@ ScanButton.MouseButton1Click:Connect(function()
     for name, count in pairs(itemsCount) do
         found = true
         local row = Instance.new("Frame", ScanResults)
-        row.Size = UDim2.new(1, 0, 0, 30) -- Taller row
-        row.BackgroundTransparency = 1
+        row.Size = UDim2.new(1, 0, 0, 60) -- MUCH TALLER ROW
+        row.BackgroundColor3 = Color3.fromRGB(35, 35, 40) -- Darker background for card
+        Library:Corner(row, 8)
         
+        -- Image on the RIGHT (For Hebrew feel)
         local icon = Instance.new("ImageLabel", row)
-        icon.Size = UDim2.new(0, 25, 0, 25)
-        icon.Position = UDim2.new(0, 0, 0, 2)
+        icon.Size = UDim2.new(0, 50, 0, 50) -- BIG ICON
+        icon.Position = UDim2.new(0.82, 0, 0.08, 0) -- Right Side
         icon.BackgroundTransparency = 1
         if itemsIcon[name] then icon.Image = itemsIcon[name] else icon.Image = "rbxassetid://6503956166" end 
         
+        -- Text aligned to Right, next to image
         local txt = Instance.new("TextLabel", row)
-        txt.Size = UDim2.new(1, -30, 1, 0)
-        txt.Position = UDim2.new(0, 30, 0, 0)
+        txt.Size = UDim2.new(0.75, 0, 1, 0)
+        txt.Position = UDim2.new(0.05, 0, 0, 0)
         txt.BackgroundTransparency = 1
         txt.Text = name .. "  x" .. count
         txt.TextColor3 = Settings.Theme.Gold
         txt.Font = Enum.Font.GothamBold
-        txt.TextSize = 14 -- Bigger text
-        txt.TextXAlignment = Enum.TextXAlignment.Left
+        txt.TextSize = 16 -- Bigger text
+        txt.TextXAlignment = Enum.TextXAlignment.Right -- Align Right
     end
     
     if not found then
@@ -1214,7 +1222,7 @@ end)
 
 -- ======================================================================================
 
-CreateSlider(MainScroll, "Walk Speed", "מהירות הליכה", 1, 250, 16, function(v) 
+CreateSlider(Tab_Main_Page, "Walk Speed", "מהירות הליכה", 1, 250, 16, function(v) 
     Settings.Speed.Value = v 
     if Settings.Speed.Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = v
@@ -1226,8 +1234,8 @@ end, function(t)
     end
 end, "Speed")
 
-CreateSlider(MainScroll, "Fly Speed", "מהירות תעופה", 20, 300, 50, function(v) Settings.Fly.Speed = v end, function(t) ToggleFly(t) end, "Fly")
-local BindCont = Instance.new("Frame", MainScroll); BindCont.Size = UDim2.new(0.95,0,0,70); BindCont.BackgroundTransparency = 1; CreateSquareBind(BindCont, 1, "FLY", "תעופה", Settings.Keys.Fly, function(k) Settings.Keys.Fly = k end); CreateSquareBind(BindCont, 2, "SPEED", "מהירות", Settings.Keys.Speed, function(k) Settings.Keys.Speed = k end)
+CreateSlider(Tab_Main_Page, "Fly Speed", "מהירות תעופה", 20, 300, 50, function(v) Settings.Fly.Speed = v end, function(t) ToggleFly(t) end, "Fly")
+local BindCont = Instance.new("Frame", Tab_Main_Page); BindCont.Size = UDim2.new(0.95,0,0,70); BindCont.BackgroundTransparency = 1; CreateSquareBind(BindCont, 1, "FLY", "תעופה", Settings.Keys.Fly, function(k) Settings.Keys.Fly = k end); CreateSquareBind(BindCont, 2, "SPEED", "מהירות", Settings.Keys.Speed, function(k) Settings.Keys.Speed = k end)
 
 CreateSlider(Tab_Settings_Page, "FOV", "שדה ראייה", 70, 120, 70, function(v) Camera.FieldOfView = v end)
 
@@ -1420,4 +1428,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v3.5 (FINAL - SEPARATED BOXES & SCROLL FIX) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v4.0 (FINAL - TARGET TAB & BIG SCANNER) Loaded")
