@@ -1,13 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE REDESIGN - HEBREW & ANIMATIONS)
+    Spaghetti Mafia Hub v1 (ULTIMATE FIX - CLIPPING & BORDERS)
     
-    Changes:
-    - NEW: Animated Golden Border on Main Frame.
-    - NEW: "Welcome" changed to "ברוך הבא".
-    - FIX: Credits Scene Clipping (Snowman buried, Tree cut properly).
-    - NEW: Snowman has ARMS and ANIMATION (Waving + Swaying).
-    - DESIGN: Internal buttons/sliders are rounder and cleaner.
-    - LOGIC: 100% PRESERVED (Farm, Fly, Speed, Anti-Sit).
+    Fixes:
+    - MainFrame.ClipsDescendants = true (Prevents Tree/Snowman leaking).
+    - Added GOLD BORDERS to all internal Sliders and Buttons.
+    - Added GOLD BORDER to Welcome Profile.
+    - Fixed Snowman Arms Pivot (Rotates from shoulder).
+    - Logic remains 100% untouched.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -66,8 +65,8 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0),
-        Dark = Color3.fromRGB(15, 15, 20), -- טיפה יותר בהיר כדי שיראה מודרני
-        Box = Color3.fromRGB(25, 25, 30),
+        Dark = Color3.fromRGB(18, 18, 24), -- טיפה בהיר יותר מהשחור המוחלט
+        Box = Color3.fromRGB(30, 30, 35), -- צבע לקופסאות פנימיות
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
@@ -96,7 +95,7 @@ function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenIn
 function Library:AddGlow(obj, color) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 2 -- עשיתי דק יותר שיראה נקי
+    s.Thickness = 2 
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
@@ -104,7 +103,7 @@ function Library:AddGlow(obj, color)
         while obj.Parent do
             TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.8}):Play()
             task.wait(2)
-            TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.3}):Play()
+            TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.4}):Play()
             task.wait(2)
         end
     end)
@@ -208,19 +207,19 @@ local NEW_HEIGHT = 370
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
-MainFrame.ClipsDescendants = true; 
+MainFrame.ClipsDescendants = true;  -- ***** תיקון חיתוך: זה חובה כדי שהעץ לא יצא החוצה *****
 Library:Corner(MainFrame, 16); 
 
 -- === עיצוב פרימיום חדש למסגרת הראשית (Animated Gold Border) ===
 local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Thickness = 3 -- מסגרת עבה יותר
+MainStroke.Thickness = 3.5 
 MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Color = Color3.fromRGB(255, 255, 255)
 
 local StrokeGradient = Instance.new("UIGradient", MainStroke)
 StrokeGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Settings.Theme.Gold),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 250, 200)), -- צבע זהב בהיר באמצע
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 250, 150)), 
     ColorSequenceKeypoint.new(1, Settings.Theme.Gold)
 }
 StrokeGradient.Rotation = 45
@@ -228,7 +227,7 @@ StrokeGradient.Rotation = 45
 -- אנימציה למסגרת שתזוז
 task.spawn(function()
     while MainFrame.Parent do
-        local t = tick() * 45 -- מהירות סיבוב
+        local t = tick() * 45 
         StrokeGradient.Rotation = t % 360
         task.wait(0.01)
     end
@@ -352,23 +351,24 @@ Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
 
 -- ======================================================================================
---                        פרופיל משתמש (עיצוב מתוקן)
+--                        פרופיל משתמש (עם מסגרת זהב)
 -- ======================================================================================
 local UserProfile = Instance.new("Frame", Sidebar)
 UserProfile.Name = "UserProfileContainer"
 UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
-UserProfile.BackgroundColor3 = Color3.fromRGB(30, 30, 35) 
+UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 40) -- קצת יותר בהיר
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
 Library:Corner(UserProfile, 10)
 
--- מסגרת עדינה לפרופיל
+-- מסגרת זהב לפרופיל
 local ProfileStroke = Instance.new("UIStroke", UserProfile)
-ProfileStroke.Color = Color3.fromRGB(60, 60, 70)
-ProfileStroke.Thickness = 1
+ProfileStroke.Color = Settings.Theme.Gold -- זהב!
+ProfileStroke.Thickness = 1.5
 ProfileStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+ProfileStroke.Transparency = 0.3
 
 -- תמונת פרופיל מוגדלת
 local AvatarFrame = Instance.new("Frame", UserProfile)
@@ -389,14 +389,14 @@ AvatarImg.Image = ""
 AvatarImg.ZIndex = 12
 local AvatarImgCorner = Instance.new("UICorner", AvatarImg); AvatarImgCorner.CornerRadius = UDim.new(1, 0)
 
--- טקסט ברוך הבא (תוקן ל"ברוך הבא")
+-- טקסט ברוך הבא
 local WelcomeText = Instance.new("TextLabel", UserProfile)
-WelcomeText.Text = "ברוך הבא," -- תוקן לעברית
+WelcomeText.Text = "ברוך הבא," 
 WelcomeText.Size = UDim2.new(0, 80, 0, 15)
 WelcomeText.Position = UDim2.new(0, 75, 0, 18)
 WelcomeText.BackgroundTransparency = 1
-WelcomeText.TextColor3 = Color3.fromRGB(200, 200, 200)
-WelcomeText.Font = Enum.Font.GothamBold -- פונט ברור יותר
+WelcomeText.TextColor3 = Color3.fromRGB(220, 220, 220)
+WelcomeText.Font = Enum.Font.GothamBold 
 WelcomeText.TextSize = 13
 WelcomeText.TextXAlignment = Enum.TextXAlignment.Left
 WelcomeText.ZIndex = 11
@@ -408,7 +408,7 @@ UsernameText.Size = UDim2.new(0, 90, 0, 20)
 UsernameText.Position = UDim2.new(0, 75, 0, 36)
 UsernameText.BackgroundTransparency = 1
 UsernameText.TextColor3 = Settings.Theme.Gold
-UsernameText.Font = Enum.Font.GothamBlack -- פונט מודגש
+UsernameText.Font = Enum.Font.GothamBlack 
 UsernameText.TextSize = 16 
 UsernameText.TextXAlignment = Enum.TextXAlignment.Left
 UsernameText.TextTruncate = Enum.TextTruncate.AtEnd
@@ -819,16 +819,18 @@ task.spawn(function()
     end
 end)
 
---// 8. רכיבים וטאבים אחרים (עיצוב מעוגל וחדש לכפתורים)
+--// 8. רכיבים וטאבים אחרים (עיצוב חדש - מסגרת זהב וכפתורים מודגשים)
 local function CreateSlider(parent, title, heb, min, max, default, callback, toggleCallback, toggleName)
     local f = Instance.new("Frame", parent)
     f.Size = UDim2.new(0.95,0,0,65)
-    f.BackgroundColor3 = Color3.fromRGB(30, 30, 35) -- כהה יותר
-    Library:Corner(f, 12) -- פינות עגולות
+    f.BackgroundColor3 = Color3.fromRGB(30, 30, 35) -- רקע בהיר יותר משחור
+    Library:Corner(f, 12)
     
+    -- ***** הוספת מסגרת זהב לכפתורים *****
     local stroke = Instance.new("UIStroke", f)
-    stroke.Color = Color3.fromRGB(50, 50, 60)
-    stroke.Thickness = 1
+    stroke.Color = Settings.Theme.Gold
+    stroke.Thickness = 1.2
+    stroke.Transparency = 0.6
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     local l = Instance.new("TextLabel", f)
@@ -842,7 +844,7 @@ local function CreateSlider(parent, title, heb, min, max, default, callback, tog
     l.BackgroundTransparency=1
     
     local line = Instance.new("Frame", f)
-    line.Size = UDim2.new(0.9,0,0,8) -- דק יותר
+    line.Size = UDim2.new(0.9,0,0,8)
     line.Position = UDim2.new(0.05,0,0.65,0)
     line.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     Library:Corner(line,10)
@@ -852,7 +854,6 @@ local function CreateSlider(parent, title, heb, min, max, default, callback, tog
     fill.BackgroundColor3 = Settings.Theme.Gold
     Library:Corner(fill,10)
     
-    -- גרדיאנט לסליידר
     local grad = Instance.new("UIGradient", fill)
     grad.Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Settings.Theme.Gold),
@@ -896,12 +897,18 @@ local function CreateSlider(parent, title, heb, min, max, default, callback, tog
         Library:Corner(t,12)
         t.TextSize=11
         
+        -- מסגרת לכפתור ה-Toggle
+        local ts = Instance.new("UIStroke", t)
+        ts.Color = Color3.fromRGB(60,60,60)
+        ts.Thickness = 1
+        
         local on = false
         local function Update(s) 
             on=s
             t.Text=on and "ON" or "OFF"
             t.BackgroundColor3=on and Settings.Theme.Gold or Color3.fromRGB(20, 20, 25)
             t.TextColor3=on and Color3.new(0,0,0) or Color3.fromRGB(150, 150, 150)
+            ts.Color = on and Settings.Theme.Gold or Color3.fromRGB(60,60,60)
             toggleCallback(on) 
         end
         
@@ -920,9 +927,11 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
     f.AutoButtonColor=false
     Library:Corner(f, 12)
     
+    -- ***** הוספת מסגרת זהב גם כאן *****
     local s = Instance.new("UIStroke", f)
-    s.Color = Color3.fromRGB(50,50,60)
-    s.Thickness = 1
+    s.Color = Settings.Theme.Gold
+    s.Thickness = 1.2
+    s.Transparency = 0.6
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     local t = Instance.new("TextLabel", f)
@@ -1070,60 +1079,69 @@ CreateCreditCard(Tab_Credits_Page, "Neho", "Founder", "nx3ho", "97462570733982",
 CreateCreditCard(Tab_Credits_Page, "BadShot", "CoFounder", "8adshot3", "133430813410950", UDim2.new(0.52, 0, 0.05, 0)) -- Gap is now ~0.08 (Balanced)
 CreateCreditCard(Tab_Credits_Page, "xyth", "Community Manager", "sc4rlxrd", "106705865211282", UDim2.new(0.28, 0, 0.45, 0)) -- Centered below
 
--- DECORATION (Snowman & Tree Fixed with Clipping)
+-- DECORATION (Snowman & Tree Fixed with Clipping & Logic)
 local SceneContainer = Instance.new("Frame", Tab_Credits_Page)
 SceneContainer.Size = UDim2.new(1, 0, 0.35, 0)
 SceneContainer.Position = UDim2.new(0, 0, 0.65, 0)
 SceneContainer.BackgroundTransparency = 1
-SceneContainer.ClipsDescendants = true -- THIS FIXES THE CLIPPING (Snowman buried, Tree cut)
+SceneContainer.ClipsDescendants = true 
 SceneContainer.ZIndex = 3
 
 local Hill1 = Instance.new("Frame", SceneContainer); Hill1.Size = UDim2.new(0.6, 0, 1, 0); Hill1.Position = UDim2.new(-0.1, 0, 0.4, 0); Hill1.BackgroundColor3 = Color3.fromRGB(240, 248, 255); Hill1.BorderSizePixel=0; Library:Corner(Hill1, 100)
 local Hill2 = Instance.new("Frame", SceneContainer); Hill2.Size = UDim2.new(0.7, 0, 1.2, 0); Hill2.Position = UDim2.new(0.4, 0, 0.5, 0); Hill2.BackgroundColor3 = Color3.fromRGB(230, 240, 250); Hill2.BorderSizePixel=0; Library:Corner(Hill2, 100)
 
--- Animated Snowman with Arms
-local Snowman = Instance.new("TextLabel", SceneContainer)
-Snowman.Text = "⛄"
-Snowman.Size = UDim2.new(0, 70, 0, 70)
-Snowman.Position = UDim2.new(0.1, 0, 0.55, 0) -- Lowered position to be buried
-Snowman.BackgroundTransparency = 1
-Snowman.TextSize = 60
-Snowman.ZIndex = 4
+-- Snowman Container (For accurate rotation)
+local SnowmanFrame = Instance.new("Frame", SceneContainer)
+SnowmanFrame.Size = UDim2.new(0, 80, 0, 80)
+SnowmanFrame.Position = UDim2.new(0.1, 0, 0.50, 0) -- מיקום מתוקן: בתוך המסגרת
+SnowmanFrame.BackgroundTransparency = 1
+SnowmanFrame.ZIndex = 4
 
--- Arms for the Snowman
-local LeftArm = Instance.new("TextLabel", Snowman)
+local SnowmanBody = Instance.new("TextLabel", SnowmanFrame)
+SnowmanBody.Text = "⛄"
+SnowmanBody.Size = UDim2.new(1, 0, 1, 0)
+SnowmanBody.BackgroundTransparency = 1
+SnowmanBody.TextSize = 60
+SnowmanBody.ZIndex = 4
+
+-- Arms connected to the body
+local LeftArm = Instance.new("TextLabel", SnowmanBody)
 LeftArm.Text = "/"
 LeftArm.BackgroundTransparency = 1
-LeftArm.TextColor3 = Color3.new(0.4, 0.2, 0.1) -- Brown
+LeftArm.TextColor3 = Color3.new(0.4, 0.2, 0.1)
 LeftArm.Font = Enum.Font.GothamBold
 LeftArm.TextSize = 30
-LeftArm.Position = UDim2.new(-0.4, 0, 0.3, 0)
+LeftArm.Size = UDim2.new(0, 30, 0, 30)
+LeftArm.Position = UDim2.new(-0.2, 0, 0.4, 0)
+LeftArm.AnchorPoint = Vector2.new(1, 1) -- Pivot from shoulder
 LeftArm.Rotation = -20
 LeftArm.ZIndex = 3
 
-local RightArm = Instance.new("TextLabel", Snowman)
+local RightArm = Instance.new("TextLabel", SnowmanBody)
 RightArm.Text = "\\"
 RightArm.BackgroundTransparency = 1
-RightArm.TextColor3 = Color3.new(0.4, 0.2, 0.1) -- Brown
+RightArm.TextColor3 = Color3.new(0.4, 0.2, 0.1)
 RightArm.Font = Enum.Font.GothamBold
 RightArm.TextSize = 30
-RightArm.Position = UDim2.new(1, 0, 0.3, 0)
+RightArm.Size = UDim2.new(0, 30, 0, 30)
+RightArm.Position = UDim2.new(1.2, 0, 0.4, 0)
+RightArm.AnchorPoint = Vector2.new(0, 1) -- Pivot from shoulder
 RightArm.Rotation = 20
 RightArm.ZIndex = 3
 
 -- Snowman Animation Loop
 task.spawn(function()
     local t = 0
-    while Snowman.Parent do
-        t = t + 0.1
+    while SnowmanFrame.Parent do
+        t = t + 0.15
         -- Swaying Body
-        Snowman.Rotation = math.sin(t) * 5
+        SnowmanBody.Rotation = math.sin(t) * 3
         
-        -- Waving Arms
-        LeftArm.Rotation = -20 + math.sin(t * 2) * 15
-        RightArm.Rotation = 20 - math.sin(t * 2) * 15
+        -- Waving Arms (Attached correctly now)
+        LeftArm.Rotation = -45 + math.sin(t * 2) * 20
+        RightArm.Rotation = 45 - math.sin(t * 2) * 20
         
-        task.wait(0.05)
+        task.wait(0.03)
     end
 end)
 
@@ -1190,4 +1208,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE REDESIGN - HEBREW & ANIMATIONS) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE FIX - CLIPPING & BORDERS) Loaded")
