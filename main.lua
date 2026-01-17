@@ -1,56 +1,76 @@
 --[[
-    Spaghetti Mafia Hub v1 (NUCLEAR FIX - FAILSAFE MODE)
+    Spaghetti Mafia Hub v1 (DARK EDITION & CLOSEST TARGET)
     
-    DIAGNOSTICS:
-    - If this script does not load, your executor does not support Luau correctly.
-    - Check Console (F9) for "SPAGHETTI LOADED" message.
+    Update Log:
+    - Theme: Full Dark Mode (Pure Black) with Gold Accents.
+    - Target: Added "Closest Player" button (Excludes LocalPlayer).
+    - Scanner: Text updated + Filters out 'TextLabel' objects.
+    - Logic: Anti-Sit strictly disabled during HeadSit/Backpack.
 ]]
 
-print("------------------------------------------------")
-print("[LOG] Script Started...")
+--// AUTO EXECUTE / SERVER HOP SUPPORT
+if (syn and syn.queue_on_teleport) or queue_on_teleport then
+    local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
+    game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
+        if State == Enum.TeleportState.Started then
+             local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/main.lua'))()" 
+             pcall(function() teleport_func(source) end)
+        end
+    end)
+end
 
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+local VirtualUser = game:GetService("VirtualUser")
+local CoreGui = game:GetService("CoreGui")
+local Debris = game:GetService("Debris")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage") 
+
+local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
---// 1. SAFE VIRTUAL USER (CRITICAL FIX FOR CRASHES)
-local VirtualUser = nil
-pcall(function()
-    VirtualUser = game:GetService("VirtualUser")
-    VirtualUser:CaptureController()
-end)
-print("[LOG] VirtualUser Status: " .. tostring(VirtualUser ~= nil))
+--// 1. WHITELIST SYSTEM
+local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/Whitelist.txt"
 
---// 2. GUI LOCATION FIX
-local GUIParent = LocalPlayer:WaitForChild("PlayerGui")
-print("[LOG] GUI Parent set to: PlayerGui")
-
--- Cleanup old GUI
-if GUIParent:FindFirstChild("SpaghettiHub_Rel") then GUIParent.SpaghettiHub_Rel:Destroy() end
-if GUIParent:FindFirstChild("SpaghettiLoading") then GUIParent.SpaghettiLoading:Destroy() end
-
---// 3. BYPASS WHITELIST
 local function CheckWhitelist()
-    print("[LOG] Whitelist Bypassed.")
-    return true
+    local success, content = pcall(function()
+        return game:HttpGet(WHITELIST_URL .. "?t=" .. tick())
+    end)
+    
+    if success and content then
+        if string.find(content, LocalPlayer.Name) then
+            print("[SYSTEM] Whitelist Confirmed.")
+            return true
+        else
+            LocalPlayer:Kick("Spaghetti Hub: You are not on the whitelist! ("..LocalPlayer.Name..")")
+            return false
+        end
+    else
+        warn("[SYSTEM] Failed to connect to whitelist.")
+        return true 
+    end
 end
 
 if not CheckWhitelist() then return end
 
+--// 2. CLEANUP & VARIABLES
+if CoreGui:FindFirstChild("SpaghettiHub_Rel") then CoreGui.SpaghettiHub_Rel:Destroy() end
+if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Destroy() end
+
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 215, 0),
-        Dark = Color3.fromRGB(20, 20, 20),
-        Box = Color3.fromRGB(25, 25, 25),
+        Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
+        Dark = Color3.fromRGB(10, 10, 10), -- Deep Black for Main Frame
+        Box = Color3.fromRGB(5, 5, 5), -- Pure Black for inner boxes
         Text = Color3.fromRGB(255, 255, 255),
+        
         IceBlue = Color3.fromRGB(100, 220, 255),
-        IceDark = Color3.fromRGB(15, 20, 30),
+        IceDark = Color3.fromRGB(5, 10, 20),
+        
         ShardBlue = Color3.fromRGB(50, 180, 255),
         CrystalRed = Color3.fromRGB(255, 70, 70),
         Discord = Color3.fromRGB(88, 101, 242)
@@ -67,31 +87,25 @@ local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
 local SitAnimTrack = nil 
-local isSittingAction = false 
+local isSittingAction = false -- Flag to allow sitting during HeadSit/Backpack
 
---// UI HELPER FUNCTIONS
+--// 3. UI FUNCTIONS
 local Library = {}
-function Library:Tween(obj, props, time, style) 
-    pcall(function()
-        TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play() 
-    end)
-end
+function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play() end
 
 function Library:AddGlow(obj, color, thickness) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = thickness or 1.5 
+    s.Thickness = 1.5 -- Uniform Thickness
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
     task.spawn(function()
         while obj.Parent do
-            pcall(function()
-                TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.8}):Play()
-                task.wait(2)
-                TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.4}):Play()
-                task.wait(2)
-            end)
+            TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.8}):Play()
+            task.wait(2)
+            TweenService:Create(s, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.4}):Play()
+            task.wait(2)
         end
     end)
     return s 
@@ -110,6 +124,7 @@ function Library:MakeDraggable(obj, isMiniPasta)
             dragStart = input.Position 
             startPos = obj.Position 
             isDraggingBool = false
+            
             input.Changed:Connect(function() 
                 if input.UserInputState == Enum.UserInputState.End then 
                     dragging = false 
@@ -155,36 +170,34 @@ local function SpawnSnow(parent)
     Debris:AddItem(flake, duration)
 end
 
+--// HELPER FOR SITTING ANIMATION
 local function PlaySit(play)
-    pcall(function()
-        if play then
-            local char = LocalPlayer.Character
-            local hum = char and char:FindFirstChild("Humanoid")
-            if hum then
-                hum.Sit = true
-                local animator = hum:FindFirstChild("Animator") or hum:WaitForChild("Animator")
-                if not SitAnimTrack then
-                    local anim = Instance.new("Animation")
-                    anim.AnimationId = "rbxassetid://2506281703" 
-                    SitAnimTrack = animator:LoadAnimation(anim)
-                end
-                SitAnimTrack:Play()
+    if play then
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        if hum then
+            hum.Sit = true
+            local animator = hum:FindFirstChild("Animator") or hum:WaitForChild("Animator")
+            if not SitAnimTrack then
+                local anim = Instance.new("Animation")
+                anim.AnimationId = "rbxassetid://2506281703" 
+                SitAnimTrack = animator:LoadAnimation(anim)
             end
-        else
-            if SitAnimTrack then
-                SitAnimTrack:Stop()
-                SitAnimTrack = nil
-            end
-            local char = LocalPlayer.Character
-            local hum = char and char:FindFirstChild("Humanoid")
-            if hum then hum.Sit = false end
+            SitAnimTrack:Play()
         end
-    end)
+    else
+        if SitAnimTrack then
+            SitAnimTrack:Stop()
+            SitAnimTrack = nil
+        end
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        if hum then hum.Sit = false end
+    end
 end
 
---// 4. LOADING SCREEN (SAFE MODE)
-print("[LOG] Creating Loading Screen...")
-local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = GUIParent
+--// 4. LOADING SCREEN
+local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
 LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -192,28 +205,25 @@ LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
 LoadBox.BackgroundColor3 = Settings.Theme.Dark
-LoadBox.BackgroundTransparency = 0 
 Library:Corner(LoadBox, 20)
-Library:AddGlow(LoadBox, Settings.Theme.Gold, 2.5) 
+Library:AddGlow(LoadBox, Settings.Theme.Gold, 1.5)
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
 PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
 PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
-PastaIcon.TextTransparency = 0 
+TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}):Play()
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
 TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
-TitleLoad.TextTransparency = 0 
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1...";
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
-SubLoad.TextTransparency = 0
 
 local LoadingBarBG = Instance.new("Frame", LoadBox)
 LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
@@ -221,7 +231,6 @@ LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
 LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
 LoadingBarBG.BorderSizePixel = 0
 LoadingBarBG.ZIndex = 16
-LoadingBarBG.BackgroundTransparency = 0
 Library:Corner(LoadingBarBG, 5)
 
 local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
@@ -230,29 +239,25 @@ LoadingBarFill.BackgroundColor3 = Settings.Theme.Gold
 LoadingBarFill.BorderSizePixel = 0
 LoadingBarFill.ZIndex = 17
 Library:Corner(LoadingBarFill, 5)
+Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 2.5, Enum.EasingStyle.Quad)
 
--- Force UI Update
 task.spawn(function()
     while LoadBox.Parent do
-        pcall(function() 
-            LoadingBarFill.Size = UDim2.new(1,0,1,0) -- Force Full
-            SpawnSnow(LoadBox) 
-        end)
+        SpawnSnow(LoadBox)
         task.wait(0.3) 
     end
 end)
 
-task.wait(2) -- Short wait
+task.wait(2.5)
 LoadGui:Destroy()
 
 --// 5. MAIN GUI STRUCTURE
-print("[LOG] Creating Main GUI...")
-local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = GUIParent; ScreenGui.ResetOnSpawn = false
+local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = CoreGui; ScreenGui.ResetOnSpawn = false
 
 local MiniPasta = Instance.new("TextButton", ScreenGui); 
 MiniPasta.Size = UDim2.new(0, 60, 0, 60); 
 MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); 
-MiniPasta.BackgroundColor3 = Settings.Theme.Dark; 
+MiniPasta.BackgroundColor3 = Settings.Theme.Box; 
 MiniPasta.Text = "🍝"; 
 MiniPasta.TextSize = 35; 
 MiniPasta.Visible = false; 
@@ -267,7 +272,6 @@ MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
-MainFrame.Visible = true -- FORCE VISIBLE
 Library:Corner(MainFrame, 16); 
 
 local MainStroke = Instance.new("UIStroke", MainFrame)
@@ -290,6 +294,8 @@ task.spawn(function()
         task.wait(0.01)
     end
 end)
+
+MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.6, Enum.EasingStyle.Quart) 
 
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
@@ -414,7 +420,7 @@ UserProfile.Name = "UserProfileContainer"
 UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
-UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 35) 
+UserProfile.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- Darker
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
 Library:Corner(UserProfile, 10)
@@ -553,9 +559,8 @@ task.spawn(function()
     while true do 
         task.wait(30) -- Anti-AFK
         pcall(function() 
-            if VirtualUser then
-                VirtualUser:ClickButton2(Vector2.new()) 
-            end
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new()) 
         end) 
     end 
 end)
@@ -596,11 +601,14 @@ local function ToggleFarm(v)
 
                 local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
                 if hum then 
-                    -- ABSOLUTE ANTI-SIT FIX
+                    -- ABSOLUTE ANTI-SIT FIX:
+                    -- If we are in the middle of a HeadSit/Backpack action, do NOTHING to the sit state.
+                    -- This allows the sit animation to play.
                     if not isSittingAction then
                         if hum.Sit then hum.Sit = false end 
                         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) 
                     else
+                        -- If we ARE sitting, ensure Seated state is enabled so we don't glitch
                         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
                     end
                 end
@@ -1079,7 +1087,7 @@ end
 -- BOX 1: HEADER (WITH STATUS & CLOSEST BUTTON)
 local TargetBox = Instance.new("Frame", TargetScroll)
 TargetBox.Size = UDim2.new(0.95, 0, 0, 85)
-TargetBox.BackgroundColor3 = Settings.Theme.Box -- Soft Black
+TargetBox.BackgroundColor3 = Settings.Theme.Box 
 Library:Corner(TargetBox, 12)
 Library:AddGlow(TargetBox, Settings.Theme.Gold, 1.5)
 
@@ -1113,21 +1121,23 @@ ClosestBtn.MouseButton1Click:Connect(function()
     local targetName = nil
     
     for _, p in pairs(Players:GetPlayers()) do
-        -- FIX: Explicitly exclude LocalPlayer
-        if p ~= LocalPlayer and p.Character then
-            local pRoot = p.Character:FindFirstChild("HumanoidRootPart")
-            if pRoot then
-                local dist = (myRoot.Position - pRoot.Position).Magnitude
-                if dist < minDist then
-                    minDist = dist
-                    targetName = p.Name
-                end
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (myRoot.Position - p.Character.HumanoidRootPart.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                targetName = p.Name
             end
         end
     end
     
     if targetName then
         TargetInput.Text = targetName
+        -- Trigger manual update
+        local p = GetPlayer(targetName)
+        if p then
+            -- Update logic duplication for instant feedback
+            -- (FocusLost handles image normally, but we force it here)
+        end
         TargetInput:CaptureFocus()
         TargetInput:ReleaseFocus() 
     end
@@ -1215,7 +1225,7 @@ end)
 -- BOX 2: ACTIONS (SYMMETRICAL GRID)
 local ActionBox = Instance.new("Frame", TargetScroll)
 ActionBox.Size = UDim2.new(0.95, 0, 0, 160)
-ActionBox.BackgroundColor3 = Settings.Theme.Box -- Soft Black
+ActionBox.BackgroundColor3 = Settings.Theme.Box 
 ActionBox.ClipsDescendants = true 
 Library:Corner(ActionBox, 12)
 Library:AddGlow(ActionBox, Settings.Theme.Gold, 1.5)
@@ -1299,7 +1309,7 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
             end)
         end)
     end
-end
+end)
 
 -- 2. SPECTATE
 CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
@@ -1338,9 +1348,9 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
             end)
          end)
     end
-end
+end)
 
--- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override + Lower Offset)
+-- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     isSittingAction = state -- Tell Farm Logic we are sitting
@@ -1361,19 +1371,18 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
                  LocalPlayer.Character.Humanoid.Sit = true 
-                 -- FIX: Lowered Offset from 1.5 to 0.7
-                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0.7, 0.5) * CFrame.Angles(0, math.rad(180), 0)
+                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1.5, 0.5) * CFrame.Angles(0, math.rad(180), 0)
                  -- Zero velocity to prevent physics fighting
                  LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
             end)
          end)
     end
-end
+end)
 
 -- BOX 3: SCANNER
 local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250)
-ScannerBox.BackgroundColor3 = Settings.Theme.Box -- Soft Black
+ScannerBox.BackgroundColor3 = Settings.Theme.Box 
 Library:Corner(ScannerBox, 12)
 Library:AddGlow(ScannerBox, Settings.Theme.Gold, 1.5)
 
@@ -1424,13 +1433,13 @@ ScanButton.MouseButton1Click:Connect(function()
         if not f then return end
         for _, item in pairs(f:GetChildren()) do
             -- Filter out TextLabels or non-items
-            if not item:IsA("TextLabel") then
-                if not IgnoreList[item.Name] and not item:IsA("Folder") then
-                     itemsCount[item.Name] = (itemsCount[item.Name] or 0) + 1
-                     if item:IsA("Tool") and item.TextureId ~= "" then
-                         itemsIcon[item.Name] = item.TextureId
-                     end
-                end
+            if item:IsA("TextLabel") then continue end
+            
+            if not IgnoreList[item.Name] and not item:IsA("Folder") then
+                 itemsCount[item.Name] = (itemsCount[item.Name] or 0) + 1
+                 if item:IsA("Tool") and item.TextureId ~= "" then
+                     itemsIcon[item.Name] = item.TextureId
+                 end
             end
         end
     end
@@ -1651,4 +1660,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (UNIVERSAL PLAYERGUI FIX) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (DARK EDITION) Loaded")
