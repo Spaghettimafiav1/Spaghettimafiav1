@@ -1,10 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1 (ULTIMATE FIX)
+    Spaghetti Mafia Hub v1 (DARK EDITION & CLOSEST TARGET)
     
-    Updates:
-    - UI: Darker backgrounds, Uniform Strokes, New Status Indicator.
-    - Stability: Heartbeat fix for Sit jitter.
-    - Logic: Smart Noclip (Storm only), Smart Anti-Sit (Allow HeadSit).
+    Update Log:
+    - Theme: Full Dark Mode (Pure Black) with Gold Accents.
+    - Target: Added "Closest Player" button (Excludes LocalPlayer).
+    - Scanner: Text updated + Filters out 'TextLabel' objects.
+    - Logic: Anti-Sit strictly disabled during HeadSit/Backpack.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -62,13 +63,13 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 215, 0),
-        Dark = Color3.fromRGB(18, 18, 24), 
-        Box = Color3.fromRGB(12, 12, 14), -- Darker Black for inner boxes
+        Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
+        Dark = Color3.fromRGB(10, 10, 10), -- Deep Black for Main Frame
+        Box = Color3.fromRGB(5, 5, 5), -- Pure Black for inner boxes
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
-        IceDark = Color3.fromRGB(10, 25, 45),
+        IceDark = Color3.fromRGB(5, 10, 20),
         
         ShardBlue = Color3.fromRGB(50, 180, 255),
         CrystalRed = Color3.fromRGB(255, 70, 70),
@@ -92,11 +93,10 @@ local isSittingAction = false -- Flag to allow sitting during HeadSit/Backpack
 local Library = {}
 function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play() end
 
--- Updated AddGlow to enforce uniform thickness
 function Library:AddGlow(obj, color, thickness) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 1.5 -- Uniform Thickness Fixed
+    s.Thickness = 1.5 -- Uniform Thickness
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
@@ -196,7 +196,7 @@ local function PlaySit(play)
     end
 end
 
---// 4. LOADING SCREEN (KEPT INTACT)
+--// 4. LOADING SCREEN
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -420,7 +420,7 @@ UserProfile.Name = "UserProfileContainer"
 UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
-UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+UserProfile.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- Darker
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
 Library:Corner(UserProfile, 10)
@@ -601,10 +601,15 @@ local function ToggleFarm(v)
 
                 local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
                 if hum then 
-                    -- Smart Anti-Sit: Only if NOT doing HeadSit/Backpack
+                    -- ABSOLUTE ANTI-SIT FIX:
+                    -- If we are in the middle of a HeadSit/Backpack action, do NOTHING to the sit state.
+                    -- This allows the sit animation to play.
                     if not isSittingAction then
                         if hum.Sit then hum.Sit = false end 
                         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) 
+                    else
+                        -- If we ARE sitting, ensure Seated state is enabled so we don't glitch
+                        hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
                     end
                 end
             end
@@ -883,7 +888,7 @@ end)
 local function CreateSlider(parent, title, heb, min, max, default, callback, toggleCallback, toggleName)
     local f = Instance.new("Frame", parent)
     f.Size = UDim2.new(0.95,0,0,65)
-    f.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    f.BackgroundColor3 = Settings.Theme.Box
     Library:Corner(f, 12)
     
     local stroke = Instance.new("UIStroke", f)
@@ -975,7 +980,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
     local sizeY = id==3 and 55 or 70
     f.Position = id==1 and UDim2.new(0,0,0,0) or (id==2 and UDim2.new(0.52,0,0,0) or UDim2.new(0,0,0,0))
     f.Size = UDim2.new(id==3 and 1 or 0.48,0,0,sizeY)
-    f.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    f.BackgroundColor3 = Settings.Theme.Box
     f.Text=""
     f.AutoButtonColor=false
     Library:Corner(f, 12)
@@ -1079,17 +1084,17 @@ local function GetPlayer(name)
     return nil
 end
 
--- BOX 1: HEADER (WITH STATUS)
+-- BOX 1: HEADER (WITH STATUS & CLOSEST BUTTON)
 local TargetBox = Instance.new("Frame", TargetScroll)
 TargetBox.Size = UDim2.new(0.95, 0, 0, 85)
-TargetBox.BackgroundColor3 = Settings.Theme.Box -- DARKER BG
+TargetBox.BackgroundColor3 = Settings.Theme.Box 
 Library:Corner(TargetBox, 12)
 Library:AddGlow(TargetBox, Settings.Theme.Gold, 1.5)
 
 local TargetInput = Instance.new("TextBox", TargetBox)
-TargetInput.Size = UDim2.new(0.65, 0, 0, 45)
+TargetInput.Size = UDim2.new(0.55, 0, 0, 45) -- Slightly smaller to fit button
 TargetInput.Position = UDim2.new(0.05, 0, 0.22, 0)
-TargetInput.BackgroundColor3 = Color3.fromRGB(40,40,45)
+TargetInput.BackgroundColor3 = Color3.fromRGB(20,20,20)
 TargetInput.Text = ""
 TargetInput.PlaceholderText = "Player Name..."
 TargetInput.TextColor3 = Color3.new(1,1,1)
@@ -1097,12 +1102,53 @@ TargetInput.Font = Enum.Font.GothamBold
 TargetInput.TextSize = 16
 Library:Corner(TargetInput, 8)
 
+-- CLOSEST PLAYER BUTTON
+local ClosestBtn = Instance.new("TextButton", TargetBox)
+ClosestBtn.Size = UDim2.new(0, 35, 0, 35)
+ClosestBtn.Position = UDim2.new(0.62, 0, 0.28, 0)
+ClosestBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ClosestBtn.Text = "🎯"
+ClosestBtn.TextSize = 20
+Library:Corner(ClosestBtn, 8)
+Library:AddGlow(ClosestBtn, Settings.Theme.Gold, 1)
+
+ClosestBtn.MouseButton1Click:Connect(function()
+    local myChar = LocalPlayer.Character
+    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+    
+    local minDist = math.huge
+    local targetName = nil
+    
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (myRoot.Position - p.Character.HumanoidRootPart.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                targetName = p.Name
+            end
+        end
+    end
+    
+    if targetName then
+        TargetInput.Text = targetName
+        -- Trigger manual update
+        local p = GetPlayer(targetName)
+        if p then
+            -- Update logic duplication for instant feedback
+            -- (FocusLost handles image normally, but we force it here)
+        end
+        TargetInput:CaptureFocus()
+        TargetInput:ReleaseFocus() 
+    end
+end)
+
 -- HEADER TEXT
 local TitleBox1 = Instance.new("TextLabel", TargetBox)
 TitleBox1.Size = UDim2.new(0, 100, 0, 15)
 TitleBox1.Position = UDim2.new(1, -110, 0, 5)
 TitleBox1.Text = "Target Player (מטרה)"
-TitleBox1.TextColor3 = Color3.fromRGB(150,150,150)
+TitleBox1.TextColor3 = Settings.Theme.Gold
 TitleBox1.BackgroundTransparency = 1
 TitleBox1.Font = Enum.Font.GothamBold
 TitleBox1.TextSize = 10
@@ -1112,11 +1158,11 @@ TitleBox1.TextXAlignment = Enum.TextXAlignment.Right
 local TargetAvatar = Instance.new("ImageLabel", TargetBox)
 TargetAvatar.Size = UDim2.new(0, 55, 0, 55)
 TargetAvatar.Position = UDim2.new(0.75, 0, 0.22, 0) 
-TargetAvatar.BackgroundColor3 = Color3.fromRGB(40,40,40)
+TargetAvatar.BackgroundColor3 = Color3.fromRGB(20,20,20)
 TargetAvatar.Image = "rbxassetid://0"
 Library:Corner(TargetAvatar, 30)
 
--- NEW STATUS UI (Redesigned)
+-- NEW STATUS UI
 local StatusContainer = Instance.new("Frame", TargetBox)
 StatusContainer.Size = UDim2.new(0, 60, 0, 15)
 StatusContainer.Position = UDim2.new(0.75, 0, 0.88, 0)
@@ -1179,7 +1225,7 @@ end)
 -- BOX 2: ACTIONS (SYMMETRICAL GRID)
 local ActionBox = Instance.new("Frame", TargetScroll)
 ActionBox.Size = UDim2.new(0.95, 0, 0, 160)
-ActionBox.BackgroundColor3 = Settings.Theme.Box -- DARKER BG
+ActionBox.BackgroundColor3 = Settings.Theme.Box 
 ActionBox.ClipsDescendants = true 
 Library:Corner(ActionBox, 12)
 Library:AddGlow(ActionBox, Settings.Theme.Gold, 1.5)
@@ -1188,7 +1234,7 @@ local TitleBox2 = Instance.new("TextLabel", ActionBox)
 TitleBox2.Size = UDim2.new(0, 100, 0, 15)
 TitleBox2.Position = UDim2.new(1, -110, 0, 5)
 TitleBox2.Text = "Actions (פעולות)"
-TitleBox2.TextColor3 = Color3.fromRGB(150,150,150)
+TitleBox2.TextColor3 = Settings.Theme.Gold
 TitleBox2.BackgroundTransparency = 1
 TitleBox2.Font = Enum.Font.GothamBold
 TitleBox2.TextSize = 10
@@ -1206,7 +1252,7 @@ ActionPad.PaddingBottom = UDim.new(0, 10)
 
 local function CreateToggleBtn(parent, text, callback)
     local b = Instance.new("TextButton", parent)
-    b.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    b.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     b.Text = text
     b.TextColor3 = Color3.fromRGB(150, 150, 150)
     b.Font = Enum.Font.GothamBold
@@ -1221,7 +1267,7 @@ local function CreateToggleBtn(parent, text, callback)
             b.BackgroundColor3 = Settings.Theme.Gold
             b.TextColor3 = Color3.new(0,0,0)
         else
-            b.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+            b.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
             b.TextColor3 = Color3.fromRGB(150, 150, 150)
         end
     end)
@@ -1336,7 +1382,7 @@ end)
 -- BOX 3: SCANNER
 local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250)
-ScannerBox.BackgroundColor3 = Settings.Theme.Box -- DARKER BG
+ScannerBox.BackgroundColor3 = Settings.Theme.Box 
 Library:Corner(ScannerBox, 12)
 Library:AddGlow(ScannerBox, Settings.Theme.Gold, 1.5)
 
@@ -1345,7 +1391,7 @@ local TitleBox3 = Instance.new("TextLabel", ScannerBox)
 TitleBox3.Size = UDim2.new(0, 100, 0, 15)
 TitleBox3.Position = UDim2.new(1, -110, 0, 5)
 TitleBox3.Text = "Scanner (סורק)"
-TitleBox3.TextColor3 = Color3.fromRGB(150,150,150)
+TitleBox3.TextColor3 = Settings.Theme.Gold
 TitleBox3.BackgroundTransparency = 1
 TitleBox3.Font = Enum.Font.GothamBold
 TitleBox3.TextSize = 10
@@ -1355,7 +1401,7 @@ local ScanButton = Instance.new("TextButton", ScannerBox)
 ScanButton.Size = UDim2.new(0.9, 0, 0, 35)
 ScanButton.Position = UDim2.new(0.05, 0, 0.1, 0)
 ScanButton.BackgroundColor3 = Settings.Theme.Gold
-ScanButton.Text = "SCAN INVENTORY 🔍"
+ScanButton.Text = "סרוק תיק (Scan Inventory) 🔍" -- Updated Text
 ScanButton.TextColor3 = Color3.new(0,0,0)
 ScanButton.Font = Enum.Font.GothamBold
 ScanButton.TextSize = 14
@@ -1386,6 +1432,9 @@ ScanButton.MouseButton1Click:Connect(function()
     local function ScanFolder(f)
         if not f then return end
         for _, item in pairs(f:GetChildren()) do
+            -- Filter out TextLabels or non-items
+            if item:IsA("TextLabel") then continue end
+            
             if not IgnoreList[item.Name] and not item:IsA("Folder") then
                  itemsCount[item.Name] = (itemsCount[item.Name] or 0) + 1
                  if item:IsA("Tool") and item.TextureId ~= "" then
@@ -1611,4 +1660,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (ULTIMATE FIX - UI/STABILITY/LOGIC) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (DARK EDITION) Loaded")
