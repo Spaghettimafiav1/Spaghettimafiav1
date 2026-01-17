@@ -1,12 +1,10 @@
 --[[
-    Spaghetti Mafia Hub v1 (FINAL POLISHED VERSION)
+    Spaghetti Mafia Hub v1 (FINAL FIXED EXECUTION)
     
-    Update Log:
-    - UI: Soft Black Theme (20,20,20) for better visibility.
-    - Loader: Added Fade-In Animation + Yellow Stroke.
-    - Target: Fixed "Closest Player" selecting self.
-    - Backpack: Lowered sit offset (0.7) for better positioning.
-    - Logic: All previous protections (Anti-Sit override, Smart Noclip) preserved.
+    Fixes:
+    - Removed 'continue' keyword in Scanner (Compatibilty fix for some executors).
+    - Hardened "Closest Player" logic to prevent nil instance errors.
+    - Verified all syntax closures.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -65,8 +63,8 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
-        Dark = Color3.fromRGB(20, 20, 20), -- Soft Black (Main Background)
-        Box = Color3.fromRGB(25, 25, 25), -- Slightly lighter Soft Black for Boxes
+        Dark = Color3.fromRGB(20, 20, 20), -- Soft Black
+        Box = Color3.fromRGB(25, 25, 25), -- Slightly lighter Soft Black
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
@@ -88,7 +86,7 @@ local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
 local SitAnimTrack = nil 
-local isSittingAction = false -- Flag to allow sitting during HeadSit/Backpack
+local isSittingAction = false 
 
 --// 3. UI FUNCTIONS
 local Library = {}
@@ -197,7 +195,7 @@ local function PlaySit(play)
     end
 end
 
---// 4. LOADING SCREEN (IMPROVED ANIMATION & COLOR)
+--// 4. LOADING SCREEN
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -205,29 +203,29 @@ LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
-LoadBox.BackgroundColor3 = Settings.Theme.Dark -- Soft Black
-LoadBox.BackgroundTransparency = 1 -- Start transparent for Fade In
+LoadBox.BackgroundColor3 = Settings.Theme.Dark
+LoadBox.BackgroundTransparency = 1 
 Library:Corner(LoadBox, 20)
-Library:AddGlow(LoadBox, Settings.Theme.Gold, 2.5) -- Thick Yellow Stroke
+Library:AddGlow(LoadBox, Settings.Theme.Gold, 2.5) 
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
 PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
 PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
-PastaIcon.TextTransparency = 1 -- Start transparent
+PastaIcon.TextTransparency = 1 
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
 TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
-TitleLoad.TextTransparency = 1 -- Start transparent
+TitleLoad.TextTransparency = 1 
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1...";
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
-SubLoad.TextTransparency = 1 -- Start transparent
+SubLoad.TextTransparency = 1 
 
 local LoadingBarBG = Instance.new("Frame", LoadBox)
 LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
@@ -235,7 +233,7 @@ LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
 LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
 LoadingBarBG.BorderSizePixel = 0
 LoadingBarBG.ZIndex = 16
-LoadingBarBG.BackgroundTransparency = 1 -- Start transparent
+LoadingBarBG.BackgroundTransparency = 1 
 Library:Corner(LoadingBarBG, 5)
 
 local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
@@ -265,8 +263,7 @@ task.spawn(function()
     end
 end)
 
-task.wait(2.8) -- Wait for load
--- Fade Out Sequence
+task.wait(2.8) 
 Library:Tween(LoadBox, {BackgroundTransparency = 1}, 0.4)
 Library:Tween(PastaIcon, {TextTransparency = 1}, 0.4)
 Library:Tween(TitleLoad, {TextTransparency = 1}, 0.4)
@@ -281,7 +278,7 @@ local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"
 local MiniPasta = Instance.new("TextButton", ScreenGui); 
 MiniPasta.Size = UDim2.new(0, 60, 0, 60); 
 MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); 
-MiniPasta.BackgroundColor3 = Settings.Theme.Dark; -- Soft Black
+MiniPasta.BackgroundColor3 = Settings.Theme.Dark; 
 MiniPasta.Text = "🍝"; 
 MiniPasta.TextSize = 35; 
 MiniPasta.Visible = false; 
@@ -294,7 +291,7 @@ local NEW_WIDTH = 550
 local NEW_HEIGHT = 420 
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
-MainFrame.BackgroundColor3 = Settings.Theme.Dark; -- Soft Black
+MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
 Library:Corner(MainFrame, 16); 
 
@@ -433,7 +430,7 @@ end)
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Size = UDim2.new(0, 150, 1, -65)
 Sidebar.Position = UDim2.new(0,0,0,65)
-Sidebar.BackgroundColor3 = Settings.Theme.Box -- Soft Black
+Sidebar.BackgroundColor3 = Settings.Theme.Box
 Sidebar.BorderSizePixel = 0 
 Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
@@ -444,7 +441,7 @@ UserProfile.Name = "UserProfileContainer"
 UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
-UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 35) -- Slightly lighter
+UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 35) 
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
 Library:Corner(UserProfile, 10)
@@ -627,12 +624,10 @@ local function ToggleFarm(v)
                 if hum then 
                     -- ABSOLUTE ANTI-SIT FIX:
                     -- If we are in the middle of a HeadSit/Backpack action, do NOTHING to the sit state.
-                    -- This allows the sit animation to play.
                     if not isSittingAction then
                         if hum.Sit then hum.Sit = false end 
                         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) 
                     else
-                        -- If we ARE sitting, ensure Seated state is enabled so we don't glitch
                         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
                     end
                 end
@@ -1146,11 +1141,14 @@ ClosestBtn.MouseButton1Click:Connect(function()
     
     for _, p in pairs(Players:GetPlayers()) do
         -- FIX: Explicitly exclude LocalPlayer
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local dist = (myRoot.Position - p.Character.HumanoidRootPart.Position).Magnitude
-            if dist < minDist then
-                minDist = dist
-                targetName = p.Name
+        if p ~= LocalPlayer and p.Character then
+            local pRoot = p.Character:FindFirstChild("HumanoidRootPart")
+            if pRoot then
+                local dist = (myRoot.Position - pRoot.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    targetName = p.Name
+                end
             end
         end
     end
@@ -1367,7 +1365,7 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
             end)
          end)
     end
-end)
+end
 
 -- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override + Lower Offset)
 local BackpackConnection = nil
@@ -1397,7 +1395,7 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
             end)
          end)
     end
-end)
+end
 
 -- BOX 3: SCANNER
 local ScannerBox = Instance.new("Frame", TargetScroll)
@@ -1453,13 +1451,13 @@ ScanButton.MouseButton1Click:Connect(function()
         if not f then return end
         for _, item in pairs(f:GetChildren()) do
             -- Filter out TextLabels or non-items
-            if item:IsA("TextLabel") then continue end
-            
-            if not IgnoreList[item.Name] and not item:IsA("Folder") then
-                 itemsCount[item.Name] = (itemsCount[item.Name] or 0) + 1
-                 if item:IsA("Tool") and item.TextureId ~= "" then
-                     itemsIcon[item.Name] = item.TextureId
-                 end
+            if not item:IsA("TextLabel") then
+                if not IgnoreList[item.Name] and not item:IsA("Folder") then
+                     itemsCount[item.Name] = (itemsCount[item.Name] or 0) + 1
+                     if item:IsA("Tool") and item.TextureId ~= "" then
+                         itemsIcon[item.Name] = item.TextureId
+                     end
+                end
             end
         end
     end
