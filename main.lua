@@ -1,12 +1,13 @@
 --[[
-    Spaghetti Mafia Hub v1.1 (FIXED & IMPROVED)
+    Spaghetti Mafia Hub v1.2 (FINAL PRO)
     
-    Fixes Applied:
-    1. Loading Screen: Soft Black BG, Yellow Stroke, Smooth Fade In/Out.
-    2. Theme: Changed Dark/Box colors to Soft Black (20, 20, 20) for better visibility.
-    3. Target: "Closest Player" button logic fixed (Strictly excludes LocalPlayer).
-    4. Backpack: Lowered sit position by 0.8 units (No longer floating too high).
-    5. Scanner: Text updated + Filters maintained.
+    Update Log v1.2:
+    1. BANG: Added R15 Support (Dolphin Dance) vs R6 (Original).
+    2. Auto-Sit: Aggressive re-sit logic added to Headsit/Backpack loops.
+    3. Audio: Added sounds for Target Select, Friend Join/Leave, Storm Start/End.
+    4. Loading: Text changed to "Loading...", Yellow Stroke enforced.
+    5. Theme: Soft Black (20,20,20) everywhere.
+    6. Hebrew: Scanner text updated.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -65,7 +66,7 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
-        -- FIXED: Changed to Soft Black (20, 20, 20)
+        -- FIXED: Soft Black 20,20,20
         Dark = Color3.fromRGB(20, 20, 20), 
         Box = Color3.fromRGB(25, 25, 25), 
         Text = Color3.fromRGB(255, 255, 255),
@@ -91,6 +92,25 @@ local FarmBlacklist = {}
 local SitAnimTrack = nil 
 local isSittingAction = false -- Flag to allow sitting during HeadSit/Backpack
 
+--// SOUND SYSTEM
+local Sounds = {
+    Click = "rbxassetid://4612375233",
+    FriendJoin = "rbxassetid://5153734247",
+    FriendLeft = "rbxassetid://5153734603",
+    StormStart = "rbxassetid://4612377184", -- Alarm
+    StormEnd = "rbxassetid://255318536"    -- Chime
+}
+
+local function PlaySound(id)
+    local s = Instance.new("Sound")
+    s.SoundId = id
+    s.Parent = CoreGui
+    s.Volume = 1.5
+    s.PlayOnRemove = true
+    s.Name = "SpagAudio"
+    s:Destroy()
+end
+
 --// 3. UI FUNCTIONS
 local Library = {}
 function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenInfo.new(time or 0.2, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play() end
@@ -98,7 +118,7 @@ function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenIn
 function Library:AddGlow(obj, color, thickness) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = thickness or 1.5 -- Uniform Thickness
+    s.Thickness = thickness or 1.5 
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
@@ -198,7 +218,7 @@ local function PlaySit(play)
     end
 end
 
---// 4. LOADING SCREEN (FIXED & IMPROVED)
+--// 4. LOADING SCREEN (UPDATED)
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -206,26 +226,24 @@ LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
--- FIXED: Soft Black Background
-LoadBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20) 
--- FIXED: Added Fade In effect (Start transparent)
+LoadBox.BackgroundColor3 = Settings.Theme.Dark -- 20,20,20
 LoadBox.BackgroundTransparency = 1 
 Library:Corner(LoadBox, 20)
 
--- FIXED: Added Yellow Stroke for Loading Screen
+-- YELLOW STROKE
 local LoadStroke = Instance.new("UIStroke", LoadBox)
 LoadStroke.Color = Settings.Theme.Gold
-LoadStroke.Thickness = 2
-LoadStroke.Transparency = 1 -- Start transparent for fade in
+LoadStroke.Thickness = 2.5
+LoadStroke.Transparency = 1 
 
--- Animation: Fade In
+-- FADE IN
 TweenService:Create(LoadBox, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
 TweenService:Create(LoadStroke, TweenInfo.new(0.5), {Transparency = 0}):Play()
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
 PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
 PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
-PastaIcon.TextTransparency = 1 -- For fade
+PastaIcon.TextTransparency = 1
 TweenService:Create(PastaIcon, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
 TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}):Play()
 
@@ -239,7 +257,9 @@ TweenService:Create(TitleLoad, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.Ea
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
-SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1...";
+SubLoad.BackgroundTransparency = 1; 
+-- UPDATED TEXT
+SubLoad.Text = "Loading..."; 
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
 SubLoad.TextTransparency = 1
@@ -271,7 +291,7 @@ task.spawn(function()
 end)
 
 task.wait(2.5)
--- Animation: Fade Out before destroying
+-- FADE OUT
 TweenService:Create(LoadBox, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
 TweenService:Create(LoadStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
 TweenService:Create(PastaIcon, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
@@ -281,6 +301,24 @@ TweenService:Create(LoadingBarBG, TweenInfo.new(0.3), {BackgroundTransparency = 
 TweenService:Create(LoadingBarFill, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
 task.wait(0.3)
 LoadGui:Destroy()
+
+--// FRIEND ALERTS
+task.spawn(function()
+    Players.PlayerAdded:Connect(function(player)
+        pcall(function()
+            if LocalPlayer:IsFriendsWith(player.UserId) then
+                PlaySound(Sounds.FriendJoin)
+            end
+        end)
+    end)
+    Players.PlayerRemoving:Connect(function(player)
+        pcall(function()
+            if LocalPlayer:IsFriendsWith(player.UserId) then
+                PlaySound(Sounds.FriendLeft)
+            end
+        end)
+    end)
+end)
 
 --// 5. MAIN GUI STRUCTURE
 local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = CoreGui; ScreenGui.ResetOnSpawn = false
@@ -354,11 +392,12 @@ MiniPasta.MouseButton1Click:Connect(function()
     end
 end)
 
---// STORM TIMER
+--// STORM TIMER + SOUNDS
 task.spawn(function()
     local StormValue = ReplicatedStorage:WaitForChild("StormTimeLeft", 5)
     
     if StormValue then
+        local wasStorming = false
         local TimerWidget = Instance.new("Frame", TopBar)
         TimerWidget.Name = "StormTimerWidgetPro"
         TimerWidget.Size = UDim2.new(0, 135, 0, 40)
@@ -406,6 +445,10 @@ task.spawn(function()
             local secs = val % 60
             
             if val <= 0 then
+                if not wasStorming then
+                    wasStorming = true
+                    PlaySound(Sounds.StormStart)
+                end
                 T_Header.Text = "⚠️ סטטוס ⚠️"
                 T_Header.TextColor3 = Color3.fromRGB(255, 100, 100)
                 T_Time.Text = "סופה פעילה!"
@@ -413,21 +456,28 @@ task.spawn(function()
                 T_Time.TextColor3 = Settings.Theme.CrystalRed
                 TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Color3.fromRGB(255, 0, 0), Transparency = 0}):Play()
                 TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(40, 10, 10)}):Play()
-            elseif val <= 30 then
-                T_Header.Text = "מתקרב..."
-                T_Header.TextColor3 = Color3.fromRGB(255, 200, 100)
-                T_Time.Text = string.format("%02d:%02d", mins, secs)
-                T_Time.TextSize = 18
-                T_Time.TextColor3 = Settings.Theme.Gold
-                TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.Gold, Transparency = 0.2}):Play()
             else
-                T_Header.Text = "סופה הבאה:"
-                T_Header.TextColor3 = Color3.fromRGB(150, 180, 200)
-                T_Time.Text = string.format("%02d:%02d", mins, secs)
-                T_Time.TextSize = 18
-                T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
-                TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.IceBlue, Transparency = 0.6}):Play()
-                TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
+                if wasStorming then
+                    wasStorming = false
+                    PlaySound(Sounds.StormEnd)
+                end
+                
+                if val <= 30 then
+                    T_Header.Text = "מתקרב..."
+                    T_Header.TextColor3 = Color3.fromRGB(255, 200, 100)
+                    T_Time.Text = string.format("%02d:%02d", mins, secs)
+                    T_Time.TextSize = 18
+                    T_Time.TextColor3 = Settings.Theme.Gold
+                    TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.Gold, Transparency = 0.2}):Play()
+                else
+                    T_Header.Text = "סופה הבאה:"
+                    T_Header.TextColor3 = Color3.fromRGB(150, 180, 200)
+                    T_Time.Text = string.format("%02d:%02d", mins, secs)
+                    T_Time.TextSize = 18
+                    T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.IceBlue, Transparency = 0.6}):Play()
+                    TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
+                end
             end
         end
 
@@ -1164,12 +1214,6 @@ ClosestBtn.MouseButton1Click:Connect(function()
     
     if targetName then
         TargetInput.Text = targetName
-        -- Trigger manual update
-        local p = GetPlayer(targetName)
-        if p then
-            -- Update logic duplication for instant feedback
-            -- (FocusLost handles image normally, but we force it here)
-        end
         TargetInput:CaptureFocus()
         TargetInput:ReleaseFocus() 
     end
@@ -1247,6 +1291,7 @@ TargetInput.FocusLost:Connect(function()
     local p = GetPlayer(TargetInput.Text)
     if p then
         TargetInput.Text = p.Name
+        PlaySound(Sounds.Click)
         local content = Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
         TargetAvatar.Image = content
     else
@@ -1306,27 +1351,35 @@ local function CreateToggleBtn(parent, text, callback)
     return b
 end
 
--- 1. BANG
+-- 1. BANG (UPDATED: R15/R6 CHECK)
 local TrollConnection = nil
 CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
     if not state then
         if TrollConnection then TrollConnection:Disconnect() TrollConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
              for _, anim in pairs(LocalPlayer.Character.Humanoid:GetPlayingAnimationTracks()) do
-                 if anim.Animation.AnimationId == "rbxassetid://148840371" then anim:Stop() end
+                 if anim.Animation.AnimationId == "rbxassetid://148840371" or anim.Animation.AnimationId == "rbxassetid://5938365243" then anim:Stop() end
              end
         end
         return
     end
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character and LocalPlayer.Character then
-        local A = Instance.new('Animation')
-        A.AnimationId = 'rbxassetid://148840371'
         local P = Players.LocalPlayer
         local C = P.Character or P.CharacterAdded:Wait()
-        local H = C:WaitForChild('Humanoid'):LoadAnimation(A)
-        H:Play()
-        H:AdjustSpeed(2.5)
+        local H = C:WaitForChild('Humanoid')
+        
+        -- R15 DETECTION
+        local AnimID = 'rbxassetid://148840371' -- R6
+        if H.RigType == Enum.HumanoidRigType.R15 then
+            AnimID = 'rbxassetid://5938365243' -- R15 Dolphin
+        end
+
+        local A = Instance.new('Animation')
+        A.AnimationId = AnimID
+        local Track = H:LoadAnimation(A)
+        Track:Play()
+        Track:AdjustSpeed(2.5)
         
         TrollConnection = RunService.Stepped:Connect(function()
             if not target.Character or not P.Character then 
@@ -1353,10 +1406,10 @@ CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     end
 end)
 
--- 3. HEADSIT (Fixed: Heartbeat Stability + Anti-Sit Override)
+-- 3. HEADSIT (UPDATED: FORCE SIT)
 local HeadSitConnection = nil
 CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
-    isSittingAction = state -- Tell Farm Logic we are sitting
+    isSittingAction = state 
     if not state then
         PlaySit(false) 
         if HeadSitConnection then HeadSitConnection:Disconnect() HeadSitConnection = nil end
@@ -1369,23 +1422,23 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
          PlaySit(true) 
-         -- Use Heartbeat for smooth, jitter-free attachment
          HeadSitConnection = RunService.Heartbeat:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
-                 LocalPlayer.Character.Humanoid.Sit = true 
+                 local h = LocalPlayer.Character.Humanoid
+                 if not h.Sit then h.Sit = true end -- FORCE RE-SIT
+                 
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.Head.CFrame * CFrame.new(0, 1.5, 0)
-                 -- Zero velocity to prevent physics fighting
                  LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
             end)
          end)
     end
 end)
 
--- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override + Lower Position)
+-- 4. BACKPACK (UPDATED: FORCE SIT + POSITION)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
-    isSittingAction = state -- Tell Farm Logic we are sitting
+    isSittingAction = state 
     if not state then
         PlaySit(false) 
         if BackpackConnection then BackpackConnection:Disconnect() BackpackConnection = nil end
@@ -1398,14 +1451,13 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character then
          PlaySit(true) 
-         -- Use Heartbeat for smooth, jitter-free attachment
          BackpackConnection = RunService.Heartbeat:Connect(function()
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
-                 LocalPlayer.Character.Humanoid.Sit = true 
-                 -- FIXED: Lowered Y offset from 1.5 to 0.7 to sit correctly on back
+                 local h = LocalPlayer.Character.Humanoid
+                 if not h.Sit then h.Sit = true end -- FORCE RE-SIT
+
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0.7, 0.5) * CFrame.Angles(0, math.rad(180), 0)
-                 -- Zero velocity to prevent physics fighting
                  LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
             end)
          end)
@@ -1434,7 +1486,7 @@ local ScanButton = Instance.new("TextButton", ScannerBox)
 ScanButton.Size = UDim2.new(0.9, 0, 0, 35)
 ScanButton.Position = UDim2.new(0.05, 0, 0.1, 0)
 ScanButton.BackgroundColor3 = Settings.Theme.Gold
--- FIXED: Updated Text
+-- FIXED TEXT
 ScanButton.Text = "סרוק תיק (Scan Inventory) 🔍" 
 ScanButton.TextColor3 = Color3.new(0,0,0)
 ScanButton.Font = Enum.Font.GothamBold
@@ -1694,4 +1746,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1.1 (FIXED) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1.2 (FINAL) Loaded")
