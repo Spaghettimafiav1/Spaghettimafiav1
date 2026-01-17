@@ -1,11 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v1.4 (FINAL FIX - ANIMATION & STABILITY)
+    Spaghetti Mafia Hub v1.5 (ULTIMATE CFRAME EDITION)
     
-    Update Log v1.4:
-    1. BANG FIX: Uses 'Animator' object + Action Priority to force R15 animation.
-    2. Stability: Removed 'Closest Player' button completely.
-    3. Auto-Sit: Optimized Heartbeat loop for zero-latency sitting.
-    4. UI: Soft Black theme maintained, Layout fixed after button removal.
+    Update Log v1.5:
+    1. R15 BANG: Now uses CFrame Math (Sine Wave) instead of Animation IDs. 
+       (Bypasses Roblox Permissions 100%).
+    2. Theme: Lightened to 25,25,25 for better Yellow contrast.
+    3. UI: 'Closest Player' removed, Input box expanded.
+    4. Logic: Auto-Sit checks every Heartbeat to prevent standing.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -64,8 +65,9 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0), 
-        Dark = Color3.fromRGB(20, 20, 20), -- Soft Black
-        Box = Color3.fromRGB(25, 25, 25), 
+        -- FIXED: Slightly Lighter Black for Contrast
+        Dark = Color3.fromRGB(25, 25, 25), 
+        Box = Color3.fromRGB(30, 30, 30), 
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
@@ -1306,45 +1308,38 @@ local function CreateToggleBtn(parent, text, callback)
     return b
 end
 
--- 1. BANG (UPDATED: PROPER ANIMATION LOADING)
+-- 1. BANG (UPDATED: ULTIMATE CFRAME VERSION)
 local TrollConnection = nil
 CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
     if not state then
         if TrollConnection then TrollConnection:Disconnect() TrollConnection = nil end
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+             -- Stop R6 Anim if any
              for _, anim in pairs(LocalPlayer.Character.Humanoid:GetPlayingAnimationTracks()) do
-                 if anim.Animation.AnimationId == "rbxassetid://148840371" or anim.Animation.AnimationId == "rbxassetid://5938365243" then anim:Stop() end
+                 if anim.Animation.AnimationId == "rbxassetid://148840371" then anim:Stop() end
              end
         end
         return
     end
+    
     local target = GetPlayer(TargetInput.Text)
     if target and target.Character and LocalPlayer.Character then
         local P = Players.LocalPlayer
         local C = P.Character or P.CharacterAdded:Wait()
         local H = C:WaitForChild('Humanoid')
-        local Animator = H:FindFirstChild("Animator") or H:WaitForChild("Animator")
         
-        -- R15 DETECTION & ANIMATION LOAD
-        local AnimID = "rbxassetid://148840371" -- R6
-        if H.RigType == Enum.HumanoidRigType.R15 then
-            AnimID = "rbxassetid://5938365243" -- R15 Dolphin
-        end
-
-        local A = Instance.new("Animation")
-        A.AnimationId = AnimID
-        
-        local success, Track = pcall(function()
-            return Animator:LoadAnimation(A)
-        end)
-        
-        if success and Track then
-            Track.Priority = Enum.AnimationPriority.Action -- FORCE PRIORITY
+        -- R6 uses the Animation (Still works fine)
+        if H.RigType == Enum.HumanoidRigType.R6 then
+            local AnimID = "rbxassetid://148840371"
+            local A = Instance.new("Animation")
+            A.AnimationId = AnimID
+            local Track = H:LoadAnimation(A)
             Track.Looped = true
             Track:Play()
             Track:AdjustSpeed(2.5)
         end
         
+        -- R15 & R6 Positioning Loop
         TrollConnection = RunService.Stepped:Connect(function()
             if not target.Character or not P.Character then 
                 if TrollConnection then TrollConnection:Disconnect() end
@@ -1353,7 +1348,13 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
             pcall(function()
                 local targetHRP = target.Character:WaitForChild('HumanoidRootPart')
                 local myHRP = C:WaitForChild('HumanoidRootPart')
-                local behindPos = targetHRP.CFrame * CFrame.new(0, 0, 1.1)
+                
+                -- CFRAME MATH (SINE WAVE) - WORKS ON EVERYTHING
+                local velocity = 20 -- Speed of thrust
+                local distance = 0.5 -- Distance of thrust
+                local thrust = math.sin(tick() * velocity) * distance
+                
+                local behindPos = targetHRP.CFrame * CFrame.new(0, 0, 1.1 + thrust)
                 myHRP.CFrame = CFrame.lookAt(behindPos.Position, targetHRP.Position)
             end)
         end)
@@ -1711,4 +1712,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1.4 (FINAL FIX) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1.5 (ULTIMATE CFRAME) Loaded")
