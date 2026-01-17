@@ -1,11 +1,20 @@
 --[[
-    Spaghetti Mafia Hub v1 (UNIVERSAL PARENT FIX)
+    Spaghetti Mafia Hub v1 (EMERGENCY FIX - PLAYERGUI FORCED)
     
-    CRITICAL FIX:
-    - This version detects if your executor blocks 'CoreGui'.
-    - If blocked, it forces the UI into 'PlayerGui' so you can see it.
-    - Whitelist is bypassed locally to ensure instant load.
+    DIAGNOSTIC MODE:
+    1. Sends a Roblox Notification immediately upon inject.
+    2. Forces UI into PlayerGui (bypassing security checks).
+    3. Wraps all sensitive services in pcall() to prevent crashes.
 ]]
+
+--// 1. IMMEDIATE NOTIFICATION CHECK
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Spaghetti Hub";
+        Text = "Script Injected Successfully!";
+        Duration = 5;
+    })
+end)
 
 --// 0. INITIALIZATION
 if not game:IsLoaded() then game.Loaded:Wait() end
@@ -21,25 +30,11 @@ local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage") 
 local Camera = workspace.CurrentCamera
 
---// 1. SAFE GUI PARENTING (THE FIX)
--- This function finds the best place to put the GUI based on your executor
-local function GetSafeGuiRoot()
-    local success, _ = pcall(function()
-        local test = Instance.new("ScreenGui", CoreGui)
-        test:Destroy()
-    end)
-    
-    if success then
-        return CoreGui -- Executor is strong (Synapse/ScriptWare style)
-    else
-        return LocalPlayer:WaitForChild("PlayerGui") -- Executor is standard (Solara/Mobile style)
-    end
-end
+--// CRITICAL FIX: SAFE PARENTING
+-- We FORCE the GUI into PlayerGui because your executor likely blocks CoreGui
+local GUIParent = LocalPlayer:WaitForChild("PlayerGui")
 
-local GUIParent = GetSafeGuiRoot()
-print("[SYSTEM] GUI loading into: " .. tostring(GUIParent))
-
--- Cleanup old GUI
+-- Cleanup old instances
 for _, v in pairs(GUIParent:GetChildren()) do
     if v.Name == "SpaghettiHub_Rel" or v.Name == "SpaghettiLoading" then
         v:Destroy()
@@ -57,18 +52,19 @@ if (syn and syn.queue_on_teleport) or queue_on_teleport then
     end)
 end
 
---// 1. WHITELIST SYSTEM (INSTANT BYPASS)
-local WHITELIST_URL = "https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/Whitelist.txt"
-
+--// 1. WHITELIST SYSTEM (OFFLINE BYPASS)
+-- We skip the HTTP check entirely to prevent hanging
 local function CheckWhitelist()
-    return true -- Force true so UI always loads
+    return true 
 end
 
 if not CheckWhitelist() then return end
 
---// VARIABLES
+--// VARIABLES & SAFETY
 local VirtualUser = game:GetService("VirtualUser")
-pcall(function() VirtualUser:CaptureController() end)
+pcall(function() 
+    VirtualUser:CaptureController() 
+end)
 
 local Settings = {
     Theme = {
@@ -212,7 +208,7 @@ local function PlaySit(play)
     end)
 end
 
---// 4. LOADING SCREEN (PARENTED SAFELY)
+--// 4. LOADING SCREEN (SAFE MODE)
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = GUIParent
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -260,32 +256,35 @@ LoadingBarFill.BorderSizePixel = 0
 LoadingBarFill.ZIndex = 17
 Library:Corner(LoadingBarFill, 5)
 
--- Fade In Sequence
+-- Fade In Sequence (Robust)
 task.spawn(function()
-    Library:Tween(LoadBox, {BackgroundTransparency = 0}, 0.5)
-    task.wait(0.2)
-    Library:Tween(PastaIcon, {TextTransparency = 0, Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}, 0.6, Enum.EasingStyle.Back)
-    task.wait(0.1)
-    Library:Tween(TitleLoad, {TextTransparency = 0}, 0.5)
-    Library:Tween(SubLoad, {TextTransparency = 0}, 0.5)
-    Library:Tween(LoadingBarBG, {BackgroundTransparency = 0}, 0.5)
-    
-    Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 1.5, Enum.EasingStyle.Quad)
+    pcall(function()
+        Library:Tween(LoadBox, {BackgroundTransparency = 0}, 0.5)
+        task.wait(0.2)
+        Library:Tween(PastaIcon, {TextTransparency = 0, Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}, 0.6, Enum.EasingStyle.Back)
+        task.wait(0.1)
+        Library:Tween(TitleLoad, {TextTransparency = 0}, 0.5)
+        Library:Tween(SubLoad, {TextTransparency = 0}, 0.5)
+        Library:Tween(LoadingBarBG, {BackgroundTransparency = 0}, 0.5)
+        Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 1.5, Enum.EasingStyle.Quad)
+    end)
 end)
 
 task.spawn(function()
     while LoadBox.Parent do
-        SpawnSnow(LoadBox)
+        pcall(function() SpawnSnow(LoadBox) end)
         task.wait(0.3) 
     end
 end)
 
-task.wait(1.8) 
-Library:Tween(LoadBox, {BackgroundTransparency = 1}, 0.4)
-Library:Tween(PastaIcon, {TextTransparency = 1}, 0.4)
-Library:Tween(TitleLoad, {TextTransparency = 1}, 0.4)
-Library:Tween(SubLoad, {TextTransparency = 1}, 0.4)
-Library:Tween(LoadingBarBG, {BackgroundTransparency = 1}, 0.4)
+task.wait(1.5) 
+pcall(function()
+    Library:Tween(LoadBox, {BackgroundTransparency = 1}, 0.4)
+    Library:Tween(PastaIcon, {TextTransparency = 1}, 0.4)
+    Library:Tween(TitleLoad, {TextTransparency = 1}, 0.4)
+    Library:Tween(SubLoad, {TextTransparency = 1}, 0.4)
+    Library:Tween(LoadingBarBG, {BackgroundTransparency = 1}, 0.4)
+end)
 task.wait(0.4)
 LoadGui:Destroy()
 
@@ -1694,4 +1693,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (FORCE VISIBLE MODE) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (UNIVERSAL PLAYERGUI FIX) Loaded")
