@@ -1,81 +1,56 @@
 --[[
-    Spaghetti Mafia Hub v1 (EMERGENCY FIX - PLAYERGUI FORCED)
+    Spaghetti Mafia Hub v1 (NUCLEAR FIX - FAILSAFE MODE)
     
-    DIAGNOSTIC MODE:
-    1. Sends a Roblox Notification immediately upon inject.
-    2. Forces UI into PlayerGui (bypassing security checks).
-    3. Wraps all sensitive services in pcall() to prevent crashes.
+    DIAGNOSTICS:
+    - If this script does not load, your executor does not support Luau correctly.
+    - Check Console (F9) for "SPAGHETTI LOADED" message.
 ]]
 
---// 1. IMMEDIATE NOTIFICATION CHECK
-pcall(function()
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Spaghetti Hub";
-        Text = "Script Injected Successfully!";
-        Duration = 5;
-    })
-end)
+print("------------------------------------------------")
+print("[LOG] Script Started...")
 
---// 0. INITIALIZATION
-if not game:IsLoaded() then game.Loaded:Wait() end
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
-local CoreGui = game:GetService("CoreGui")
-local Debris = game:GetService("Debris")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage") 
 local Camera = workspace.CurrentCamera
 
---// CRITICAL FIX: SAFE PARENTING
--- We FORCE the GUI into PlayerGui because your executor likely blocks CoreGui
+--// 1. SAFE VIRTUAL USER (CRITICAL FIX FOR CRASHES)
+local VirtualUser = nil
+pcall(function()
+    VirtualUser = game:GetService("VirtualUser")
+    VirtualUser:CaptureController()
+end)
+print("[LOG] VirtualUser Status: " .. tostring(VirtualUser ~= nil))
+
+--// 2. GUI LOCATION FIX
 local GUIParent = LocalPlayer:WaitForChild("PlayerGui")
+print("[LOG] GUI Parent set to: PlayerGui")
 
--- Cleanup old instances
-for _, v in pairs(GUIParent:GetChildren()) do
-    if v.Name == "SpaghettiHub_Rel" or v.Name == "SpaghettiLoading" then
-        v:Destroy()
-    end
-end
+-- Cleanup old GUI
+if GUIParent:FindFirstChild("SpaghettiHub_Rel") then GUIParent.SpaghettiHub_Rel:Destroy() end
+if GUIParent:FindFirstChild("SpaghettiLoading") then GUIParent.SpaghettiLoading:Destroy() end
 
---// AUTO EXECUTE / SERVER HOP SUPPORT
-if (syn and syn.queue_on_teleport) or queue_on_teleport then
-    local teleport_func = syn and syn.queue_on_teleport or queue_on_teleport
-    game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(State)
-        if State == Enum.TeleportState.Started then
-             local source = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Spaghettimafiav1/Spaghettimafiav1/main/main.lua'))()" 
-             pcall(function() teleport_func(source) end)
-        end
-    end)
-end
-
---// 1. WHITELIST SYSTEM (OFFLINE BYPASS)
--- We skip the HTTP check entirely to prevent hanging
+--// 3. BYPASS WHITELIST
 local function CheckWhitelist()
-    return true 
+    print("[LOG] Whitelist Bypassed.")
+    return true
 end
 
 if not CheckWhitelist() then return end
 
---// VARIABLES & SAFETY
-local VirtualUser = game:GetService("VirtualUser")
-pcall(function() 
-    VirtualUser:CaptureController() 
-end)
-
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
-        Dark = Color3.fromRGB(20, 20, 20), -- Soft Black
-        Box = Color3.fromRGB(25, 25, 25), -- Slightly lighter Soft Black
+        Gold = Color3.fromRGB(255, 215, 0),
+        Dark = Color3.fromRGB(20, 20, 20),
+        Box = Color3.fromRGB(25, 25, 25),
         Text = Color3.fromRGB(255, 255, 255),
-        
         IceBlue = Color3.fromRGB(100, 220, 255),
         IceDark = Color3.fromRGB(15, 20, 30),
-        
         ShardBlue = Color3.fromRGB(50, 180, 255),
         CrystalRed = Color3.fromRGB(255, 70, 70),
         Discord = Color3.fromRGB(88, 101, 242)
@@ -94,7 +69,7 @@ local FarmBlacklist = {}
 local SitAnimTrack = nil 
 local isSittingAction = false 
 
---// 3. UI FUNCTIONS
+--// UI HELPER FUNCTIONS
 local Library = {}
 function Library:Tween(obj, props, time, style) 
     pcall(function()
@@ -135,7 +110,6 @@ function Library:MakeDraggable(obj, isMiniPasta)
             dragStart = input.Position 
             startPos = obj.Position 
             isDraggingBool = false
-            
             input.Changed:Connect(function() 
                 if input.UserInputState == Enum.UserInputState.End then 
                     dragging = false 
@@ -209,6 +183,7 @@ local function PlaySit(play)
 end
 
 --// 4. LOADING SCREEN (SAFE MODE)
+print("[LOG] Creating Loading Screen...")
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = GUIParent
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -217,28 +192,28 @@ LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
 LoadBox.BackgroundColor3 = Settings.Theme.Dark
-LoadBox.BackgroundTransparency = 1 
+LoadBox.BackgroundTransparency = 0 
 Library:Corner(LoadBox, 20)
 Library:AddGlow(LoadBox, Settings.Theme.Gold, 2.5) 
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
 PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
 PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
-PastaIcon.TextTransparency = 1 
+PastaIcon.TextTransparency = 0 
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
 TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
-TitleLoad.TextTransparency = 1 
+TitleLoad.TextTransparency = 0 
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1...";
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
-SubLoad.TextTransparency = 1 
+SubLoad.TextTransparency = 0
 
 local LoadingBarBG = Instance.new("Frame", LoadBox)
 LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
@@ -246,7 +221,7 @@ LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
 LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
 LoadingBarBG.BorderSizePixel = 0
 LoadingBarBG.ZIndex = 16
-LoadingBarBG.BackgroundTransparency = 1 
+LoadingBarBG.BackgroundTransparency = 0
 Library:Corner(LoadingBarBG, 5)
 
 local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
@@ -256,39 +231,22 @@ LoadingBarFill.BorderSizePixel = 0
 LoadingBarFill.ZIndex = 17
 Library:Corner(LoadingBarFill, 5)
 
--- Fade In Sequence (Robust)
-task.spawn(function()
-    pcall(function()
-        Library:Tween(LoadBox, {BackgroundTransparency = 0}, 0.5)
-        task.wait(0.2)
-        Library:Tween(PastaIcon, {TextTransparency = 0, Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}, 0.6, Enum.EasingStyle.Back)
-        task.wait(0.1)
-        Library:Tween(TitleLoad, {TextTransparency = 0}, 0.5)
-        Library:Tween(SubLoad, {TextTransparency = 0}, 0.5)
-        Library:Tween(LoadingBarBG, {BackgroundTransparency = 0}, 0.5)
-        Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 1.5, Enum.EasingStyle.Quad)
-    end)
-end)
-
+-- Force UI Update
 task.spawn(function()
     while LoadBox.Parent do
-        pcall(function() SpawnSnow(LoadBox) end)
+        pcall(function() 
+            LoadingBarFill.Size = UDim2.new(1,0,1,0) -- Force Full
+            SpawnSnow(LoadBox) 
+        end)
         task.wait(0.3) 
     end
 end)
 
-task.wait(1.5) 
-pcall(function()
-    Library:Tween(LoadBox, {BackgroundTransparency = 1}, 0.4)
-    Library:Tween(PastaIcon, {TextTransparency = 1}, 0.4)
-    Library:Tween(TitleLoad, {TextTransparency = 1}, 0.4)
-    Library:Tween(SubLoad, {TextTransparency = 1}, 0.4)
-    Library:Tween(LoadingBarBG, {BackgroundTransparency = 1}, 0.4)
-end)
-task.wait(0.4)
+task.wait(2) -- Short wait
 LoadGui:Destroy()
 
 --// 5. MAIN GUI STRUCTURE
+print("[LOG] Creating Main GUI...")
 local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"; ScreenGui.Parent = GUIParent; ScreenGui.ResetOnSpawn = false
 
 local MiniPasta = Instance.new("TextButton", ScreenGui); 
@@ -309,6 +267,7 @@ MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
+MainFrame.Visible = true -- FORCE VISIBLE
 Library:Corner(MainFrame, 16); 
 
 local MainStroke = Instance.new("UIStroke", MainFrame)
@@ -331,8 +290,6 @@ task.spawn(function()
         task.wait(0.01)
     end
 end)
-
-MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)}, 0.6, Enum.EasingStyle.Quart) 
 
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
@@ -596,8 +553,9 @@ task.spawn(function()
     while true do 
         task.wait(30) -- Anti-AFK
         pcall(function() 
-            VirtualUser:CaptureController()
-            VirtualUser:ClickButton2(Vector2.new()) 
+            if VirtualUser then
+                VirtualUser:ClickButton2(Vector2.new()) 
+            end
         end) 
     end 
 end)
