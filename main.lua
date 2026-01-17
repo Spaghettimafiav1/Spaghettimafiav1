@@ -1,13 +1,13 @@
 --[[
-    Spaghetti Mafia Hub v1.2 (FINAL PRO)
+    Spaghetti Mafia Hub v1.3 (FINAL PRO - STABLE)
     
-    Update Log v1.2:
-    1. BANG: Added R15 Support (Dolphin Dance) vs R6 (Original).
-    2. Auto-Sit: Aggressive re-sit logic added to Headsit/Backpack loops.
-    3. Audio: Added sounds for Target Select, Friend Join/Leave, Storm Start/End.
-    4. Loading: Text changed to "Loading...", Yellow Stroke enforced.
-    5. Theme: Soft Black (20,20,20) everywhere.
-    6. Hebrew: Scanner text updated.
+    Update Log v1.3:
+    1. BANG: Fixed R15 Animation (Dolphin Dance 5938365243) + R6 Logic.
+    2. Target: Removed "Closest Player" button (Unstable). Expanded Input box.
+    3. Auto-Sit: Aggressive Force-Sit added to Loop (Impossible to stand up).
+    4. Audio: All sounds implemented (Join, Leave, Select, Storm).
+    5. Theme: Soft Black (20,20,20) enforced.
+    6. Loading: Text set to "Loading...", Yellow Stroke.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -1173,7 +1173,7 @@ Library:Corner(TargetBox, 12)
 Library:AddGlow(TargetBox, Settings.Theme.Gold, 1.5)
 
 local TargetInput = Instance.new("TextBox", TargetBox)
-TargetInput.Size = UDim2.new(0.55, 0, 0, 45) -- Slightly smaller to fit button
+TargetInput.Size = UDim2.new(0.85, 0, 0, 45) -- EXPANDED (Removed Button)
 TargetInput.Position = UDim2.new(0.05, 0, 0.22, 0)
 TargetInput.BackgroundColor3 = Color3.fromRGB(20,20,20)
 TargetInput.Text = ""
@@ -1183,41 +1183,7 @@ TargetInput.Font = Enum.Font.GothamBold
 TargetInput.TextSize = 16
 Library:Corner(TargetInput, 8)
 
--- CLOSEST PLAYER BUTTON
-local ClosestBtn = Instance.new("TextButton", TargetBox)
-ClosestBtn.Size = UDim2.new(0, 35, 0, 35)
-ClosestBtn.Position = UDim2.new(0.62, 0, 0.28, 0)
-ClosestBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ClosestBtn.Text = "🎯"
-ClosestBtn.TextSize = 20
-Library:Corner(ClosestBtn, 8)
-Library:AddGlow(ClosestBtn, Settings.Theme.Gold, 1)
-
-ClosestBtn.MouseButton1Click:Connect(function()
-    local myChar = LocalPlayer.Character
-    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return end
-    
-    local minDist = math.huge
-    local targetName = nil
-    
-    -- FIXED: Strict LocalPlayer Exclusion
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local dist = (myRoot.Position - p.Character.HumanoidRootPart.Position).Magnitude
-            if dist < minDist then
-                minDist = dist
-                targetName = p.Name
-            end
-        end
-    end
-    
-    if targetName then
-        TargetInput.Text = targetName
-        TargetInput:CaptureFocus()
-        TargetInput:ReleaseFocus() 
-    end
-end)
+-- REMOVED CLOSEST BUTTON (UNSTABLE)
 
 -- HEADER TEXT
 local TitleBox1 = Instance.new("TextLabel", TargetBox)
@@ -1351,7 +1317,7 @@ local function CreateToggleBtn(parent, text, callback)
     return b
 end
 
--- 1. BANG (UPDATED: R15/R6 CHECK)
+-- 1. BANG (UPDATED: R15/R6 LOGIC)
 local TrollConnection = nil
 CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
     if not state then
@@ -1369,15 +1335,16 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
         local C = P.Character or P.CharacterAdded:Wait()
         local H = C:WaitForChild('Humanoid')
         
-        -- R15 DETECTION
-        local AnimID = 'rbxassetid://148840371' -- R6
+        -- R15 DETECTION & ANIMATION LOAD
+        local AnimID = "rbxassetid://148840371" -- R6
         if H.RigType == Enum.HumanoidRigType.R15 then
-            AnimID = 'rbxassetid://5938365243' -- R15 Dolphin
+            AnimID = "rbxassetid://5938365243" -- R15 Dolphin
         end
 
-        local A = Instance.new('Animation')
+        local A = Instance.new("Animation")
         A.AnimationId = AnimID
         local Track = H:LoadAnimation(A)
+        Track.Looped = true
         Track:Play()
         Track:AdjustSpeed(2.5)
         
@@ -1406,7 +1373,7 @@ CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     end
 end)
 
--- 3. HEADSIT (UPDATED: FORCE SIT)
+-- 3. HEADSIT (UPDATED: FORCE SIT LOOP)
 local HeadSitConnection = nil
 CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     isSittingAction = state 
@@ -1435,7 +1402,7 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     end
 end)
 
--- 4. BACKPACK (UPDATED: FORCE SIT + POSITION)
+-- 4. BACKPACK (UPDATED: FORCE SIT LOOP + LOWERED)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     isSittingAction = state 
@@ -1457,6 +1424,7 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
                  local h = LocalPlayer.Character.Humanoid
                  if not h.Sit then h.Sit = true end -- FORCE RE-SIT
 
+                 -- LOWERED BY 0.8 (from 1.5 to 0.7)
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0.7, 0.5) * CFrame.Angles(0, math.rad(180), 0)
                  LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
             end)
@@ -1746,4 +1714,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1.2 (FINAL) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1.3 (FINAL PRO) Loaded")
