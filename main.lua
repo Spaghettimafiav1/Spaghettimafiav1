@@ -1,11 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v1.5 (VISUAL POLISH EDITION)
+    Spaghetti Mafia Hub v1.5 (ULTIMATE CFRAME EDITION)
     
-    Changes:
-    - Font: GothamBold everywhere.
-    - Theme: Modern Dark/Gold Palette.
-    - UI: Added UIStroke, UICorner, and spacing fixes to existing elements.
-    - Logic: 100% Original Code Preserved.
+    Update Log v1.5:
+    1. R15 BANG: Now uses CFrame Math (Sine Wave) instead of Animation IDs. 
+       (Bypasses Roblox Permissions 100%).
+    2. Theme: Lightened to 25,25,25 for better Yellow contrast.
+    3. UI: 'Closest Player' removed, Input box expanded.
+    4. Logic: Auto-Sit checks every Heartbeat to prevent standing.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -63,16 +64,17 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 200, 50), -- Warmer Gold
-        Dark = Color3.fromRGB(20, 20, 25),   -- Modern Deep Blue/Black
-        Box = Color3.fromRGB(35, 35, 40),    -- Soft Grey/Blue for elements
+        Gold = Color3.fromRGB(255, 215, 0), 
+        -- FIXED: Slightly Lighter Black for Contrast
+        Dark = Color3.fromRGB(25, 25, 25), 
+        Box = Color3.fromRGB(30, 30, 30), 
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
-        IceDark = Color3.fromRGB(10, 15, 25),
+        IceDark = Color3.fromRGB(5, 10, 20),
         
         ShardBlue = Color3.fromRGB(50, 180, 255),
-        CrystalRed = Color3.fromRGB(255, 80, 80),
+        CrystalRed = Color3.fromRGB(255, 70, 70),
         Discord = Color3.fromRGB(88, 101, 242)
     },
     Keys = { Menu = Enum.KeyCode.RightControl, Fly = Enum.KeyCode.E, Speed = Enum.KeyCode.F },
@@ -115,7 +117,7 @@ function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenIn
 function Library:AddGlow(obj, color, thickness) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = thickness or 1
+    s.Thickness = thickness or 1.5 
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
@@ -130,16 +132,7 @@ function Library:AddGlow(obj, color, thickness)
     return s 
 end
 
-function Library:AddStroke(obj, color, thickness, transp)
-    local s = Instance.new("UIStroke", obj)
-    s.Color = color or Settings.Theme.Gold
-    s.Thickness = thickness or 1
-    s.Transparency = transp or 0.8
-    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    return s
-end
-
-function Library:Corner(obj, r) local c = Instance.new("UICorner", obj); c.CornerRadius = UDim.new(0, r or 8); return c end
+function Library:Corner(obj, r) local c = Instance.new("UICorner", obj); c.CornerRadius = UDim.new(0, r or 10); return c end
 function Library:Gradient(obj, c1, c2, rot) local g = Instance.new("UIGradient", obj); g.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2)}; g.Rotation = rot or 45; return g end
 
 function Library:MakeDraggable(obj, isMiniPasta)
@@ -227,18 +220,18 @@ end
 --// 4. LOADING SCREEN
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
-LoadBox.Size = UDim2.new(0, 260, 0, 180) -- Adjusted size
+LoadBox.Size = UDim2.new(0, 240, 0, 160)
 LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
 LoadBox.BackgroundColor3 = Settings.Theme.Dark 
 LoadBox.BackgroundTransparency = 1 
-Library:Corner(LoadBox, 16) -- Polished Corner
+Library:Corner(LoadBox, 20)
 
 local LoadStroke = Instance.new("UIStroke", LoadBox)
 LoadStroke.Color = Settings.Theme.Gold
-LoadStroke.Thickness = 1.5 -- Thinner, cleaner
+LoadStroke.Thickness = 2.5
 LoadStroke.Transparency = 1 
 
 TweenService:Create(LoadBox, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
@@ -254,7 +247,7 @@ TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.Easi
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
 TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
-TitleLoad.Font = Enum.Font.GothamBold; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 20
+TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
 TitleLoad.TextTransparency = 1
 TweenService:Create(TitleLoad, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.2), {TextTransparency = 0}):Play()
@@ -263,19 +256,19 @@ local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; 
 SubLoad.Text = "Loading..."; 
-SubLoad.Font = Enum.Font.GothamBold; SubLoad.TextColor3 = Color3.new(0.8,0.8,0.8); SubLoad.TextSize = 14
+SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
 SubLoad.TextTransparency = 1
 TweenService:Create(SubLoad, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.4), {TextTransparency = 0}):Play()
 
 local LoadingBarBG = Instance.new("Frame", LoadBox)
-LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 6)
+LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
 LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
-LoadingBarBG.BackgroundColor3 = Color3.fromRGB(50,50,55)
+LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
 LoadingBarBG.BorderSizePixel = 0
 LoadingBarBG.ZIndex = 16
 LoadingBarBG.BackgroundTransparency = 1
-Library:Corner(LoadingBarBG, 6)
+Library:Corner(LoadingBarBG, 5)
 TweenService:Create(LoadingBarBG, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {BackgroundTransparency = 0}):Play()
 
 local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
@@ -283,7 +276,7 @@ LoadingBarFill.Size = UDim2.new(0, 0, 1, 0)
 LoadingBarFill.BackgroundColor3 = Settings.Theme.Gold
 LoadingBarFill.BorderSizePixel = 0
 LoadingBarFill.ZIndex = 17
-Library:Corner(LoadingBarFill, 6)
+Library:Corner(LoadingBarFill, 5)
 Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 2.5, Enum.EasingStyle.Quad)
 
 task.spawn(function()
@@ -328,33 +321,32 @@ local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"
 local MiniPasta = Instance.new("TextButton", ScreenGui); 
 MiniPasta.Size = UDim2.new(0, 60, 0, 60); 
 MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); 
-MiniPasta.BackgroundColor3 = Settings.Theme.Dark; -- Matches main theme
+MiniPasta.BackgroundColor3 = Settings.Theme.Box; 
 MiniPasta.Text = "🍝"; 
 MiniPasta.TextSize = 35; 
 MiniPasta.Visible = false; 
 Library:Corner(MiniPasta, 30); 
-Library:AddGlow(MiniPasta, Settings.Theme.Gold, 1); -- Thinner glow
+Library:AddGlow(MiniPasta, Settings.Theme.Gold, 1.5); 
 local CheckDrag = Library:MakeDraggable(MiniPasta, true) 
 
 local MainFrame = Instance.new("Frame", ScreenGui); 
-local NEW_WIDTH = 580 -- Slightly wider
+local NEW_WIDTH = 550
 local NEW_HEIGHT = 420 
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
 MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
 MainFrame.ClipsDescendants = true; 
-Library:Corner(MainFrame, 12); 
+Library:Corner(MainFrame, 16); 
 
 local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Thickness = 1
+MainStroke.Thickness = 1.5 
 MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Color = Color3.fromRGB(255, 255, 255)
-MainStroke.Transparency = 0.8 -- Subtle stroke
 
 local StrokeGradient = Instance.new("UIGradient", MainStroke)
 StrokeGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Settings.Theme.Gold),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 250, 200)), 
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 250, 150)), 
     ColorSequenceKeypoint.new(1, Settings.Theme.Gold)
 }
 StrokeGradient.Rotation = 45
@@ -372,7 +364,7 @@ MainFrame.Size = UDim2.new(0,0,0,0); Library:Tween(MainFrame, {Size = UDim2.new(
 local MainScale = Instance.new("UIScale", MainFrame); MainScale.Scale = 1
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1,0,0,60); TopBar.BackgroundTransparency = 1; TopBar.BorderSizePixel = 0; Library:MakeDraggable(MainFrame)
 
-local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v1"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBold; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
+local MainTitle = Instance.new("TextLabel", TopBar); MainTitle.Size = UDim2.new(0,300,0,30); MainTitle.Position = UDim2.new(0,25,0,10); MainTitle.BackgroundTransparency = 1; MainTitle.Text = "SPAGHETTI <font color='#FFD700'>MAFIA</font> HUB v1"; MainTitle.RichText = true; MainTitle.Font = Enum.Font.GothamBlack; MainTitle.TextSize = 22; MainTitle.TextColor3 = Color3.new(1,1,1); MainTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local MainSub = Instance.new("TextLabel", TopBar)
 MainSub.Size = UDim2.new(0,300,0,20)
@@ -384,7 +376,7 @@ MainSub.TextSize = 13
 MainSub.TextColor3 = Settings.Theme.IceBlue
 MainSub.TextXAlignment = Enum.TextXAlignment.Left
 
-local CloseBtn = Instance.new("TextButton", TopBar); CloseBtn.Size = UDim2.new(0, 32, 0, 32); CloseBtn.Position = UDim2.new(1, -45, 0, 15); CloseBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 40); CloseBtn.Text = "X"; CloseBtn.TextColor3 = Color3.fromRGB(200, 50, 50); CloseBtn.Font=Enum.Font.GothamBold; CloseBtn.TextSize=14; Library:Corner(CloseBtn, 8); Library:AddStroke(CloseBtn, Color3.fromRGB(200, 50, 50), 1, 0.7)
+local CloseBtn = Instance.new("TextButton", TopBar); CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -45, 0, 15); CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); CloseBtn.Text = "_"; CloseBtn.TextColor3 = Settings.Theme.Gold; CloseBtn.Font=Enum.Font.GothamBold; CloseBtn.TextSize=18; Library:Corner(CloseBtn, 8); Library:AddGlow(CloseBtn, Settings.Theme.Gold, 1.5)
 CloseBtn.MouseButton1Click:Connect(function() MainFrame.Visible = false; MiniPasta.Visible = true; Library:Tween(MiniPasta, {Size = UDim2.new(0, 60, 0, 60)}, 0.4, Enum.EasingStyle.Back) end)
 
 MiniPasta.MouseButton1Click:Connect(function() 
@@ -403,24 +395,24 @@ task.spawn(function()
         local wasStorming = false
         local TimerWidget = Instance.new("Frame", TopBar)
         TimerWidget.Name = "StormTimerWidgetPro"
-        TimerWidget.Size = UDim2.new(0, 135, 0, 36)
+        TimerWidget.Size = UDim2.new(0, 135, 0, 40)
         TimerWidget.AnchorPoint = Vector2.new(1, 0.5)
         TimerWidget.Position = UDim2.new(1, -55, 0.5, 0)
-        TimerWidget.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+        TimerWidget.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
         TimerWidget.BorderSizePixel = 0
-        Library:Corner(TimerWidget, 8)
+        Library:Corner(TimerWidget, 10)
         
         local TimerGradient = Instance.new("UIGradient", TimerWidget)
         TimerGradient.Color = ColorSequence.new{
             ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 40)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 20))
         }
         TimerGradient.Rotation = 90
 
         local TimerStroke = Instance.new("UIStroke", TimerWidget)
         TimerStroke.Color = Settings.Theme.IceBlue
-        TimerStroke.Thickness = 1
-        TimerStroke.Transparency = 0.7
+        TimerStroke.Thickness = 1.5 
+        TimerStroke.Transparency = 0.5
         TimerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
         local T_Header = Instance.new("TextLabel", TimerWidget)
@@ -439,7 +431,7 @@ task.spawn(function()
         T_Time.BackgroundTransparency = 1
         T_Time.Text = "00:00"
         T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
-        T_Time.Font = Enum.Font.GothamBold -- Changed to GothamBold
+        T_Time.Font = Enum.Font.GothamBlack
         T_Time.TextSize = 18
         T_Time.ZIndex = 2
 
@@ -478,8 +470,8 @@ task.spawn(function()
                     T_Time.Text = string.format("%02d:%02d", mins, secs)
                     T_Time.TextSize = 18
                     T_Time.TextColor3 = Color3.fromRGB(255, 255, 255)
-                    TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.IceBlue, Transparency = 0.7}):Play()
-                    TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(25, 25, 30)}):Play()
+                    TweenService:Create(TimerStroke, TweenInfo.new(0.5), {Color = Settings.Theme.IceBlue, Transparency = 0.6}):Play()
+                    TweenService:Create(TimerWidget, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
                 end
             end
         end
@@ -493,7 +485,7 @@ end)
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Size = UDim2.new(0, 150, 1, -65)
 Sidebar.Position = UDim2.new(0,0,0,65)
-Sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Sidebar.BackgroundColor3 = Settings.Theme.Box
 Sidebar.BorderSizePixel = 0 
 Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
@@ -504,19 +496,19 @@ UserProfile.Name = "UserProfileContainer"
 UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
-UserProfile.BackgroundColor3 = Color3.fromRGB(30, 30, 35) -- Slightly lighter for contrast
+UserProfile.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- Darker
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
-Library:Corner(UserProfile, 8)
+Library:Corner(UserProfile, 10)
 
 local ProfileStroke = Instance.new("UIStroke", UserProfile)
 ProfileStroke.Color = Settings.Theme.Gold
-ProfileStroke.Thickness = 1
+ProfileStroke.Thickness = 1.5
 ProfileStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-ProfileStroke.Transparency = 0.7
+ProfileStroke.Transparency = 0.3
 
 local AvatarFrame = Instance.new("Frame", UserProfile)
-AvatarFrame.Size = UDim2.new(0, 50, 0, 50)
+AvatarFrame.Size = UDim2.new(0, 55, 0, 55)
 AvatarFrame.Position = UDim2.new(0, 10, 0.5, 0)
 AvatarFrame.AnchorPoint = Vector2.new(0, 0.5)
 AvatarFrame.BackgroundColor3 = Settings.Theme.Gold
@@ -536,22 +528,22 @@ local AvatarImgCorner = Instance.new("UICorner", AvatarImg); AvatarImgCorner.Cor
 local WelcomeText = Instance.new("TextLabel", UserProfile)
 WelcomeText.Text = "ברוך הבא," 
 WelcomeText.Size = UDim2.new(0, 80, 0, 15)
-WelcomeText.Position = UDim2.new(0, 68, 0, 18)
+WelcomeText.Position = UDim2.new(0, 75, 0, 18)
 WelcomeText.BackgroundTransparency = 1
 WelcomeText.TextColor3 = Color3.fromRGB(220, 220, 220)
 WelcomeText.Font = Enum.Font.GothamBold 
-WelcomeText.TextSize = 12
+WelcomeText.TextSize = 13
 WelcomeText.TextXAlignment = Enum.TextXAlignment.Left
 WelcomeText.ZIndex = 11
 
 local UsernameText = Instance.new("TextLabel", UserProfile)
 UsernameText.Text = LocalPlayer.Name
 UsernameText.Size = UDim2.new(0, 90, 0, 20)
-UsernameText.Position = UDim2.new(0, 68, 0, 36)
+UsernameText.Position = UDim2.new(0, 75, 0, 36)
 UsernameText.BackgroundTransparency = 1
 UsernameText.TextColor3 = Settings.Theme.Gold
-UsernameText.Font = Enum.Font.GothamBold 
-UsernameText.TextSize = 14 
+UsernameText.Font = Enum.Font.GothamBlack 
+UsernameText.TextSize = 16 
 UsernameText.TextXAlignment = Enum.TextXAlignment.Left
 UsernameText.TextTruncate = Enum.TextTruncate.AtEnd
 UsernameText.ZIndex = 11
@@ -587,7 +579,7 @@ local function CreateTab(name, heb, order, isWinter)
     btn.RichText = true
     btn.TextColor3 = isWinter and Color3.fromRGB(150, 180, 200) or Color3.fromRGB(150,150,150)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 13
+    btn.TextSize = 14
     btn.TextXAlignment = Enum.TextXAlignment.Left
     btn.ZIndex = 3
     btn.LayoutOrder = order
@@ -609,7 +601,7 @@ local function CreateTab(name, heb, order, isWinter)
         for _,v in pairs(Container:GetChildren()) do v.Visible = false end
         
         local activeColor = isWinter and Settings.Theme.IceBlue or Settings.Theme.Gold
-        local activeBG = isWinter and Settings.Theme.IceDark or Color3.fromRGB(35, 35, 40)
+        local activeBG = isWinter and Settings.Theme.IceDark or Color3.fromRGB(30, 30, 35)
         
         Library:Tween(btn, {BackgroundColor3 = activeBG, TextColor3 = activeColor})
         page.Visible = true
@@ -618,7 +610,7 @@ local function CreateTab(name, heb, order, isWinter)
     if order == 1 then 
         currentTab = btn
         local activeColor = isWinter and Settings.Theme.IceBlue or Settings.Theme.Gold
-        local activeBG = isWinter and Settings.Theme.IceDark or Color3.fromRGB(35, 35, 40)
+        local activeBG = isWinter and Settings.Theme.IceDark or Color3.fromRGB(30, 30, 35)
         Library:Tween(btn, {BackgroundColor3 = activeBG, TextColor3 = activeColor})
         page.Visible = true 
     end
@@ -829,11 +821,11 @@ local EventPad = Instance.new("UIPadding", Tab_Farm_Scroll); EventPad.PaddingTop
 -- Farm Button
 local FarmBtn = Instance.new("TextButton", Tab_Farm_Scroll)
 FarmBtn.Size = UDim2.new(0.95, 0, 0, 65)
-FarmBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45) -- Polished BG
+FarmBtn.BackgroundColor3 = Color3.fromRGB(30, 50, 70)
 FarmBtn.Text = ""
 FarmBtn.LayoutOrder = 1
 Library:Corner(FarmBtn, 12)
-Library:AddStroke(FarmBtn, Settings.Theme.IceBlue, 1, 0.7) -- Added Stroke
+Library:AddGlow(FarmBtn, Settings.Theme.IceBlue, 1.5)
 
 local FarmTitle = Instance.new("TextLabel", FarmBtn)
 FarmTitle.Size = UDim2.new(1, -60, 1, 0)
@@ -841,7 +833,7 @@ FarmTitle.Position = UDim2.new(0, 20, 0, 0)
 FarmTitle.Text = "Toggle Auto Farm ❄️\n<font size='13' color='#87CEFA'>הפעלת חווה אוטומטית</font>"
 FarmTitle.RichText = true
 FarmTitle.TextColor3 = Color3.new(1,1,1)
-FarmTitle.Font = Enum.Font.GothamBold
+FarmTitle.Font = Enum.Font.GothamBlack
 FarmTitle.TextSize = 17
 FarmTitle.TextXAlignment = Enum.TextXAlignment.Left
 FarmTitle.BackgroundTransparency = 1
@@ -850,7 +842,7 @@ FarmTitle.ZIndex = 6
 local FarmSwitch = Instance.new("Frame", FarmBtn)
 FarmSwitch.Size = UDim2.new(0, 45, 0, 26)
 FarmSwitch.Position = UDim2.new(1, -65, 0.5, -13)
-FarmSwitch.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+FarmSwitch.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
 Library:Corner(FarmSwitch, 20)
 local FarmDot = Instance.new("Frame", FarmSwitch)
 FarmDot.Size = UDim2.new(0, 22, 0, 22)
@@ -865,7 +857,7 @@ FarmBtn.MouseButton1Click:Connect(function()
         Library:Tween(FarmSwitch,{BackgroundColor3=Settings.Theme.IceBlue})
         Library:Tween(FarmDot,{Position=UDim2.new(1,-24,0.5,-11)}) 
     else 
-        Library:Tween(FarmSwitch,{BackgroundColor3=Color3.fromRGB(50,50,60)}) 
+        Library:Tween(FarmSwitch,{BackgroundColor3=Color3.fromRGB(40,40,60)}) 
         Library:Tween(FarmDot,{Position=UDim2.new(0,2,0.5,-11)}) 
     end 
 end)
@@ -887,7 +879,7 @@ local BalanceLabel = Instance.new("TextLabel", Tab_Farm_Scroll)
 BalanceLabel.Size = UDim2.new(0.95,0,0,20)
 BalanceLabel.Text = "Total Balance (סה''כ בתיק) 💰"
 BalanceLabel.TextColor3 = Settings.Theme.Gold
-BalanceLabel.Font=Enum.Font.GothamBold
+BalanceLabel.Font=Enum.Font.GothamBlack
 BalanceLabel.TextSize=13
 BalanceLabel.BackgroundTransparency=1
 BalanceLabel.LayoutOrder = 2
@@ -902,13 +894,13 @@ BalanceGrid.CellSize = UDim2.new(0.48, 0, 1, 0)
 BalanceGrid.CellPadding = UDim2.new(0.04, 0, 0, 0)
 BalanceGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local TotBlues = Instance.new("Frame", BalanceContainer); TotBlues.BackgroundColor3 = Color3.fromRGB(20, 30, 45); Library:Corner(TotBlues, 12); Library:AddStroke(TotBlues, Settings.Theme.ShardBlue, 1, 0.7)
+local TotBlues = Instance.new("Frame", BalanceContainer); TotBlues.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(TotBlues, 12); local StrokeTotalB = Library:AddGlow(TotBlues, Settings.Theme.ShardBlue, 1.5)
 local T_TitleB = Instance.new("TextLabel", TotBlues); T_TitleB.Size = UDim2.new(1,0,0.3,0); T_TitleB.Position=UDim2.new(0,0,0.15,0); T_TitleB.BackgroundTransparency=1; T_TitleB.Text="כחולים 🧊"; T_TitleB.TextColor3=Settings.Theme.ShardBlue; T_TitleB.Font=Enum.Font.GothamBold; T_TitleB.TextSize=13; T_TitleB.ZIndex=6
-local T_ValB = Instance.new("TextLabel", TotBlues); T_ValB.Size = UDim2.new(1,0,0.5,0); T_ValB.Position=UDim2.new(0,0,0.45,0); T_ValB.BackgroundTransparency=1; T_ValB.Text="..."; T_ValB.TextColor3=Color3.new(1,1,1); T_ValB.Font=Enum.Font.GothamBold; T_ValB.TextSize=20; T_ValB.ZIndex=6
+local T_ValB = Instance.new("TextLabel", TotBlues); T_ValB.Size = UDim2.new(1,0,0.5,0); T_ValB.Position=UDim2.new(0,0,0.45,0); T_ValB.BackgroundTransparency=1; T_ValB.Text="..."; T_ValB.TextColor3=Color3.new(1,1,1); T_ValB.Font=Enum.Font.GothamBlack; T_ValB.TextSize=20; T_ValB.ZIndex=6
 
-local TotReds = Instance.new("Frame", BalanceContainer); TotReds.BackgroundColor3 = Color3.fromRGB(40, 20, 20); Library:Corner(TotReds, 12); Library:AddStroke(TotReds, Settings.Theme.CrystalRed, 1, 0.7)
+local TotReds = Instance.new("Frame", BalanceContainer); TotReds.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(TotReds, 12); local StrokeTotalR = Library:AddGlow(TotReds, Settings.Theme.CrystalRed, 1.5)
 local T_TitleR = Instance.new("TextLabel", TotReds); T_TitleR.Size = UDim2.new(1,0,0.3,0); T_TitleR.Position=UDim2.new(0,0,0.15,0); T_TitleR.BackgroundTransparency=1; T_TitleR.Text="אדומים 💎"; T_TitleR.TextColor3=Settings.Theme.CrystalRed; T_TitleR.Font=Enum.Font.GothamBold; T_TitleR.TextSize=13; T_TitleR.ZIndex=6
-local T_ValR = Instance.new("TextLabel", TotReds); T_ValR.Size = UDim2.new(1,0,0.5,0); T_ValR.Position=UDim2.new(0,0,0.45,0); T_ValR.BackgroundTransparency=1; T_ValR.Text="..."; T_ValR.TextColor3=Color3.new(1,1,1); T_ValR.Font=Enum.Font.GothamBold; T_ValR.TextSize=20; T_ValR.ZIndex=6
+local T_ValR = Instance.new("TextLabel", TotReds); T_ValR.Size = UDim2.new(1,0,0.5,0); T_ValR.Position=UDim2.new(0,0,0.45,0); T_ValR.BackgroundTransparency=1; T_ValR.Text="..."; T_ValR.TextColor3=Color3.new(1,1,1); T_ValR.Font=Enum.Font.GothamBlack; T_ValR.TextSize=20; T_ValR.ZIndex=6
 
 -- Session Stats
 local StatsLabel = Instance.new("TextLabel", Tab_Farm_Scroll)
@@ -930,13 +922,13 @@ StatsGrid.CellSize = UDim2.new(0.48, 0, 1, 0)
 StatsGrid.CellPadding = UDim2.new(0.04, 0, 0, 0)
 StatsGrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local BoxBlue = Instance.new("Frame", StatsContainer); BoxBlue.BackgroundColor3 = Color3.fromRGB(20, 30, 45); Library:Corner(BoxBlue, 12); Library:AddStroke(BoxBlue, Settings.Theme.IceBlue, 1, 0.7)
+local BoxBlue = Instance.new("Frame", StatsContainer); BoxBlue.BackgroundColor3 = Color3.fromRGB(15, 30, 50); Library:Corner(BoxBlue, 12); local StrokeBlue = Library:AddGlow(BoxBlue, Settings.Theme.IceBlue, 1.5)
 local TitleBlue = Instance.new("TextLabel", BoxBlue); TitleBlue.Size = UDim2.new(1, 0, 0.3, 0); TitleBlue.Position = UDim2.new(0,0,0.15,0); TitleBlue.BackgroundTransparency = 1; TitleBlue.Text = "כחולים (Session)"; TitleBlue.TextColor3 = Settings.Theme.IceBlue; TitleBlue.Font = Enum.Font.GothamBold; TitleBlue.TextSize = 12; TitleBlue.ZIndex=6
-local ValBlue = Instance.new("TextLabel", BoxBlue); ValBlue.Size = UDim2.new(1, 0, 0.5, 0); ValBlue.Position = UDim2.new(0,0,0.45,0); ValBlue.BackgroundTransparency = 1; ValBlue.Text = "0"; ValBlue.TextColor3 = Color3.new(1, 1, 1); ValBlue.Font = Enum.Font.GothamBold; ValBlue.TextSize = 20; ValBlue.ZIndex=6
+local ValBlue = Instance.new("TextLabel", BoxBlue); ValBlue.Size = UDim2.new(1, 0, 0.5, 0); ValBlue.Position = UDim2.new(0,0,0.45,0); ValBlue.BackgroundTransparency = 1; ValBlue.Text = "0"; ValBlue.TextColor3 = Color3.new(1, 1, 1); ValBlue.Font = Enum.Font.GothamBlack; ValBlue.TextSize = 20; ValBlue.ZIndex=6
 
-local BoxRed = Instance.new("Frame", StatsContainer); BoxRed.BackgroundColor3 = Color3.fromRGB(40, 20, 20); Library:Corner(BoxRed, 12); Library:AddStroke(BoxRed, Settings.Theme.CrystalRed, 1, 0.7)
+local BoxRed = Instance.new("Frame", StatsContainer); BoxRed.BackgroundColor3 = Color3.fromRGB(30, 15, 15); Library:Corner(BoxRed, 12); local StrokeRed = Library:AddGlow(BoxRed, Settings.Theme.CrystalRed, 1.5)
 local TitleRed = Instance.new("TextLabel", BoxRed); TitleRed.Size = UDim2.new(1, 0, 0.3, 0); TitleRed.Position = UDim2.new(0,0,0.15,0); TitleRed.BackgroundTransparency = 1; TitleRed.Text = "אדומים (Session)"; TitleRed.TextColor3 = Settings.Theme.CrystalRed; TitleRed.Font = Enum.Font.GothamBold; TitleRed.TextSize = 12; TitleRed.ZIndex=6
-local ValRed = Instance.new("TextLabel", BoxRed); ValRed.Size = UDim2.new(1, 0, 0.5, 0); ValRed.Position = UDim2.new(0,0,0.45,0); ValRed.BackgroundTransparency = 1; ValRed.Text = "0"; ValRed.TextColor3 = Color3.new(1, 1, 1); ValRed.Font = Enum.Font.GothamBold; ValRed.TextSize = 20; ValRed.ZIndex=6
+local ValRed = Instance.new("TextLabel", BoxRed); ValRed.Size = UDim2.new(1, 0, 0.5, 0); ValRed.Position = UDim2.new(0,0,0.45,0); ValRed.BackgroundTransparency = 1; ValRed.Text = "0"; ValRed.TextColor3 = Color3.new(1, 1, 1); ValRed.Font = Enum.Font.GothamBlack; ValRed.TextSize = 20; ValRed.ZIndex=6
 
 local AFKStatus = Instance.new("TextLabel", Tab_Farm_Scroll)
 AFKStatus.Size = UDim2.new(0.95, 0, 0, 20)
@@ -944,7 +936,7 @@ AFKStatus.BackgroundTransparency = 1
 AFKStatus.Text = "Anti-AFK: <font color='#00FF00'>Active (Jumper)</font> ⚡"
 AFKStatus.RichText = true
 AFKStatus.TextColor3 = Color3.new(1, 1, 1)
-AFKStatus.Font = Enum.Font.GothamBold
+AFKStatus.Font = Enum.Font.GothamMedium
 AFKStatus.TextSize = 11
 AFKStatus.LayoutOrder = 6
 AFKStatus.ZIndex = 6
@@ -972,8 +964,13 @@ local function CreateSlider(parent, title, heb, min, max, default, callback, tog
     f.Size = UDim2.new(0.95,0,0,65)
     f.BackgroundColor3 = Settings.Theme.Box
     Library:Corner(f, 12)
-    Library:AddStroke(f, Settings.Theme.Gold, 1, 0.7) -- Added Stroke
     
+    local stroke = Instance.new("UIStroke", f)
+    stroke.Color = Settings.Theme.Gold
+    stroke.Thickness = 1.2
+    stroke.Transparency = 0.6
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
     local l = Instance.new("TextLabel", f)
     l.Size = UDim2.new(0.7,0,0,25)
     l.Position = UDim2.new(0,10,0,6)
@@ -1073,7 +1070,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
     t.Position = UDim2.new(0,0,id==3 and 0.1 or 0.15,0)
     t.Text=title
     t.TextColor3=Color3.fromRGB(180,180,180)
-    t.Font=Enum.Font.GothamBold
+    t.Font=Enum.Font.Gotham
     t.TextSize=12
     t.BackgroundTransparency=1
     
@@ -1082,7 +1079,7 @@ local function CreateSquareBind(parent, id, title, heb, default, callback)
     h.Position = UDim2.new(0,0,0.35,0)
     h.Text=heb
     h.TextColor3=Color3.fromRGB(120,120,120)
-    h.Font=Enum.Font.GothamBold
+    h.Font=Enum.Font.Gotham
     h.TextSize=10
     h.BackgroundTransparency=1
     
@@ -1166,19 +1163,18 @@ local TargetBox = Instance.new("Frame", TargetScroll)
 TargetBox.Size = UDim2.new(0.95, 0, 0, 85)
 TargetBox.BackgroundColor3 = Settings.Theme.Box 
 Library:Corner(TargetBox, 12)
-Library:AddStroke(TargetBox, Settings.Theme.Gold, 1.2, 0.7) -- Stroke
+Library:AddGlow(TargetBox, Settings.Theme.Gold, 1.5)
 
 local TargetInput = Instance.new("TextBox", TargetBox)
 TargetInput.Size = UDim2.new(0.9, 0, 0, 45) -- EXPANDED TO FULL WIDTH
 TargetInput.Position = UDim2.new(0.05, 0, 0.22, 0)
-TargetInput.BackgroundColor3 = Color3.fromRGB(30, 30, 35) -- Slightly lighter
+TargetInput.BackgroundColor3 = Color3.fromRGB(20,20,20)
 TargetInput.Text = ""
 TargetInput.PlaceholderText = "Player Name..."
 TargetInput.TextColor3 = Color3.new(1,1,1)
 TargetInput.Font = Enum.Font.GothamBold
 TargetInput.TextSize = 16
 Library:Corner(TargetInput, 8)
-Library:AddStroke(TargetInput, Settings.Theme.Gold, 1, 0.7) -- Stroke for input
 
 -- HEADER TEXT
 local TitleBox1 = Instance.new("TextLabel", TargetBox)
@@ -1266,7 +1262,7 @@ ActionBox.Size = UDim2.new(0.95, 0, 0, 160)
 ActionBox.BackgroundColor3 = Settings.Theme.Box 
 ActionBox.ClipsDescendants = true 
 Library:Corner(ActionBox, 12)
-Library:AddStroke(ActionBox, Settings.Theme.Gold, 1.2, 0.7) -- Stroke
+Library:AddGlow(ActionBox, Settings.Theme.Gold, 1.5)
 
 local TitleBox2 = Instance.new("TextLabel", ActionBox)
 TitleBox2.Size = UDim2.new(0, 100, 0, 15)
@@ -1296,7 +1292,6 @@ local function CreateToggleBtn(parent, text, callback)
     b.Font = Enum.Font.GothamBold
     b.TextSize = 11
     Library:Corner(b, 8)
-    local s = Library:AddStroke(b, Settings.Theme.Gold, 1, 0.8) -- Stroke
     
     local state = false
     b.MouseButton1Click:Connect(function()
@@ -1305,11 +1300,9 @@ local function CreateToggleBtn(parent, text, callback)
         if state then
             b.BackgroundColor3 = Settings.Theme.Gold
             b.TextColor3 = Color3.new(0,0,0)
-            s.Transparency = 1
         else
             b.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
             b.TextColor3 = Color3.fromRGB(150, 150, 150)
-            s.Transparency = 0.8
         end
     end)
     return b
@@ -1435,14 +1428,14 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
             end)
          end)
     end
-end
+end)
 
 -- BOX 3: SCANNER
 local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250)
 ScannerBox.BackgroundColor3 = Settings.Theme.Box 
 Library:Corner(ScannerBox, 12)
-Library:AddStroke(ScannerBox, Settings.Theme.Gold, 1.2, 0.7)
+Library:AddGlow(ScannerBox, Settings.Theme.Gold, 1.5)
 
 -- HEBREW HEADER FOR BOX 3
 local TitleBox3 = Instance.new("TextLabel", ScannerBox)
@@ -1543,7 +1536,7 @@ ScanButton.MouseButton1Click:Connect(function()
     end
     
     if not found then
-        local msg = Instance.new("TextLabel", ScanResults); msg.Size=UDim2.new(1,0,0,20); msg.BackgroundTransparency=1; msg.Text="No rare items found."; msg.TextColor3=Color3.fromRGB(150,150,150); msg.Font=Enum.Font.GothamBold; msg.TextSize=14
+        local msg = Instance.new("TextLabel", ScanResults); msg.Size=UDim2.new(1,0,0,20); msg.BackgroundTransparency=1; msg.Text="No rare items found."; msg.TextColor3=Color3.fromRGB(150,150,150); msg.Font=Enum.Font.Gotham; msg.TextSize=14
     end
 end)
 
@@ -1586,7 +1579,7 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     c.BackgroundColor3 = Settings.Theme.Box
     c.ZIndex = 2
     Library:Corner(c, 12)
-    Library:AddStroke(c, Settings.Theme.Gold, 1.2, 0.7) -- Stroke
+    Library:AddGlow(c, Settings.Theme.Gold, 1.5)
     
     local imgCont = Instance.new("Frame", c)
     imgCont.Size = UDim2.new(0, 60, 0, 60)
@@ -1606,7 +1599,7 @@ local function CreateCreditCard(parent, name, role, discord, decal, pos, size)
     tName.Size = UDim2.new(1,0,0,20)
     tName.Position = UDim2.new(0,0,0.60,0)
     tName.BackgroundTransparency = 1
-    tName.Text = name; tName.Font=Enum.Font.GothamBold; tName.TextSize=15; tName.TextColor3 = Settings.Theme.Gold; tName.ZIndex=3
+    tName.Text = name; tName.Font=Enum.Font.GothamBlack; tName.TextSize=15; tName.TextColor3 = Settings.Theme.Gold; tName.ZIndex=3
     
     local tRole = Instance.new("TextLabel", c)
     tRole.Size = UDim2.new(1,0,0,15)
@@ -1676,7 +1669,7 @@ UIS.InputBegan:Connect(function(i,g)
             if VisualToggles["Speed"] then VisualToggles["Speed"](Settings.Speed.Enabled) end 
         end
     end
-end
+end)
 
 RunService.RenderStepped:Connect(function()
     if Settings.Speed.Enabled and LocalPlayer.Character then 
@@ -1719,4 +1712,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1.5 (VISUAL POLISH) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1.5 (ULTIMATE CFRAME) Loaded")
