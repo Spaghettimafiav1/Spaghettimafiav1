@@ -1,11 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v1 (DARK EDITION & CLOSEST TARGET)
+    Spaghetti Mafia Hub v1.1 (FIXED & IMPROVED)
     
-    Update Log:
-    - Theme: Full Dark Mode (Pure Black) with Gold Accents.
-    - Target: Added "Closest Player" button (Excludes LocalPlayer).
-    - Scanner: Text updated + Filters out 'TextLabel' objects.
-    - Logic: Anti-Sit strictly disabled during HeadSit/Backpack.
+    Fixes Applied:
+    1. Loading Screen: Soft Black BG, Yellow Stroke, Smooth Fade In/Out.
+    2. Theme: Changed Dark/Box colors to Soft Black (20, 20, 20) for better visibility.
+    3. Target: "Closest Player" button logic fixed (Strictly excludes LocalPlayer).
+    4. Backpack: Lowered sit position by 0.8 units (No longer floating too high).
+    5. Scanner: Text updated + Filters maintained.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -64,8 +65,9 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
-        Dark = Color3.fromRGB(10, 10, 10), -- Deep Black for Main Frame
-        Box = Color3.fromRGB(5, 5, 5), -- Pure Black for inner boxes
+        -- FIXED: Changed to Soft Black (20, 20, 20)
+        Dark = Color3.fromRGB(20, 20, 20), 
+        Box = Color3.fromRGB(25, 25, 25), 
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
@@ -96,7 +98,7 @@ function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenIn
 function Library:AddGlow(obj, color, thickness) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 1.5 -- Uniform Thickness
+    s.Thickness = thickness or 1.5 -- Uniform Thickness
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
@@ -196,7 +198,7 @@ local function PlaySit(play)
     end
 end
 
---// 4. LOADING SCREEN
+--// 4. LOADING SCREEN (FIXED & IMPROVED)
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -204,13 +206,27 @@ LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
-LoadBox.BackgroundColor3 = Settings.Theme.Dark
+-- FIXED: Soft Black Background
+LoadBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20) 
+-- FIXED: Added Fade In effect (Start transparent)
+LoadBox.BackgroundTransparency = 1 
 Library:Corner(LoadBox, 20)
-Library:AddGlow(LoadBox, Settings.Theme.Gold, 1.5)
+
+-- FIXED: Added Yellow Stroke for Loading Screen
+local LoadStroke = Instance.new("UIStroke", LoadBox)
+LoadStroke.Color = Settings.Theme.Gold
+LoadStroke.Thickness = 2
+LoadStroke.Transparency = 1 -- Start transparent for fade in
+
+-- Animation: Fade In
+TweenService:Create(LoadBox, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
+TweenService:Create(LoadStroke, TweenInfo.new(0.5), {Transparency = 0}):Play()
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
 PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
 PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
+PastaIcon.TextTransparency = 1 -- For fade
+TweenService:Create(PastaIcon, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
 TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}):Play()
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
@@ -218,12 +234,16 @@ TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0
 TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
+TitleLoad.TextTransparency = 1
+TweenService:Create(TitleLoad, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.2), {TextTransparency = 0}):Play()
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1...";
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
+SubLoad.TextTransparency = 1
+TweenService:Create(SubLoad, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.4), {TextTransparency = 0}):Play()
 
 local LoadingBarBG = Instance.new("Frame", LoadBox)
 LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
@@ -231,7 +251,9 @@ LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
 LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
 LoadingBarBG.BorderSizePixel = 0
 LoadingBarBG.ZIndex = 16
+LoadingBarBG.BackgroundTransparency = 1
 Library:Corner(LoadingBarBG, 5)
+TweenService:Create(LoadingBarBG, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.5), {BackgroundTransparency = 0}):Play()
 
 local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
 LoadingBarFill.Size = UDim2.new(0, 0, 1, 0)
@@ -249,6 +271,15 @@ task.spawn(function()
 end)
 
 task.wait(2.5)
+-- Animation: Fade Out before destroying
+TweenService:Create(LoadBox, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+TweenService:Create(LoadStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+TweenService:Create(PastaIcon, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+TweenService:Create(TitleLoad, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+TweenService:Create(SubLoad, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+TweenService:Create(LoadingBarBG, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+TweenService:Create(LoadingBarFill, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+task.wait(0.3)
 LoadGui:Destroy()
 
 --// 5. MAIN GUI STRUCTURE
@@ -1120,6 +1151,7 @@ ClosestBtn.MouseButton1Click:Connect(function()
     local minDist = math.huge
     local targetName = nil
     
+    -- FIXED: Strict LocalPlayer Exclusion
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
             local dist = (myRoot.Position - p.Character.HumanoidRootPart.Position).Magnitude
@@ -1350,7 +1382,7 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     end
 end)
 
--- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override)
+-- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override + Lower Position)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     isSittingAction = state -- Tell Farm Logic we are sitting
@@ -1371,7 +1403,8 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
                  LocalPlayer.Character.Humanoid.Sit = true 
-                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1.5, 0.5) * CFrame.Angles(0, math.rad(180), 0)
+                 -- FIXED: Lowered Y offset from 1.5 to 0.7 to sit correctly on back
+                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0.7, 0.5) * CFrame.Angles(0, math.rad(180), 0)
                  -- Zero velocity to prevent physics fighting
                  LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
             end)
@@ -1401,7 +1434,8 @@ local ScanButton = Instance.new("TextButton", ScannerBox)
 ScanButton.Size = UDim2.new(0.9, 0, 0, 35)
 ScanButton.Position = UDim2.new(0.05, 0, 0.1, 0)
 ScanButton.BackgroundColor3 = Settings.Theme.Gold
-ScanButton.Text = "סרוק תיק (Scan Inventory) 🔍" -- Updated Text
+-- FIXED: Updated Text
+ScanButton.Text = "סרוק תיק (Scan Inventory) 🔍" 
 ScanButton.TextColor3 = Color3.new(0,0,0)
 ScanButton.Font = Enum.Font.GothamBold
 ScanButton.TextSize = 14
@@ -1660,4 +1694,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (DARK EDITION) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1.1 (FIXED) Loaded")
