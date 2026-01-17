@@ -1,13 +1,11 @@
 --[[
-    Spaghetti Mafia Hub v1.3 (FINAL PRO - STABLE)
+    Spaghetti Mafia Hub v1.4 (FINAL FIX - ANIMATION & STABILITY)
     
-    Update Log v1.3:
-    1. BANG: Fixed R15 Animation (Dolphin Dance 5938365243) + R6 Logic.
-    2. Target: Removed "Closest Player" button (Unstable). Expanded Input box.
-    3. Auto-Sit: Aggressive Force-Sit added to Loop (Impossible to stand up).
-    4. Audio: All sounds implemented (Join, Leave, Select, Storm).
-    5. Theme: Soft Black (20,20,20) enforced.
-    6. Loading: Text set to "Loading...", Yellow Stroke.
+    Update Log v1.4:
+    1. BANG FIX: Uses 'Animator' object + Action Priority to force R15 animation.
+    2. Stability: Removed 'Closest Player' button completely.
+    3. Auto-Sit: Optimized Heartbeat loop for zero-latency sitting.
+    4. UI: Soft Black theme maintained, Layout fixed after button removal.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -65,9 +63,8 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 
 local Settings = {
     Theme = {
-        Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
-        -- FIXED: Soft Black 20,20,20
-        Dark = Color3.fromRGB(20, 20, 20), 
+        Gold = Color3.fromRGB(255, 215, 0), 
+        Dark = Color3.fromRGB(20, 20, 20), -- Soft Black
         Box = Color3.fromRGB(25, 25, 25), 
         Text = Color3.fromRGB(255, 255, 255),
         
@@ -90,15 +87,15 @@ local VisualToggles = {}
 local FarmConnection = nil
 local FarmBlacklist = {}
 local SitAnimTrack = nil 
-local isSittingAction = false -- Flag to allow sitting during HeadSit/Backpack
+local isSittingAction = false 
 
 --// SOUND SYSTEM
 local Sounds = {
     Click = "rbxassetid://4612375233",
     FriendJoin = "rbxassetid://5153734247",
     FriendLeft = "rbxassetid://5153734603",
-    StormStart = "rbxassetid://4612377184", -- Alarm
-    StormEnd = "rbxassetid://255318536"    -- Chime
+    StormStart = "rbxassetid://4612377184", 
+    StormEnd = "rbxassetid://255318536"    
 }
 
 local function PlaySound(id)
@@ -218,7 +215,7 @@ local function PlaySit(play)
     end
 end
 
---// 4. LOADING SCREEN (UPDATED)
+--// 4. LOADING SCREEN
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -226,17 +223,15 @@ LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
-LoadBox.BackgroundColor3 = Settings.Theme.Dark -- 20,20,20
+LoadBox.BackgroundColor3 = Settings.Theme.Dark 
 LoadBox.BackgroundTransparency = 1 
 Library:Corner(LoadBox, 20)
 
--- YELLOW STROKE
 local LoadStroke = Instance.new("UIStroke", LoadBox)
 LoadStroke.Color = Settings.Theme.Gold
 LoadStroke.Thickness = 2.5
 LoadStroke.Transparency = 1 
 
--- FADE IN
 TweenService:Create(LoadBox, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
 TweenService:Create(LoadStroke, TweenInfo.new(0.5), {Transparency = 0}):Play()
 
@@ -258,7 +253,6 @@ TweenService:Create(TitleLoad, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.Ea
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; 
--- UPDATED TEXT
 SubLoad.Text = "Loading..."; 
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
@@ -291,7 +285,6 @@ task.spawn(function()
 end)
 
 task.wait(2.5)
--- FADE OUT
 TweenService:Create(LoadBox, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
 TweenService:Create(LoadStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
 TweenService:Create(PastaIcon, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
@@ -683,8 +676,6 @@ local function ToggleFarm(v)
                 local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
                 if hum then 
                     -- ABSOLUTE ANTI-SIT FIX:
-                    -- If we are in the middle of a HeadSit/Backpack action, do NOTHING to the sit state.
-                    -- This allows the sit animation to play.
                     if not isSittingAction then
                         if hum.Sit then hum.Sit = false end 
                         hum:SetStateEnabled(Enum.HumanoidStateType.Seated, false) 
@@ -1173,7 +1164,7 @@ Library:Corner(TargetBox, 12)
 Library:AddGlow(TargetBox, Settings.Theme.Gold, 1.5)
 
 local TargetInput = Instance.new("TextBox", TargetBox)
-TargetInput.Size = UDim2.new(0.85, 0, 0, 45) -- EXPANDED (Removed Button)
+TargetInput.Size = UDim2.new(0.9, 0, 0, 45) -- EXPANDED TO FULL WIDTH
 TargetInput.Position = UDim2.new(0.05, 0, 0.22, 0)
 TargetInput.BackgroundColor3 = Color3.fromRGB(20,20,20)
 TargetInput.Text = ""
@@ -1182,8 +1173,6 @@ TargetInput.TextColor3 = Color3.new(1,1,1)
 TargetInput.Font = Enum.Font.GothamBold
 TargetInput.TextSize = 16
 Library:Corner(TargetInput, 8)
-
--- REMOVED CLOSEST BUTTON (UNSTABLE)
 
 -- HEADER TEXT
 local TitleBox1 = Instance.new("TextLabel", TargetBox)
@@ -1317,7 +1306,7 @@ local function CreateToggleBtn(parent, text, callback)
     return b
 end
 
--- 1. BANG (UPDATED: R15/R6 LOGIC)
+-- 1. BANG (UPDATED: PROPER ANIMATION LOADING)
 local TrollConnection = nil
 CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
     if not state then
@@ -1334,6 +1323,7 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
         local P = Players.LocalPlayer
         local C = P.Character or P.CharacterAdded:Wait()
         local H = C:WaitForChild('Humanoid')
+        local Animator = H:FindFirstChild("Animator") or H:WaitForChild("Animator")
         
         -- R15 DETECTION & ANIMATION LOAD
         local AnimID = "rbxassetid://148840371" -- R6
@@ -1343,10 +1333,17 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
 
         local A = Instance.new("Animation")
         A.AnimationId = AnimID
-        local Track = H:LoadAnimation(A)
-        Track.Looped = true
-        Track:Play()
-        Track:AdjustSpeed(2.5)
+        
+        local success, Track = pcall(function()
+            return Animator:LoadAnimation(A)
+        end)
+        
+        if success and Track then
+            Track.Priority = Enum.AnimationPriority.Action -- FORCE PRIORITY
+            Track.Looped = true
+            Track:Play()
+            Track:AdjustSpeed(2.5)
+        end
         
         TrollConnection = RunService.Stepped:Connect(function()
             if not target.Character or not P.Character then 
@@ -1373,7 +1370,7 @@ CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
     end
 end)
 
--- 3. HEADSIT (UPDATED: FORCE SIT LOOP)
+-- 3. HEADSIT (UPDATED: HEARTBEAT SIT LOOP)
 local HeadSitConnection = nil
 CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     isSittingAction = state 
@@ -1393,7 +1390,7 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
                  local h = LocalPlayer.Character.Humanoid
-                 if not h.Sit then h.Sit = true end -- FORCE RE-SIT
+                 if not h.Sit then h.Sit = true end 
                  
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.Head.CFrame * CFrame.new(0, 1.5, 0)
                  LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
@@ -1402,7 +1399,7 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     end
 end)
 
--- 4. BACKPACK (UPDATED: FORCE SIT LOOP + LOWERED)
+-- 4. BACKPACK (UPDATED: HEARTBEAT SIT LOOP)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     isSittingAction = state 
@@ -1422,7 +1419,7 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
                  local h = LocalPlayer.Character.Humanoid
-                 if not h.Sit then h.Sit = true end -- FORCE RE-SIT
+                 if not h.Sit then h.Sit = true end 
 
                  -- LOWERED BY 0.8 (from 1.5 to 0.7)
                  LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0.7, 0.5) * CFrame.Angles(0, math.rad(180), 0)
@@ -1714,4 +1711,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1.3 (FINAL PRO) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1.4 (FINAL FIX) Loaded")
