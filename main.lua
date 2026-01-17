@@ -1,11 +1,12 @@
 --[[
-    Spaghetti Mafia Hub v1 (DARK EDITION & CLOSEST TARGET)
+    Spaghetti Mafia Hub v1 (FINAL POLISHED VERSION)
     
     Update Log:
-    - Theme: Full Dark Mode (Pure Black) with Gold Accents.
-    - Target: Added "Closest Player" button (Excludes LocalPlayer).
-    - Scanner: Text updated + Filters out 'TextLabel' objects.
-    - Logic: Anti-Sit strictly disabled during HeadSit/Backpack.
+    - UI: Soft Black Theme (20,20,20) for better visibility.
+    - Loader: Added Fade-In Animation + Yellow Stroke.
+    - Target: Fixed "Closest Player" selecting self.
+    - Backpack: Lowered sit offset (0.7) for better positioning.
+    - Logic: All previous protections (Anti-Sit override, Smart Noclip) preserved.
 ]]
 
 --// AUTO EXECUTE / SERVER HOP SUPPORT
@@ -64,12 +65,12 @@ if CoreGui:FindFirstChild("SpaghettiLoading") then CoreGui.SpaghettiLoading:Dest
 local Settings = {
     Theme = {
         Gold = Color3.fromRGB(255, 215, 0), -- Strong Gold
-        Dark = Color3.fromRGB(10, 10, 10), -- Deep Black for Main Frame
-        Box = Color3.fromRGB(5, 5, 5), -- Pure Black for inner boxes
+        Dark = Color3.fromRGB(20, 20, 20), -- Soft Black (Main Background)
+        Box = Color3.fromRGB(25, 25, 25), -- Slightly lighter Soft Black for Boxes
         Text = Color3.fromRGB(255, 255, 255),
         
         IceBlue = Color3.fromRGB(100, 220, 255),
-        IceDark = Color3.fromRGB(5, 10, 20),
+        IceDark = Color3.fromRGB(15, 20, 30),
         
         ShardBlue = Color3.fromRGB(50, 180, 255),
         CrystalRed = Color3.fromRGB(255, 70, 70),
@@ -96,7 +97,7 @@ function Library:Tween(obj, props, time, style) TweenService:Create(obj, TweenIn
 function Library:AddGlow(obj, color, thickness) 
     local s = Instance.new("UIStroke", obj)
     s.Color = color or Settings.Theme.Gold
-    s.Thickness = 1.5 -- Uniform Thickness
+    s.Thickness = thickness or 1.5 
     s.Transparency = 0.5
     s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     
@@ -196,7 +197,7 @@ local function PlaySit(play)
     end
 end
 
---// 4. LOADING SCREEN
+--// 4. LOADING SCREEN (IMPROVED ANIMATION & COLOR)
 local LoadGui = Instance.new("ScreenGui"); LoadGui.Name = "SpaghettiLoading"; LoadGui.Parent = CoreGui
 local LoadBox = Instance.new("Frame", LoadGui)
 LoadBox.Size = UDim2.new(0, 240, 0, 160)
@@ -204,26 +205,29 @@ LoadBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadBox.AnchorPoint = Vector2.new(0.5, 0.5)
 LoadBox.ClipsDescendants = true 
 LoadBox.BorderSizePixel = 0
-LoadBox.BackgroundColor3 = Settings.Theme.Dark
+LoadBox.BackgroundColor3 = Settings.Theme.Dark -- Soft Black
+LoadBox.BackgroundTransparency = 1 -- Start transparent for Fade In
 Library:Corner(LoadBox, 20)
-Library:AddGlow(LoadBox, Settings.Theme.Gold, 1.5)
+Library:AddGlow(LoadBox, Settings.Theme.Gold, 2.5) -- Thick Yellow Stroke
 
 local PastaIcon = Instance.new("TextLabel", LoadBox)
 PastaIcon.Size = UDim2.new(1, 0, 0.45, 0); PastaIcon.Position = UDim2.new(0,0,0.05,0)
 PastaIcon.BackgroundTransparency = 1; PastaIcon.Text = "🍝"; PastaIcon.TextSize = 60; PastaIcon.ZIndex = 15
-TweenService:Create(PastaIcon, TweenInfo.new(1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}):Play()
+PastaIcon.TextTransparency = 1 -- Start transparent
 
 local TitleLoad = Instance.new("TextLabel", LoadBox)
 TitleLoad.Size = UDim2.new(1, 0, 0.2, 0); TitleLoad.Position = UDim2.new(0, 0, 0.50, 0)
 TitleLoad.BackgroundTransparency = 1; TitleLoad.Text = "Spaghetti Mafia Hub v1"; 
 TitleLoad.Font = Enum.Font.GothamBlack; TitleLoad.TextColor3 = Settings.Theme.Gold; TitleLoad.TextSize = 18
 TitleLoad.ZIndex = 15
+TitleLoad.TextTransparency = 1 -- Start transparent
 
 local SubLoad = Instance.new("TextLabel", LoadBox)
 SubLoad.Size = UDim2.new(1, 0, 0.2, 0); SubLoad.Position = UDim2.new(0, 0, 0.68, 0)
 SubLoad.BackgroundTransparency = 1; SubLoad.Text = "טוען גרסה 1...";
 SubLoad.Font = Enum.Font.Gotham; SubLoad.TextColor3 = Color3.new(1,1,1); SubLoad.TextSize = 14
 SubLoad.ZIndex = 15
+SubLoad.TextTransparency = 1 -- Start transparent
 
 local LoadingBarBG = Instance.new("Frame", LoadBox)
 LoadingBarBG.Size = UDim2.new(0.7, 0, 0, 5)
@@ -231,6 +235,7 @@ LoadingBarBG.Position = UDim2.new(0.15, 0, 0.88, 0)
 LoadingBarBG.BackgroundColor3 = Color3.fromRGB(40,40,45)
 LoadingBarBG.BorderSizePixel = 0
 LoadingBarBG.ZIndex = 16
+LoadingBarBG.BackgroundTransparency = 1 -- Start transparent
 Library:Corner(LoadingBarBG, 5)
 
 local LoadingBarFill = Instance.new("Frame", LoadingBarBG)
@@ -239,7 +244,19 @@ LoadingBarFill.BackgroundColor3 = Settings.Theme.Gold
 LoadingBarFill.BorderSizePixel = 0
 LoadingBarFill.ZIndex = 17
 Library:Corner(LoadingBarFill, 5)
-Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 2.5, Enum.EasingStyle.Quad)
+
+-- Fade In Sequence
+task.spawn(function()
+    Library:Tween(LoadBox, {BackgroundTransparency = 0}, 0.5)
+    task.wait(0.2)
+    Library:Tween(PastaIcon, {TextTransparency = 0, Rotation = 10, Size = UDim2.new(1.1, 0, 0.50, 0)}, 0.6, Enum.EasingStyle.Back)
+    task.wait(0.1)
+    Library:Tween(TitleLoad, {TextTransparency = 0}, 0.5)
+    Library:Tween(SubLoad, {TextTransparency = 0}, 0.5)
+    Library:Tween(LoadingBarBG, {BackgroundTransparency = 0}, 0.5)
+    
+    Library:Tween(LoadingBarFill, {Size = UDim2.new(1, 0, 1, 0)}, 2.5, Enum.EasingStyle.Quad)
+end)
 
 task.spawn(function()
     while LoadBox.Parent do
@@ -248,7 +265,14 @@ task.spawn(function()
     end
 end)
 
-task.wait(2.5)
+task.wait(2.8) -- Wait for load
+-- Fade Out Sequence
+Library:Tween(LoadBox, {BackgroundTransparency = 1}, 0.4)
+Library:Tween(PastaIcon, {TextTransparency = 1}, 0.4)
+Library:Tween(TitleLoad, {TextTransparency = 1}, 0.4)
+Library:Tween(SubLoad, {TextTransparency = 1}, 0.4)
+Library:Tween(LoadingBarBG, {BackgroundTransparency = 1}, 0.4)
+task.wait(0.4)
 LoadGui:Destroy()
 
 --// 5. MAIN GUI STRUCTURE
@@ -257,7 +281,7 @@ local ScreenGui = Instance.new("ScreenGui"); ScreenGui.Name = "SpaghettiHub_Rel"
 local MiniPasta = Instance.new("TextButton", ScreenGui); 
 MiniPasta.Size = UDim2.new(0, 60, 0, 60); 
 MiniPasta.Position = UDim2.new(0.1, 0, 0.1, 0); 
-MiniPasta.BackgroundColor3 = Settings.Theme.Box; 
+MiniPasta.BackgroundColor3 = Settings.Theme.Dark; -- Soft Black
 MiniPasta.Text = "🍝"; 
 MiniPasta.TextSize = 35; 
 MiniPasta.Visible = false; 
@@ -270,7 +294,7 @@ local NEW_WIDTH = 550
 local NEW_HEIGHT = 420 
 MainFrame.Size = UDim2.new(0, NEW_WIDTH, 0, NEW_HEIGHT)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0); MainFrame.AnchorPoint = Vector2.new(0.5, 0.5); 
-MainFrame.BackgroundColor3 = Settings.Theme.Dark; 
+MainFrame.BackgroundColor3 = Settings.Theme.Dark; -- Soft Black
 MainFrame.ClipsDescendants = true; 
 Library:Corner(MainFrame, 16); 
 
@@ -409,7 +433,7 @@ end)
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Size = UDim2.new(0, 150, 1, -65)
 Sidebar.Position = UDim2.new(0,0,0,65)
-Sidebar.BackgroundColor3 = Settings.Theme.Box
+Sidebar.BackgroundColor3 = Settings.Theme.Box -- Soft Black
 Sidebar.BorderSizePixel = 0 
 Sidebar.ZIndex = 2
 Library:Corner(Sidebar, 12)
@@ -420,7 +444,7 @@ UserProfile.Name = "UserProfileContainer"
 UserProfile.Size = UDim2.new(0.92, 0, 0, 75)
 UserProfile.AnchorPoint = Vector2.new(0.5, 1)
 UserProfile.Position = UDim2.new(0.5, 0, 0.98, 0)
-UserProfile.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- Darker
+UserProfile.BackgroundColor3 = Color3.fromRGB(35, 35, 35) -- Slightly lighter
 UserProfile.BorderSizePixel = 0
 UserProfile.ZIndex = 10
 Library:Corner(UserProfile, 10)
@@ -1087,7 +1111,7 @@ end
 -- BOX 1: HEADER (WITH STATUS & CLOSEST BUTTON)
 local TargetBox = Instance.new("Frame", TargetScroll)
 TargetBox.Size = UDim2.new(0.95, 0, 0, 85)
-TargetBox.BackgroundColor3 = Settings.Theme.Box 
+TargetBox.BackgroundColor3 = Settings.Theme.Box -- Soft Black
 Library:Corner(TargetBox, 12)
 Library:AddGlow(TargetBox, Settings.Theme.Gold, 1.5)
 
@@ -1121,6 +1145,7 @@ ClosestBtn.MouseButton1Click:Connect(function()
     local targetName = nil
     
     for _, p in pairs(Players:GetPlayers()) do
+        -- FIX: Explicitly exclude LocalPlayer
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
             local dist = (myRoot.Position - p.Character.HumanoidRootPart.Position).Magnitude
             if dist < minDist then
@@ -1132,12 +1157,6 @@ ClosestBtn.MouseButton1Click:Connect(function()
     
     if targetName then
         TargetInput.Text = targetName
-        -- Trigger manual update
-        local p = GetPlayer(targetName)
-        if p then
-            -- Update logic duplication for instant feedback
-            -- (FocusLost handles image normally, but we force it here)
-        end
         TargetInput:CaptureFocus()
         TargetInput:ReleaseFocus() 
     end
@@ -1225,7 +1244,7 @@ end)
 -- BOX 2: ACTIONS (SYMMETRICAL GRID)
 local ActionBox = Instance.new("Frame", TargetScroll)
 ActionBox.Size = UDim2.new(0.95, 0, 0, 160)
-ActionBox.BackgroundColor3 = Settings.Theme.Box 
+ActionBox.BackgroundColor3 = Settings.Theme.Box -- Soft Black
 ActionBox.ClipsDescendants = true 
 Library:Corner(ActionBox, 12)
 Library:AddGlow(ActionBox, Settings.Theme.Gold, 1.5)
@@ -1309,7 +1328,7 @@ CreateToggleBtn(ActionBox, "BANG (פיצוץ)", function(state)
             end)
         end)
     end
-end)
+end
 
 -- 2. SPECTATE
 CreateToggleBtn(ActionBox, "SPECTATE (צפייה)", function(state)
@@ -1350,7 +1369,7 @@ CreateToggleBtn(ActionBox, "HEADSIT (על הראש)", function(state)
     end
 end)
 
--- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override)
+-- 4. BACKPACK (Fixed: Heartbeat Stability + Anti-Sit Override + Lower Offset)
 local BackpackConnection = nil
 CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
     isSittingAction = state -- Tell Farm Logic we are sitting
@@ -1371,7 +1390,8 @@ CreateToggleBtn(ActionBox, "BACKPACK (על הגב)", function(state)
             pcall(function()
                  if not target.Character or not LocalPlayer.Character then return end
                  LocalPlayer.Character.Humanoid.Sit = true 
-                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 1.5, 0.5) * CFrame.Angles(0, math.rad(180), 0)
+                 -- FIX: Lowered Offset from 1.5 to 0.7
+                 LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0.7, 0.5) * CFrame.Angles(0, math.rad(180), 0)
                  -- Zero velocity to prevent physics fighting
                  LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
             end)
@@ -1382,7 +1402,7 @@ end)
 -- BOX 3: SCANNER
 local ScannerBox = Instance.new("Frame", TargetScroll)
 ScannerBox.Size = UDim2.new(0.95, 0, 0, 250)
-ScannerBox.BackgroundColor3 = Settings.Theme.Box 
+ScannerBox.BackgroundColor3 = Settings.Theme.Box -- Soft Black
 Library:Corner(ScannerBox, 12)
 Library:AddGlow(ScannerBox, Settings.Theme.Gold, 1.5)
 
@@ -1660,4 +1680,4 @@ if RejoinBtn then
     RejoinBtn.MouseLeave:Connect(function() Library:Tween(RejoinBtn, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}, 0.2) end)
 end
 
-print("[SYSTEM] Spaghetti Mafia Hub v1 (DARK EDITION) Loaded")
+print("[SYSTEM] Spaghetti Mafia Hub v1 (FINAL POLISHED VERSION) Loaded")
